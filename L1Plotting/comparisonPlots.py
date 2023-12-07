@@ -53,6 +53,11 @@ def AddRectangles(ax, Ymax):
     ax.add_patch(rect1)
     ax.add_patch(rect2)  
 
+def GetText(inclusive_resp):
+    s = round(inclusive_resp.GetRMS(),3)
+    m = round(inclusive_resp.GetMean(),3)
+    return r'$%s/%s=%s$' % (s, m, round(s/m,3))
+
 NewCalibLabel = "New Calibration"
 OldCalibLabel = "Old Calibration"
 NoCalibLabel = "No Calibration"
@@ -164,27 +169,44 @@ if options.doResponse == True:
     print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root'))
     print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root'))
 
-    inclusive_resp_unCalib  = file_unCalib.Get("pt_response_ptInclusive")
-    inclusive_resp_oldCalib = file_oldCalib.Get("pt_response_ptInclusive")
-    inclusive_resp_newCalib = file_newCalib.Get("pt_response_ptInclusive")
+    for histo_name in ["pt_response_ptInclusive", "pt_response_ptInclusive_CD"]:
 
-    fig, ax = plt.subplots(figsize=(10,10))
-    X,Y,X_err,Y_err = GetArraysFromHisto(inclusive_resp_unCalib)
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NoCalibLabel, ls='None', lw=2, marker='o', color='black', zorder=0)
-    ax.step(np.array((np.array(X[:-1])+np.array(X[1:]))/2), np.array(Y[:-1]), color='black')
-    Ymax = max(Y)
-    X,Y,X_err,Y_err = GetArraysFromHisto(inclusive_resp_oldCalib)
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=OldCalibLabel, ls='None', lw=2, marker='o', color='red', zorder=1)
-    ax.step(np.array((np.array(X[:-1])+np.array(X[1:]))/2), np.array(Y[:-1]), color='red')
-    Ymax = max(Ymax, max(Y))
-    X,Y,X_err,Y_err = GetArraysFromHisto(inclusive_resp_newCalib)
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NewCalibLabel, ls='None', lw=2, marker='o', color='green', zorder=2)
-    ax.step(np.array((np.array(X[:-1])+np.array(X[1:]))/2), np.array(Y[:-1]), color='green')
-    Ymax = max(Ymax, max(Y))
-    SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0., Ymax*1.3))
-    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive_'+label+'_'+target+'.pdf')
-    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive_'+label+'_'+target+'.png')
-    plt.close()
+        if histo_name == "pt_response_ptInclusive": name = ''
+        if histo_name == "pt_response_ptInclusive_CD": name = '_CD'
+
+        inclusive_resp_unCalib  = file_unCalib.Get(histo_name)
+        inclusive_resp_oldCalib = file_oldCalib.Get(histo_name)
+        inclusive_resp_newCalib = file_newCalib.Get(histo_name)
+
+        for legend_type in ['w', 'w/o']:
+
+            text = ''; legend_label_response = ''; leg = ''
+
+            if legend_type == 'w': # with numbers
+                legend_label_response = r'Resolution: $\sigma / \mu$'
+                leg = '_res'
+
+            fig, ax = plt.subplots(figsize=(10,10))
+            X,Y,X_err,Y_err = GetArraysFromHisto(inclusive_resp_unCalib)
+            if legend_type == 'w': text = ': '+ GetText(inclusive_resp_unCalib)
+            ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NoCalibLabel+text, ls='None', lw=2, marker='o', color='black', zorder=0)
+            ax.step(np.array((np.array(X[:-1])+np.array(X[1:]))/2), np.array(Y[:-1]), color='black')
+            Ymax = max(Y)
+            X,Y,X_err,Y_err = GetArraysFromHisto(inclusive_resp_oldCalib)
+            if legend_type == 'w': text = ': '+ GetText(inclusive_resp_oldCalib)
+            ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=OldCalibLabel+text, ls='None', lw=2, marker='o', color='red', zorder=1)
+            ax.step(np.array((np.array(X[:-1])+np.array(X[1:]))/2), np.array(Y[:-1]), color='red')
+            Ymax = max(Ymax, max(Y))
+            X,Y,X_err,Y_err = GetArraysFromHisto(inclusive_resp_newCalib)
+            if legend_type == 'w': text = ': '+ GetText(inclusive_resp_newCalib)
+            ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NewCalibLabel+text, ls='None', lw=2, marker='o', color='green', zorder=2)
+            ax.step(np.array((np.array(X[:-1])+np.array(X[1:]))/2), np.array(Y[:-1]), color='green')
+            Ymax = max(Ymax, max(Y))
+            SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0., Ymax*1.3), legend_label_response)
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive'+name+leg+'_'+label+'_'+target+'.pdf')
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive'+name+leg+'_'+label+'_'+target+'.png')
+            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive'+name+leg+'_'+label+'_'+target+'.png')
+            plt.close()
 
     list_bins = ['ptBin', 'AbsEtaBin']
     if options.do_HoTot: list_bins.append('HoTotBin')
@@ -300,8 +322,9 @@ if options.doResolution == True:
             if quantity == 'resol': X_r_newcalib = X; Y_r_newcalib = Y
             if quantity == 'scale': X_s_newcalib = X; Y_s_newcalib = Y
             Ymax = max(Ymax, max(Y))
-            if var == 'eta': AddRectangles(ax,Ymax)
-            SetStyle(ax, x_label, y_label, x_lim, (0., Ymax*1.3))
+            if var == 'Eta': AddRectangles(ax,Ymax)
+            if y_lim: SetStyle(ax, x_label, y_label, x_lim, y_lim)
+            else: SetStyle(ax, x_label, y_label, x_lim, (0., 1.3*Ymax))
             plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+'_'+name_x+'Bins_'+label+'_'+target+'.pdf')
             plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+'_'+name_x+'Bins_'+label+'_'+target+'.png')
             print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+'_'+name_x+'Bins_'+label+'_'+target+'.png')
@@ -387,6 +410,7 @@ if options.doRate == True:
             X,Y,X_err,Y_err = GetArraysFromHisto(rate_newCalib)
             ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NewCalibLabel, ls='None', lw=2, marker='o', color='green', zorder=2)
             SetStyle(ax, x_label_rate, y_label_rate, x_lim_rate, y_lim_rate)
+            plt.yscale('log')
             plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+'_'+target+'.pdf')
             plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+'_'+target+'.png')
             print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+'_'+target+'.png')

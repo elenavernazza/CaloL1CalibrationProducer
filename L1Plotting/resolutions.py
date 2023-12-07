@@ -568,66 +568,37 @@ else:
 ############################################################################################
 ############################################################################################
 
-if options.reco:
-    if options.target == 'jet':
-        barrel_label = r'Barrel $|\eta^{jet, offline}|<1.305$'
-        endcap_label = r'Endcap $1.479<|\eta^{jet, offline}|<5.191$'
-        inclusive_label = r'Inclusive $|\eta^{jet, offline}|<5.191$'
-        legend_label_pt = r'$<|p_{T}^{jet, offline}|<$'
-        legend_label_eta = r'$<|\eta^{jet, offline}|<$'
-        x_label_pt = r'$p_{T}^{jet, offline}$'
-        x_label_eta = r'$E_{T}^{jet, L1} / p_{T}^{jet, offline}$'
-        x_label_response = r'$E_{T}^{jet, L1} / p_{T}^{jet, offline}$'
-    elif options.target == 'ele':
-        barrel_label = r'Barrel $|\eta^{e, offline}|<1.305$'
-        endcap_label = r'Endcap $1.479<|\eta^{e, offline}|<3.0$'
-        inclusive_label = r'Inclusive $|\eta^{e, offline}|<3.0$'
-        legend_label_pt = r'$<|p_{T}^{e, offline}|<$'
-        legend_label_eta = r'$<|\eta^{ele, offline}|<$'
-        x_label_pt = r'$p_{T}^{e, offline}$'
-        x_label_eta = r'$E_{T}^{e/\gamma, L1} / p_{T}^{e, offline}$'
-        x_label_response = r'$E_{T}^{e/\gamma, L1} / p_{T}^{e, offline}$'
-    elif options.target == 'met':
-        barrel_label = r'Barrel $|\eta^{MET, offline}|<1.305$'
-        endcap_label = r'Endcap $1.479<|\eta^{MET, offline}|<3.0$'
-        inclusive_label = r'Inclusive $|\eta^{MET, offline}|<3.0$'
-        legend_label_pt = r'$<|MET^{offline}|<$'
-        legend_label_eta = r'$<|\eta^{MET, offline}|<$'
-        x_label_pt = r'$MET^{offline}$'
-        x_label_eta = r'$MET^{L1} / MET^{offline}$'
-        x_label_response = r'$MET^{L1} / MET^{offline}$'
-if options.gen:
-    if options.target == 'jet':
-        barrel_label = r'Barrel $|\eta^{jet, gen}|<1.305$'
-        endcap_label = r'Endcap $1.479<|\eta^{jet, gen}|<5.191$'
-        inclusive_label = r'Inclusive $|\eta^{jet, gen}|<5.191$'
-        legend_label_pt = r'$<|p_{T}^{jet, gen}|<$'
-        legend_label_eta = r'$<|\eta^{jet, gen}|<$'
-        x_label_pt = r'$p_{T}^{jet, gen}$'
-        x_label_eta = r'$E_{T}^{jet, L1} / p_{T}^{jet, gen}$'
-        x_label_response = r'$E_{T}^{jet, L1} / p_{T}^{jet, gen}$'
-    elif options.target == 'ele':
-        barrel_label = r'Barrel $|\eta^{e, gen}|<1.305$'
-        endcap_label = r'Endcap $1.479<|\eta^{e, gen}|<3.0$'
-        inclusive_label = r'Inclusive $|\eta^{e, gen}|<3.0$'
-        legend_label_pt = r'$<|p_{T}^{e, gen}|<$'
-        legend_label_eta = r'$<|\eta^{ele, gen}|<$'
-        x_label_pt = r'$p_{T}^{e, gen}$'
-        x_label_eta = r'$E_{T}^{e/\gamma, L1} / p_{T}^{e, gen}$'
-        x_label_response = r'$E_{T}^{e/\gamma, L1} / p_{T}^{e, gen}$'
+if options.reco:    targ_name = 'offline'
+elif options.gen:   targ_name = 'gen'
+if options.target == 'jet':     part_name = 'jet'
+elif options.target == 'ele':   part_name = 'e'
+elif options.target == 'met':   part_name = 'MET'
 
-x_label_Hotot = r'$H/Tot$'
-x_label_Eotot = r'$E/Tot$'
-x_lim_Hotot = (0,1)
-x_lim_Eotot = (0,1)
-legend_label_Hotot = r'$<H/Tot<$'
-legend_label_Eotot = r'$<E/Tot<$'
+barrel_label = r'Barrel $|\eta^{%s, %s}|<1.305$' % (part_name, targ_name)
+endcap_label = r'Endcap $1.479<|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
+inclusive_label = r'Inclusive $|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
 
-y_label_resolution = 'Energy resolution'
-y_label_scale = 'Energy scale (Mean)'
-y_label_scale_max = 'Energy scale (Maximum)'
-x_lim_pt = (0,150)
-x_lim_eta = (-5.2,5.2) # (-3.01,3.01)
+x_label_pt      = r'$p_{T}^{%s, %s}$' % (part_name, targ_name)
+x_label_eta     = r'$\eta^{%s, %s}$' % (part_name, targ_name)
+x_label_Hotot   = r'$H/Tot$'
+x_label_Eotot   = r'$E/Tot$'
+
+x_lim_pt        = (0,150)
+x_lim_eta       = (-5.2,5.2) # (-3.01,3.01)
+x_lim_Hotot     = (0,1)
+x_lim_Eotot     = (0,1)
+
+legend_label_pt     = r'$<|p_{T}^{%s, %s}|<$' % (part_name, targ_name)
+legend_label_eta    = r'$<|\eta^{%s, %s}|<$' % (part_name, targ_name)
+legend_label_Hotot  = r'$<H/Tot<$'
+legend_label_Eotot  = r'$<E/Tot<$'
+
+x_label_response = r'$E_{T}^{%s, L1} / p_{T}^{%s, %s}$' % (part_name,part_name, targ_name)
+y_label_response = 'Entries'
+
+y_label_resolution  = 'Energy resolution'
+y_label_scale       = 'Energy scale (Mean)'
+y_label_scale_max   = 'Energy scale (Maximum)'
 y_lim_scale = (0.5,1.5)
 
 def GetArraysFromHisto(histo):
