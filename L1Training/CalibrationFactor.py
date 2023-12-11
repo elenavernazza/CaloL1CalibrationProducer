@@ -9,7 +9,7 @@ import warnings
 warnings.filterwarnings(action='ignore', category=UserWarning)
 
 sys.path.insert(0,'..')
-from L1NtupleReader.TowerGeometry import *
+from Utils.TowerGeometry import *
 from L1Training.NNModel_RegAndRate import *
 
 #######################################################################

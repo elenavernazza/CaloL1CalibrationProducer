@@ -10,7 +10,7 @@ import warnings
 warnings.simplefilter(action='ignore')
 
 sys.path.insert(0,'..')
-from L1NtupleReader.TowerGeometry import *
+from Utils.TowerGeometry import *
 from L1Training.NNModel_RegAndRate import *
 
 import mplhep

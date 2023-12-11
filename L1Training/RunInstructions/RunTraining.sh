@@ -43,7 +43,7 @@ python3 ProgressionPerformance.py --indir 2023_12_05_NtuplesV54/JetMET_PuppiJet_
 # RE-EMULATION
 
 python3 PrepareReEmulation.py --indir 2023_12_05_NtuplesV54/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 \
-    --v HCAL --tag DataReco --addtag _Test3 --applyECAL False --modelRate
+    --v HCAL --tag DataReco --addtag _Test2 --applyECAL False --modelRate
 
 python3 ProduceCaloParams.py --name caloParams_2023_v51_Test3_newCalib_cfi \
     --base caloParams_2023_v0_2_noL1Calib_cfi.py \
