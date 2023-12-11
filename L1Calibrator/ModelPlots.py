@@ -9,8 +9,9 @@ from matplotlib.transforms import Affine2D
 import warnings
 warnings.simplefilter(action='ignore')
 
-from NNModelTraining_FullyCustom_GPUdistributed_batchedRate import *
+sys.path.insert(0,'..')
 from L1NtupleReader.TowerGeometry import *
+from L1Training.NNModel_RegAndRate import *
 
 import mplhep
 plt.style.use(mplhep.style.CMS)
@@ -88,7 +89,11 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers):
 
     return True
 
-def PlotSF2D (SF_matrix, bins, odir, v_sample):
+def PlotSF2D (SF_matrix, bins, odir, v_sample, i_epoch = None):
+
+    if i_epoch: epoch = '_{}'.format(i_epoch)
+    else: epoch = ''
+
     min_=0
     if v_sample == 'ECAL':
         max_=1.5
@@ -120,7 +125,7 @@ def PlotSF2D (SF_matrix, bins, odir, v_sample):
 
     plt.ylabel(f'$Et$ $[GeV]$')
     plt.xlabel(f'$i\eta$')
-    savefile = odir + '/SFs_2D_'+v_sample
+    savefile = odir + '/SFs_2D_'+v_sample+epoch
     plt.savefig(savefile+'.png')
     plt.savefig(savefile+'.pdf')
    
@@ -464,7 +469,7 @@ if __name__ == "__main__" :
         bin_edges = bin_edges[:np.array(ScaleFactors).shape[0]]
 
         PlotSF(ScaleFactors, bin_edges, odir, "HCAL", eta_towers)
-        # PlotSF2D(ScaleFactors, bin_edges, odir, "HCAL")
+        PlotSF2D(ScaleFactors, bin_edges, odir, "HCAL")
 
         ## HF
         # Read the Scale factors
