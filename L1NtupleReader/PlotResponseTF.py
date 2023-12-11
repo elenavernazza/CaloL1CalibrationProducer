@@ -1,5 +1,6 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import matplotlib
 import numpy as np
 import sys, glob, os
@@ -70,7 +71,7 @@ def PlotEtaIesum(df_Towers, odir, v_sample, type):
     hist[hist == 0] = -1
     cmap = matplotlib.cm.get_cmap("viridis")
     cmap.set_under(color='white') 
-    plt.imshow(hist.T, cmap=cmap, origin='lower', aspect='auto', vmin=0.1)
+    plt.imshow(hist.T, cmap=cmap, origin='lower', aspect='auto', norm=LogNorm(vmin=0.1, vmax=100000))
     # plt.hist2d(df_Towers[sel]['ieta'], df_Towers[sel][x_label], bins=[bins_x,bins_y], cmap='plasma', vmin=1)
     plt.colorbar()
     plt.xlabel('Eta')
@@ -93,7 +94,7 @@ def PlotEtaIesum(df_Towers, odir, v_sample, type):
     hist[hist == 0] = -1
     cmap = matplotlib.cm.get_cmap("viridis")
     cmap.set_under(color='white') 
-    plt.imshow(hist.T, cmap=cmap, origin='lower', aspect='auto', vmin=0.1)
+    plt.imshow(hist.T, cmap=cmap, origin='lower', aspect='auto', norm=LogNorm(vmin=0.1, vmax=20000))
     plt.colorbar()
     plt.xlabel('Eta')
     plt.ylabel(x_label)
@@ -115,7 +116,7 @@ def PlotEtaIesum(df_Towers, odir, v_sample, type):
     hist[hist == 0] = -1
     cmap = matplotlib.cm.get_cmap("viridis")
     cmap.set_under(color='white') 
-    plt.imshow(hist.T, cmap=cmap, origin='lower', aspect='auto', vmin=0.1)
+    plt.imshow(hist.T, cmap=cmap, origin='lower', aspect='auto', norm=LogNorm(vmin=0.1, vmax=2000))
     plt.colorbar()
     plt.xlabel('Eta')
     plt.ylabel(x_label)
@@ -415,7 +416,7 @@ if __name__ == "__main__" :
     parser.add_option("--indir",        dest="indir",       help="Input folder with trained model",     default=None)
     parser.add_option("--tag",          dest="tag",         help="tag of the training folder",          default="")
     parser.add_option("--v",            dest="v",           help="Ntuple type ('ECAL' or 'HCAL')",      default='ECAL')
-    parser.add_option("--filesLim",     dest="filesLim",    help="Maximum number of npz files to use",  default=1000000, type=int)
+    parser.add_option("--filesLim",     dest="filesLim",    help="Maximum number of npz files to use",  default=None)
     parser.add_option("--eventLim",     dest="eventLim",    help="Maximum number of events to use",     default=None)
     parser.add_option("--addtag",       dest="addtag",      help="Add tag for different trainings",     default="")
     parser.add_option("--ietacut",      dest="ietacut",     help="Apply ieta cut",                      default=None)
@@ -430,7 +431,10 @@ if __name__ == "__main__" :
     odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/PerformancePlots_Uncalib'
     os.system('mkdir -p '+ odir)
     print('\n ### Reading TF records from: ' + indir + '/trainTFRecords/record_*.tfrecord')
-    InTestRecords = glob.glob(indir+'/trainTFRecords/record_*.tfrecord')[:options.filesLim]
+    if options.filesLim:
+        InTestRecords = glob.glob(indir+'/trainTFRecords/record_*.tfrecord')[:int(options.filesLim)]
+    else:
+        InTestRecords = glob.glob(indir+'/trainTFRecords/record_*.tfrecord')
     dataset = tf.data.TFRecordDataset(InTestRecords)
     batch_size = len(list(dataset))
     parsed_dataset = dataset.map(parse_function)
