@@ -15,7 +15,6 @@ import imageio
 
 sys.path.insert(0,'..')
 from L1Calibrator.CalibrationFactor import ExtractSFs
-# from L1Calibrator.ModelPlots import PlotSF2D
 
 random.seed(7)
 np.random.seed(7)
@@ -117,21 +116,6 @@ if __name__ == "__main__" :
     parser.add_option("--addtag",       dest="addtag",      help="Add tag for different trainings",     default="")
     parser.add_option("--model_type",   dest="model_type",  help="Model [Reg,RegAndRate]",              default='RegAndRate')
     parser.add_option("--epochs",       dest="epochs",      help="Number of epochs for the training",   default=20,    type=int)
-
-    # parser.add_option("--applyECAL",    dest="applyECAL",   help="Apply ECAL calibration",              default=True)
-    # parser.add_option("--applyHCAL",    dest="applyHCAL",   help="Apply HCAL calibration",              default=True)
-    # parser.add_option("--ECALnewSF",    dest="ECALnewSF",   help="New ECAL calibration",                default='/data_CMS/cms/motta/CaloL1calibraton/2023_03_06_NtuplesV33/ECALtrainingDataReco_normalOrder/data/ScaleFactors_ECAL_energystep2iEt.csv')
-    # parser.add_option("--HCALnewSF",    dest="HCALnewSF",   help="New HCAL calibration",                default='/data_CMS/cms/motta/CaloL1calibraton/2023_04_29_NtuplesV43/HCALtrainingDataReco/data_A/ScaleFactors_HCAL_energystep2iEt.csv')
-    # parser.add_option("--HFnewSF",      dest="HFnewSF",     help="New HCAL calibration",                default='/data_CMS/cms/motta/CaloL1calibraton/2023_04_29_NtuplesV43/HCALtrainingDataReco/data_A/ScaleFactors_HF_energystep2iEt.csv')
-    # parser.add_option("--filesLim",     dest="filesLim",    help="Maximum number of npz files to use",  default=1000000, type=int)
-    # parser.add_option("--eventLim",     dest="eventLim",    help="Maximum number of events to use",     default=None)
-    # parser.add_option("--ietacut",      dest="ietacut",     help="Apply ieta cut",                      default=None)
-    # parser.add_option("--ljetPtcut",    dest="ljetPtcut",   help="Apply lowerjetPt cut [GeV]",          default=None)
-    # parser.add_option("--ujetPtcut",    dest="ujetPtcut",   help="Apply upperjetPt cut [GeV]",          default=None)
-    # parser.add_option("--HoEcut",       dest="HoEcut",      help="Apply HoE cut at 0.95",               default=None)
-    # parser.add_option("--MinusIem",     dest="MinusIem",    help="Add Iem to the jetPt target",         default=False,   action='store_true')
-    # # parser.add_option("--EstepECAL",    dest="EstepECAL",   help="Energy step ECAL SFs",                default=2, type=int)
-    # # parser.add_option("--EstepHCAL",    dest="EstepHCAL",   help="Energy step HCAL SFs",                default=2, type=int)
     (options, args) = parser.parse_args()
     print(options)
 
@@ -187,14 +171,9 @@ if __name__ == "__main__" :
         
         plot_1D_list.append(plot_1D)
         plot_2D_list.append(plot_2d)
-    
-    # with imageio.get_writer(SFPlotsdir+'/SFs_2D_'+VERSION+'.gif', mode='I') as writer:
-    #     for plot_2d in plot_2d_list:
-    #         image = imageio.imread(plot_2d)
-    #         writer.append_data(image)
 
     plot_1D_map = list(map(lambda plot_1D: imageio.imread(plot_1D), plot_1D_list))
     plot_2D_map = list(map(lambda plot_2D: imageio.imread(plot_2D), plot_2D_list))
-    imageio.mimsave(SFPlotsdir+'/SFs_1D_'+VERSION+'.gif', plot_1D_map, format='GIF', duration=5)
-    imageio.mimsave(SFPlotsdir+'/SFs_2D_'+VERSION+'.gif', plot_2D_map, format='GIF', duration=5)
+    imageio.mimsave(SFPlotsdir+'/SFs_1D_'+VERSION+'.gif', plot_1D_map, format='GIF', duration=500)
+    imageio.mimsave(SFPlotsdir+'/SFs_2D_'+VERSION+'.gif', plot_2D_map, format='GIF', duration=500)
 
