@@ -12,7 +12,7 @@ import sys
 import os
 
 sys.path.insert(0,'..')
-from L1Calibrator.NNModelTraining_FullyCustom_GPUdistributed_batchedRate import Fgrad
+from L1Training.NNModel_RegAndRate import Fgrad
 
 # split list l in sublists of length n each
 def splitInBlocks (l, n):
