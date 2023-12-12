@@ -9,7 +9,6 @@ plt.style.use(mplhep.style.CMS)
 warnings.simplefilter(action='ignore')
 
 sys.path.insert(0,'..')
-from Utils.TowerGeometry import *
 from L1Training.NNModel_RegAndRate import *
 from L1NtupleReader.caloParamsOnTheFly import *
 
@@ -31,6 +30,12 @@ def parse_function(example_proto):
     example = tf.io.parse_single_example(example_proto, feature_description)
     chuncky_donut = tf.io.parse_tensor(example['chuncky_donut'], out_type=tf.float32) # decode byteslist to original 81x43 tensor
     return chuncky_donut, example['trainingPt']
+
+TowersEta = {
+    1:  [0,     0.087],    2: [0.087,  0.174],    3: [0.174,  0.261],    4: [0.261,  0.348],    5: [0.348,  0.435],    6: [0.435,  0.522],    7: [0.522,  0.609],    8: [0.609,  0.696],    9: [0.696,  0.783],    10: [0.783,  0.870],
+    11: [0.870, 0.957],    12: [0.957, 1.044],    13: [1.044, 1.131],    14: [1.131, 1.218],    15: [1.218, 1.305],    16: [1.305, 1.392],    17: [1.392, 1.479],    18: [1.479, 1.566],    19: [1.566, 1.653],    20: [1.653, 1.740],
+    21: [1.740, 1.830],    22: [1.830, 1.930],    23: [1.930, 2.043],    24: [2.043, 2.172],    25: [2.172, 2.322],    26: [2.322, 2.5],      27: [2.5,   2.650],    28: [2.650, 3.],       29: [3., 3.139],       30: [3.139, 3.314],
+    31: [3.314, 3.489],    32: [3.489, 3.664],    33: [3.664, 3.839],    34: [3.839, 4.013],    35: [4.013, 4.191],    36: [4.191, 4.363],    37: [4.363, 4.538],    38: [4.538, 4.716],    39: [4.716, 4.889],    40: [4.889, 5.191],}
 
 #######################################################################################################################
 #######################################################################################################################
@@ -388,7 +393,7 @@ if __name__ == "__main__" :
         if options.v == 'HCAL' : energystep = 2
 
     indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
-    odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/Performance_' + str(energystep) + 'iEt'
+    odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/PerformancePlots_' + str(energystep) + 'iEt'
     os.system('mkdir -p '+ odir)
 
     # PLOT RATE

@@ -416,7 +416,7 @@ if __name__ == "__main__" :
     if options.odir:
        odir = options.odir
     else: 
-       odir = indir + '/plots' + options.addtag + '/' + str(options.energystep) + 'iEt'
+       odir = indir + '/plots' + options.addtag + '/SFPlots_' + str(options.energystep) + 'iEt'
     os.system('mkdir -p '+ odir)
 
     #######################################################
@@ -431,7 +431,7 @@ if __name__ == "__main__" :
         if options.sf:
             SF_filename = options.sf
         else:
-            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_ECAL_energystep'+str(energy_step)+'iEt.csv'
+            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_ECAL_energystep'+str(energy_step)+'iEt.csv'
         ScaleFactors = np.loadtxt(open(SF_filename, "rb"), delimiter=',', usecols=range(0,28))
         eta_towers = range(1, len(ScaleFactors[1])+1)
 
@@ -453,7 +453,7 @@ if __name__ == "__main__" :
         if options.sf:
             SF_filename = options.sf
         else:
-            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HCAL_energystep'+str(energy_step)+'iEt.csv'
+            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HCAL_energystep'+str(energy_step)+'iEt.csv'
         ScaleFactors = np.loadtxt(open(SF_filename, "rb"), delimiter=',', usecols=range(0,28))
         eta_towers = range(1, len(ScaleFactors[1])+1)
 
@@ -476,7 +476,7 @@ if __name__ == "__main__" :
         if options.sf_HF:
             SF_filename = options.sf_HF
         else:
-            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HF_energystep'+str(energy_step)+'iEt.csv'
+            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HF_energystep'+str(energy_step)+'iEt.csv'
         ScaleFactors = np.loadtxt(open(SF_filename, "rb"), delimiter=',', usecols=range(0,12))
         eta_towers = range(30, 30+len(ScaleFactors[1]))
 

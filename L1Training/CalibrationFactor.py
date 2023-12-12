@@ -157,7 +157,7 @@ if __name__ == "__main__" :
     if options.odir:
         odir = options.odir
     else:
-        odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag
+        odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs'
     os.system('mkdir -p '+ odir)
     print('\nOutput dir = {}\n'.format(odir))
 

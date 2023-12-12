@@ -21,7 +21,7 @@ parser.add_option("--HF",        dest="HF",         default=None)
 (options, args) = parser.parse_args()
 
 # prepare caloParams file
-base_dir = os.getcwd().split('/L1Calibrator')[0] + '/caloParams/'
+base_dir = os.getcwd().split('/L1Training')[0] + '/caloParams/'
 
 base_file = base_dir + options.base
 new_file = base_dir + options.name + '.py'

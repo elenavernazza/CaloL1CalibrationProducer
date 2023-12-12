@@ -68,7 +68,6 @@ def makePlots(HISTORY, odir):
     plt.xlabel('Epoch')
     plt.grid()
     plt.yscale('log')
-    plt.ylim(0.000475,1.05)
     leg = plt.legend(loc='upper right', fontsize=20)
     leg._legend_box.align = "left"
     mplhep.cms.label('Preliminary', data=True, rlabel=r'')
@@ -79,6 +78,7 @@ def makePlots(HISTORY, odir):
     plt.ylabel('Loss breakdown')
     plt.xlabel('Epoch')
     plt.grid()
+    plt.yscale('log')
     leg = plt.legend(loc='upper right', fontsize=20)
     leg._legend_box.align = "left"
     mplhep.cms.label('Preliminary', data=True, rlabel=r'')

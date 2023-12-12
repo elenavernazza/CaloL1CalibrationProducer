@@ -64,14 +64,14 @@ if not options.onlyRes:
 #     # choose to apply or not HCAL SFs
 #     cmd_5 = cmd_5 + ' --applyHCAL ' + options.applyHCAL
 #     # use brand new SFs
-#     SfFile_ECAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_ECAL_energystep1iEt.csv'
+#     SfFile_ECAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_ECAL_energystep1iEt.csv'
 #     cmd_5 = cmd_5 + ' --ECALnewSF ' + SfFile_ECAL
 # if options.v == 'HCAL':
 #     # choose to apply or not ECAL SFs
 #     cmd_5 = cmd_5 + ' --applyECAL ' + options.applyECAL
 #     # use brand new SFs
-#     SfFile_HCAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HCAL_energystep1iEt.csv'
-#     SfFile_HF = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HF_energystep1iEt.csv'
+#     SfFile_HCAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HCAL_energystep1iEt.csv'
+#     SfFile_HF = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HF_energystep1iEt.csv'
 #     cmd_5 = cmd_5 + ' --HCALnewSF ' + SfFile_HCAL + ' --HFnewSF ' + SfFile_HF
 # if options.addtag:    cmd_5 = cmd_5 + ' --addtag ' + options.addtag
 # if options.filesLim:  cmd_5 = cmd_5 + ' --filesLim ' + options.filesLim
@@ -87,15 +87,15 @@ if options.v == 'ECAL':
     # cmd_6 = cmd_6 + ' --applyHCAL ' + options.applyHCAL # there is a problem of the lost ieta information
     cmd_6 = cmd_6 + ' --applyHCAL False'
     # use brand new SFs
-    SfFile_ECAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_ECAL_energystep2iEt.csv'
+    SfFile_ECAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_ECAL_energystep2iEt.csv'
     cmd_6 = cmd_6 + ' --ECALnewSF ' + SfFile_ECAL
 if options.v == 'HCAL':
     # choose to apply or not ECAL SFs
     # cmd_6 = cmd_6 + ' --applyECAL ' + options.applyECAL # there is a problem of the lost ieta information
     cmd_6 = cmd_6 + ' --applyECAL False'
     # use brand new SFs
-    SfFile_HCAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HCAL_energystep2iEt.csv'
-    SfFile_HF = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HF_energystep2iEt.csv'
+    SfFile_HCAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HCAL_energystep2iEt.csv'
+    SfFile_HF = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HF_energystep2iEt.csv'
     cmd_6 = cmd_6 + ' --HCALnewSF ' + SfFile_HCAL + ' --HFnewSF ' + SfFile_HF
 if options.addtag:    cmd_6 = cmd_6 + ' --addtag ' + options.addtag
 if options.filesLim:  cmd_6 = cmd_6 + ' --filesLim ' + options.filesLim
@@ -111,15 +111,15 @@ os.system(cmd_6)
 #     # cmd_7 = cmd_7 + ' --applyHCAL ' + options.applyHCAL # there is a problem of the lost ieta information
 #     cmd_7 = cmd_7 + ' --applyHCAL False'
 #     # use brand new SFs
-#     SfFile_ECAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_ECAL_energystep2iEt.csv'
+#     SfFile_ECAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_ECAL_energystep2iEt.csv'
 #     cmd_7 = cmd_7 + ' --ECALnewSF ' + SfFile_ECAL
 # if options.v == 'HCAL':
 #     # choose to apply or not ECAL SFs
 #     # cmd_7 = cmd_7 + ' --applyECAL ' + options.applyECAL # there is a problem of the lost ieta information
 #     cmd_7 = cmd_7 + ' --applyECAL False'
 #     # use brand new SFs
-#     SfFile_HCAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HCAL_energystep2iEt.csv'
-#     SfFile_HF = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/data' + options.addtag + '/ScaleFactors_HF_energystep2iEt.csv'
+#     SfFile_HCAL = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HCAL_energystep2iEt.csv'
+#     SfFile_HF = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HF_energystep2iEt.csv'
 #     cmd_7 = cmd_7 + ' --HCALnewSF ' + SfFile_HCAL + ' --HFnewSF ' + SfFile_HF
 # if options.addtag:    cmd_7 = cmd_7 + ' --addtag ' + options.addtag
 # if options.filesLim:  cmd_7 = cmd_7 + ' --filesLim ' + options.filesLim

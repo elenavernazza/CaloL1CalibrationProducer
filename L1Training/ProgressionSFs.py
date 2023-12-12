@@ -14,7 +14,7 @@ import tensorflow as tf
 import imageio
 
 sys.path.insert(0,'..')
-from L1Calibrator.CalibrationFactor import ExtractSFs
+from CalibrationFactor import ExtractSFs
 
 random.seed(7)
 np.random.seed(7)
