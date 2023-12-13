@@ -78,7 +78,7 @@ def CalibrateTT(df_Towers, SFs, VERSION, i_epoch):
 
     return df_Towers
 
-def CreateDataframe(InTFRecords, odir, eventLim, VERSION, isRate = False):
+def CreateDataframe(InTFRecords, odir, eventLim, VERSION, type):
 
     dataset = tf.data.TFRecordDataset(InTFRecords, num_parallel_reads=tf.data.experimental.AUTOTUNE)
     batch_size = len(list(dataset))
@@ -90,12 +90,12 @@ def CreateDataframe(InTFRecords, odir, eventLim, VERSION, isRate = False):
         print('\n ### Reading {} events'.format(eventLim))
         n_events = int(eventLim)
         Towers = data[0][:n_events]
-        if not isRate: Jets = data[1][:int(eventLim)]
+        if not type == 'Rate': Jets = data[1][:int(eventLim)]
     else:
         print('\n ### Reading all events')
         n_events = len(list(dataset))
         Towers = data[0]
-        if not isRate: Jets = data[1]
+        if not type == 'Rate': Jets = data[1]
     del dataset, parsed_dataset, data
 
     # Extract the iem and hcalET columns from Towers
@@ -115,7 +115,7 @@ def CreateDataframe(InTFRecords, odir, eventLim, VERSION, isRate = False):
 
     # Create the dataframe
     print(" ### INFO: Creating dataframe")
-    if not isRate:
+    if not type == 'Rate':
         jetPt_arr = np.repeat(Jets, Towers.shape[1])
         df_Towers = pd.DataFrame({'id': id_arr, 'targetPt': jetPt_arr, 'iem': iem, 'hcalET': hcalET, 'ieta': ieta, 'iesum': iesum})
     else:
@@ -123,8 +123,7 @@ def CreateDataframe(InTFRecords, odir, eventLim, VERSION, isRate = False):
 
     DF_dir = odir + '/progression_plots/DataFrames/'
     os.system('mkdir -p '+ DF_dir)
-    if isRate: df_Towers.to_pickle(DF_dir+'Rate.pkl')
-    else: df_Towers.to_pickle(DF_dir+'Training.pkl')
+    df_Towers.to_pickle(DF_dir+type+'.pkl')
 
     return df_Towers
 
@@ -414,7 +413,7 @@ if __name__ == "__main__" :
         tfdir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
         print('\n ### Reading TF records from: ' + tfdir + '/rateTFRecords/record_*.tfrecord')
         InRateRecords = glob.glob(tfdir+'/rateTFRecords/record_*.tfrecord')[:options.filesLim]
-        df_Towers_Rate = CreateDataframe(InRateRecords, indir, options.eventLim, options.v, isRate = True)
+        df_Towers_Rate = CreateDataframe(InRateRecords, indir, options.eventLim, options.v, type = 'Rate')
     else:
         df_Towers_Rate = pd.read_pickle(indir+'/progression_plots/DataFrames/Rate.pkl')
 
@@ -423,7 +422,7 @@ if __name__ == "__main__" :
             tfdir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
             print('\n ### Reading TF records from: ' + tfdir + '/trainTFRecords/record_*.tfrecord')
             InTestRecords = glob.glob(tfdir+'/trainTFRecords/record_*.tfrecord')[:options.filesLim]
-            df_Towers_Train = CreateDataframe(InTestRecords, indir, options.eventLim, options.v, isRate = False)
+            df_Towers_Train = CreateDataframe(InTestRecords, indir, options.eventLim, options.v, type = 'Training')
         else:
             df_Towers_Train = pd.read_pickle(indir+'/progression_plots/DataFrames/Training.pkl')
 
@@ -432,7 +431,7 @@ if __name__ == "__main__" :
             tfdir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
             print('\n ### Reading TF records from: ' + tfdir + '/testTFRecords/record_*.tfrecord')
             InTestRecords = glob.glob(tfdir+'/testTFRecords/record_*.tfrecord')[:options.filesLim]
-            df_Towers_Train = CreateDataframe(InTestRecords, indir, options.eventLim, options.v, isRate = False)
+            df_Towers_Train = CreateDataframe(InTestRecords, indir, options.eventLim, options.v, type = 'Testing')
         else:
             df_Towers_Train = pd.read_pickle(indir+'/progression_plots/DataFrames/Testing.pkl')
 
