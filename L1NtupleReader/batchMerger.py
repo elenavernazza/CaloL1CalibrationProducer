@@ -139,6 +139,7 @@ if __name__ == "__main__" :
         InFilesTrainBlocks = splitInBlocks(InFilesTrain, options.filesPerRecord)
 
     if not options.noRate:
+        if not os.path.isdir(options.ratedir): sys.exit(" ### ERROR: Rate directory not existing")
         InFilesRate = glob.glob(options.ratedir+'/tensors/towers_*.npz')
         InFilesRateBlocks = splitInBlocks(InFilesRate, options.filesPerRecord)
 
@@ -385,22 +386,22 @@ if __name__ == "__main__" :
                 # print(' ### INFO: Total statistics =', stats)
 
             rate_total_dimension = np.sum(rate_dimensions)
-
+            
             # generally the rate datasets are smaller than the raining datasets therefore we need to 
             # copy the rate TFRecords to have their final dimenion equal to the train sample
             repeatIdx = 0
             records = glob.glob(training_folder+'/rateTFRecords/record_*.tfrecord')
             print('--------------------------------------------')
-            while rate_total_dimension < train_total_dimension:
+            while stats < train_total_dimension:
                 repeatIdx += 1
                 print('Copying rate datasets '+str(repeatIdx)+'th time')
                 for record, recordDim in zip(records, rate_dimensions):
                     recordCopy = record.replace('.tfrecord', '_'+str(repeatIdx)+'.tfrecord')
                     os.system('cp '+record+' '+recordCopy)
 
-                    rate_total_dimension += recordDim
+                    stats += recordDim
                     # directly break as soon as the dimension is met
-                    if rate_total_dimension > train_total_dimension: break
+                    if stats > train_total_dimension: break
 
             print('')
             print(' ### INFO: Rate sample total domension =', stats)
