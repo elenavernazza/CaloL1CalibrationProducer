@@ -219,7 +219,6 @@ if __name__ == "__main__" :
     parser.add_option("--addtag",           dest="addtag",           help="Add tag to distinguish different trainings",    default="",                        )
     parser.add_option("--MaxLR",            dest="MaxLR",            help="Maximum learning rate",                         default='1E-3')
     parser.add_option("--ThrRate",          dest="ThrRate",          help="Threshold for rate proxy",                      default=40)
-    parser.add_option("--TargetRate",       dest="TargetRate",       help="Target for rate proxy",                         default=0.13216800105640258)
     (options, args) = parser.parse_args()
     print(options)
 
@@ -322,6 +321,13 @@ if __name__ == "__main__" :
     del train_dataset, test_dataset, rate_dataset
     print('** INFO : done distributing training datasets')
 
+    # normal regions computed on ZeroBias
+    ThrRate = float(options.ThrRate)
+    json_path = indir + '/InputPlots/RateProxy/rate_proxy.json'
+    with open(json_path, 'r') as json_file: data = json.load(json_file)
+    TargetRate = float(data[str(ThrRate)])
+    print("** INFO : Target rate for {} GeV is {}".format(ThrRate, TargetRate))
+
     ##############################################################################
     ########################## GPU DISTRIBUTED TRAINING ##########################
     ##############################################################################
@@ -368,10 +374,7 @@ if __name__ == "__main__" :
         def compute_losses(y, y_pred, z, z_pred):
             regressionLoss_value = regressionLoss(y, y_pred)
             weightsLoss_value = weightsLoss()
-
-            # normal regions computed on ZeroBias
-            ThrRate = int(options.ThrRate)
-            TargetRate = float(options.TargetRate)
+            
             if VERSION == 'ECAL': 
                 rateLoss_value = rateLoss(z, z_pred, ThrRate*2, TargetRate)
             if VERSION == 'HCAL':
