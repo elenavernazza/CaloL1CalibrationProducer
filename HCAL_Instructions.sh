@@ -48,91 +48,115 @@ python3 resolutions.py --indir JetMET__Run2022G-PromptReco-v1__AOD__GT130XdataRu
 
 - Extract CD and target jet energy from the ntuples
 
-'''
-# HCAL HoTot80
+################################################################
+# Input 1 :     jetPt > 30      HoTot > 95%     0.3 < Resp < 3
+################################################################
+''' # DONE
 python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2022G-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 \
     --target reco --type jet --chunk_size 5000 \
     --queue short \
-    --hcalcut 0.8 --lJetPtCut 30 --PuppiJet --matching --etacut 28 --trainPtVers HCAL --calibrateECAL v33_newCalib
-# HF HoTot80
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2022G-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/JetMET_PuppiJet_Pt30_HoTot80_MinusIem \
-    --target reco --type jet --chunk_size 5000 \
-    --queue short \
-    --hcalcut 0.8 --lJetPtCut 30 --PuppiJet --matching --trainPtVers HCAL --calibrateECAL v33_newCalib
+    --hcalcut 0.95 --lJetPtCut 30 --PuppiJet --matching --etacut 28
 '''
 
+################################################################
+# Input 2 :     jetPt > 30      HoTot > 70%     0.3 < Resp < 3
+################################################################
+''' # DONE
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2022G-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70 \
+    --target reco --type jet --chunk_size 5000 \
+    --queue short \
+    --hcalcut 0.70 --lJetPtCut 30 --PuppiJet --matching --etacut 28
 '''
-# HCAL HoTot70
+
+################################################################
+# Input 3 :     jetPt > 60      HoTot > 70%     0.3 < Resp < 3
+################################################################
+''' # DONE
 python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2022G-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input3/JetMET_PuppiJet_BarrelEndcap_Pt60_HoTot70 \
     --target reco --type jet --chunk_size 5000 \
     --queue short \
-    --hcalcut 0.7 --lJetPtCut 30 --PuppiJet --matching --etacut 28 --trainPtVers HCAL --calibrateECAL v33_newCalib
-# HF HoTot70
+    --hcalcut 0.70 --lJetPtCut 60 --PuppiJet --matching --etacut 28
+'''
+
+################################################################################
+# Input 4 :     jetPt > 60      rawPt > 60      HoTot > 70%     0.3 < Resp < 3
+################################################################################
+'''
 python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2022G-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/JetMET_PuppiJet_Pt30_HoTot70_MinusIem \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input4/JetMET_PuppiJet_BarrelEndcap_PtRaw60_HoTot70 \
     --target reco --type jet --chunk_size 5000 \
     --queue short \
-    --hcalcut 0.7 --lJetPtCut 30 --PuppiJet --matching --trainPtVers HCAL --calibrateECAL v33_newCalib
+    --hcalcut 0.70 --lJetPtCut 60 --lRawPtCut 60 --PuppiJet --matching --etacut 28
 '''
 
 - Extract sample for the jet rate proxy
 
-'''
+''' # DONE
 python3 batchSubmitOnTier3.py \
     --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_Pt30To1000 \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000 \
     --target emu --type jet --chunk_size 5000 \
     --queue short \
-    --lJetPtCut 30 --uJetPtCut 1000 --calibrateECAL v33_newCalib
+    --lJetPtCut 30 --uJetPtCut 1000 --etacut 28
 python3 batchSubmitOnTier3.py \
-    --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_BarrelEndcap_Pt30To1000 \
+    --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EphemeralZeroBias1__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000 \
     --target emu --type jet --chunk_size 5000 \
     --queue short \
-    --lJetPtCut 30 --uJetPtCut 1000 --etacut 28 --calibrateECAL v33_newCalib
-    
+    --lJetPtCut 30 --uJetPtCut 1000 --etacut 28
 python3 batchSubmitOnTier3.py \
-    --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_Pt30To1000 \
+    --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EphemeralZeroBias2__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000 \
     --target emu --type jet --chunk_size 5000 \
     --queue short \
-    --lJetPtCut 30 --uJetPtCut 1000 --calibrateECAL v33_newCalib
+    --lJetPtCut 30 --uJetPtCut 1000 --etacut 28
+python3 batchSubmitOnTier3.py \
+    --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EphemeralZeroBias3__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000 \
+    --target emu --type jet --chunk_size 5000 \
+    --queue short \
+    --lJetPtCut 30 --uJetPtCut 1000 --etacut 28
 '''
 
-###########################################################################################################
-###########################################################################################################
-###########################################################################################################
+- Merge CD into tensorflow and save the input size
 
-- Merge CD into tensorflow and save the input size:
-
+################################################################
+# Input 1 :     jetPt > 30      HoTot > 95%     0.3 < Resp < 3
+################################################################
 '''
-# HCAL HoTot80 (training 1460155, rate 1496211)
-python3 batchMerger.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem \
-    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 300 --selectResp --filesRatePerRecord 100 \
-    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
-python3 batchMerger.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem \
-    --batchdir GoodNtuples --v HCAL --odir DataReco_200 --filesPerRecord 300 --selectResp --filesRatePerRecord 100 --filesLim 200 \
-    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
-# HF HoTot80
-python3 batchMerger.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_Pt30_HoTot80_MinusIem \
-    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 300 --selectResp --filesRatePerRecord 100 \
-    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_Pt30To1000/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
+python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 \
+    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
+    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
+'''
 
-# HCAL HoTot70
-python3 batchMerger.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem \
-    --batchdir GoodNtuples --v HCAL --odir DataReco_200 --filesPerRecord 300 --selectResp --filesRatePerRecord 100 --filesLim 200 \
-    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
-# HCAL HoTot70 (training 349402, rate 370848)
-python3 batchMerger.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem \
-    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 300 --selectResp --filesRatePerRecord 100 \
-    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
-# HF HoTot70
-python3 batchMerger.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_Pt30_HoTot70_MinusIem \
-    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 300 --selectResp --filesRatePerRecord 100 \
-    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_10_NtuplesV55/EphemeralZeroBias_Pt30To1000/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
+################################################################
+# Input 2 :     jetPt > 30      HoTot > 70%     0.3 < Resp < 3
+################################################################
+'''
+python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70 \
+    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
+    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
+'''
+
+################################################################
+# Input 3 :     jetPt > 60      HoTot > 70%     0.3 < Resp < 3
+################################################################
+'''
+python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input3/JetMET_PuppiJet_BarrelEndcap_Pt60_HoTot70 \
+    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
+    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
+'''
+
+################################################################################
+# Input 4 :     jetPt > 60      rawPt > 60      HoTot > 70%     0.3 < Resp < 3
+################################################################################
+'''
+python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input4/JetMET_PuppiJet_BarrelEndcap_PtRaw60_HoTot70 \
+    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
+    --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
 '''
 
 - Plot the inputs and check that the built CD energy distribution corresponds to the previous one
