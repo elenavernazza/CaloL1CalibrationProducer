@@ -33,7 +33,7 @@ def PlotAllLosses(x, y_reg, y_weight, y_rate, type, odir):
     plt.savefig(odir+'/plots/'+type+'Losses.pdf')
     plt.close() 
 
-def makePlots(HISTORY, odir):
+def makePlotsRegAndRate(HISTORY, odir):
 
     PlotTrainingTesting(HISTORY['x'], HISTORY['train_RMSE'], HISTORY['test_RMSE'], 'RMSE', odir)
     PlotTrainingTesting(HISTORY['x'], HISTORY['train_loss'], HISTORY['test_loss'], 'Loss', odir)
@@ -43,3 +43,9 @@ def makePlots(HISTORY, odir):
 
     PlotAllLosses(HISTORY['x'], HISTORY['train_regressionLoss'], HISTORY['train_weightsLoss'], HISTORY['train_rateLoss'], 'train', odir)
     PlotAllLosses(HISTORY['x'], HISTORY['test_regressionLoss'], HISTORY['test_weightsLoss'], HISTORY['test_rateLoss'], 'test', odir)
+
+def makePlotsReg(HISTORY, odir):
+
+    PlotTrainingTesting(HISTORY['x'], HISTORY['train_RMSE'], HISTORY['test_RMSE'], 'RMSE', odir)
+    PlotTrainingTesting(HISTORY['x'], HISTORY['train_loss'], HISTORY['test_loss'], 'Loss', odir)
+    PlotTrainingTesting(HISTORY['x'], HISTORY['train_regressionLoss'], HISTORY['test_regressionLoss'], 'Regression', odir)

@@ -1,12 +1,5 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib
-import random
-import mplhep
-import json
-import time
-import glob
-import os
+import os, sys, glob, time, json, random
 
 from tensorflow.keras.initializers import RandomNormal as RN
 from tensorflow.keras.models import Sequential
@@ -21,70 +14,8 @@ tf.random.set_seed(7)
 tf.compat.v1.set_random_seed(7)
 os.system('export PYTHONHASHSEED=7')
 
-
-##############################################################################
-############################## HELPER FUNCTIONS ##############################
-##############################################################################
-
-def makePlots(HISTORY, odir):
-    plt.style.use(mplhep.style.CMS)
-    cmap = matplotlib.cm.get_cmap('Set1')
-
-    plt.plot(HISTORY['x'], HISTORY['train_loss'], label='Training', lw=2, ls='-', marker='o', color=cmap(0))
-    plt.plot(HISTORY['x'], HISTORY['test_loss'], label='Testing', lw=2, ls='-', marker='o', color=cmap(1))
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.grid()
-    leg = plt.legend(loc='upper right', fontsize=20)
-    leg._legend_box.align = "left"
-    mplhep.cms.label('Preliminary', data=True, rlabel=r'')
-    plt.savefig(odir+'/plots/loss.pdf')
-    plt.close()
-
-    plt.plot(HISTORY['x'], HISTORY['train_RMSE'], label='Training', lw=2, ls='-', marker='o', color=cmap(0))
-    plt.plot(HISTORY['x'], HISTORY['test_RMSE'], label='Testing', lw=2, ls='-', marker='o', color=cmap(1))
-    plt.ylabel('RMSE')
-    plt.xlabel('Epoch')
-    plt.grid()
-    leg = plt.legend(loc='upper right', fontsize=20)
-    leg._legend_box.align = "left"
-    mplhep.cms.label('Preliminary', data=True, rlabel=r'')
-    plt.savefig(odir+'/plots/RootMeanSquaredError.pdf')
-    plt.close()
-
-    plt.plot(HISTORY['x'], HISTORY['train_regressionLoss'], label='Training', lw=2, ls='-', marker='o', color=cmap(0))
-    plt.plot(HISTORY['x'], HISTORY['test_regressionLoss'], label='Testing', lw=2, ls='-', marker='o', color=cmap(1))
-    plt.ylabel('Regression loss')
-    plt.xlabel('Epoch')
-    plt.grid()
-    leg = plt.legend(loc='upper right', fontsize=20)
-    leg._legend_box.align = "left"
-    mplhep.cms.label('Preliminary', data=True, rlabel=r'')
-    plt.savefig(odir+'/plots/regressionLoss.pdf')
-    plt.close()
-
-    plt.plot(HISTORY['x'], HISTORY['train_regressionLoss'], label='Regression loss', lw=2, ls='-', marker='o', color=cmap(0))
-    plt.ylabel('Loss breakdown')
-    plt.xlabel('Epoch')
-    plt.grid()
-    plt.yscale('log')
-    leg = plt.legend(loc='upper right', fontsize=20)
-    leg._legend_box.align = "left"
-    mplhep.cms.label('Preliminary', data=True, rlabel=r'')
-    plt.savefig(odir+'/plots/trainLosses.pdf')
-    plt.close()
-
-    plt.plot(HISTORY['x'], HISTORY['test_regressionLoss'], label='Regression loss', lw=2, ls='-', marker='o', color=cmap(0))
-    plt.ylabel('Loss breakdown')
-    plt.xlabel('Epoch')
-    plt.grid()
-    plt.yscale('log')
-    leg = plt.legend(loc='upper right', fontsize=20)
-    leg._legend_box.align = "left"
-    mplhep.cms.label('Preliminary', data=True, rlabel=r'')
-    plt.savefig(odir+'/plots/validLosses.pdf')
-    plt.close()
-
+sys.path.insert(0,'..')
+from Utils.PlotLosses import *
 
 ##############################################################################
 ############################## MODEL DEFINITION ##############################
@@ -254,7 +185,7 @@ if __name__ == "__main__" :
 
     if options.makeOnlyPlots:
         HISTORY = json.load(open(odir+'/HISTORY.json', 'r'))
-        makePlots(HISTORY, odir)
+        makePlotsReg(HISTORY, odir)
         print('** INFO : made the plots, exiting')
         exit()
 
@@ -469,6 +400,6 @@ if __name__ == "__main__" :
     json.dump(HISTORY, open(odir+'/HISTORY.json', 'w'))
     print('Training history saved to file: {}/HISTORY.json'.format(odir))
 
-    makePlots(HISTORY, odir)
+    makePlotsReg(HISTORY, odir)
     
     
