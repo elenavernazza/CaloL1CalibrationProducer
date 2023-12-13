@@ -198,7 +198,7 @@ def PlotTrainProgression(Response_dir, Resolution_dir, Turnon_dir, df_Towers, VE
 
     def GetYLim(num):
         power = 0
-        while power <= num:
+        while power + 10 <= num:
             power += 100
         return power
 
