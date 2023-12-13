@@ -42,6 +42,7 @@ parser.add_option("--queue",              dest="queue",              default='lo
 parser.add_option("--chunk_size",         dest="chunk_size",         default=5000,  type=int)
 parser.add_option("--uJetPtCut",          dest="uJetPtCut",          default=False)
 parser.add_option("--lJetPtCut",          dest="lJetPtCut",          default=False)
+parser.add_option("--lRawPtCut",          dest="lRawPtCut",          default=False)
 parser.add_option("--etacut",             dest="etacut",             default=False)
 parser.add_option("--etacutmin",          dest="etacutmin",          default=False)
 parser.add_option("--applyCut_3_6_9",     dest="applyCut_3_6_9",     default=False)
@@ -128,6 +129,8 @@ for file in InFiles:
         cmsRun = cmsRun + " --uJetPtCut "+options.uJetPtCut
     if options.lJetPtCut != False:
         cmsRun = cmsRun + " --lJetPtCut "+options.lJetPtCut
+    if options.lRawPtCut != False:
+        cmsRun = cmsRun + " --lRawPtCut "+options.lRawPtCut
     if options.etacut != False:
         cmsRun = cmsRun + " --etacut "+options.etacut
     if options.etacutmin != False:
