@@ -1,9 +1,5 @@
 import numpy as np
-import random
-import glob
-import sys
-import os
-
+import random, json, glob, os
 import matplotlib.pyplot as plt
 
 from NNModel_RegAndRate import *
@@ -76,7 +72,6 @@ parser = OptionParser()
 parser.add_option("--indir",    dest="indir",    help="Input folder with TFRecords",                    default=None  )
 parser.add_option("--v",        dest="v",        help="Which training to perform: ECAL or HCAL?",       default=None  )
 parser.add_option("--tag",      dest="tag",      help="Tag of the training folder",                     default=""    )
-parser.add_option("--filesLim", dest="filesLim", help="Maximum number of files to use",                 default=1000000, type=int)
 (options, args) = parser.parse_args()
 
 indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
@@ -85,7 +80,7 @@ if options.v == 'HCAL' or options.v == 'HF': batch_size = 500
 
 # read raw rate dataset and parse it 
 print('\n ### Reading TF records from: ' + indir + '/rateTFRecords/record_*.tfrecord')
-InTrainRecords = glob.glob(indir+'/rateTFRecords/record_*.tfrecord')[:options.filesLim]
+InTrainRecords = glob.glob(indir+'/rateTFRecords/record_*.tfrecord')
 raw_train_dataset = tf.data.TFRecordDataset(InTrainRecords)
 train_dataset = raw_train_dataset.map(parse_function)
 train_dataset = train_dataset.batch(batch_size, drop_remainder=True)
@@ -93,18 +88,11 @@ del InTrainRecords, raw_train_dataset
 
 num_batches = 0
 if options.v == 'HCAL' or options.v == 'HF':
-    jet_passing_100 = 0
-    jet_passing_80 = 0
-    jet_passing_50 = 0
-    jet_passing_45 = 0
-    jet_passing_40 = 0
-    jet_passing_35 = 0
-    jet_passing_30 = 0
+    thr_list = np.arange(30,100) # GeV
+    rate_list = np.zeros(len(thr_list))
 if options.v == 'ECAL':
-    eg_passing_10 = 0
-    eg_passing_15 = 0
-    eg_passing_20 = 0
-    eg_passing_25 = 0
+    thr_list = np.arange(10,50) # GeV
+    rate_list = np.zeros(len(thr_list))
 
 # remember the thresholds are in HW units!)
 for train_batch in train_dataset:
@@ -112,30 +100,27 @@ for train_batch in train_dataset:
     num_batches += 1
     cd, _ = train_batch
     if options.v == 'HCAL' or options.v == 'HF':
-        jet_passing_100 += float(RateProxyJets(cd, 8, 200))
-        jet_passing_80 += float(RateProxyJets(cd, 8, 160))
-        jet_passing_50 += float(RateProxyJets(cd, 8, 100))
-        jet_passing_45 += float(RateProxyJets(cd, 8, 90))
-        jet_passing_40 += float(RateProxyJets(cd, 8, 80))
-        jet_passing_35 += float(RateProxyJets(cd, 8, 70))
-        jet_passing_30 += float(RateProxyJets(cd, 8, 60))
+        for i, thr in enumerate(thr_list):
+            rate_list[i] += float(RateProxyJets(cd, 8, 2*thr))
+
     if options.v == 'ECAL':
-        eg_passing_10 += float(RateProxyEGs(cd, 20))
-        eg_passing_15 += float(RateProxyEGs(cd, 30))
-        eg_passing_20 += float(RateProxyEGs(cd, 40))
-        eg_passing_25 += float(RateProxyEGs(cd, 50))      
+        for i, thr in enumerate(thr_list):
+            rate_list[i] += float(RateProxyEGs(cd, 2*thr))    
 
-if options.v == 'HCAL' or options.v == 'HF':
-    print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 30 GeV : ", jet_passing_30/num_batches)
-    print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 35 GeV : ", jet_passing_35/num_batches)
-    print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 40 GeV : ", jet_passing_40/num_batches)
-    print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 45 GeV : ", jet_passing_45/num_batches)
-    print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 50 GeV : ", jet_passing_50/num_batches)
-    print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 80 GeV : ", jet_passing_80/num_batches)
-    print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 100 GeV : ", jet_passing_100/num_batches)
+# if options.v == 'HCAL' or options.v == 'HF':
+#     for i, thr in enumerate(thr_list):
+#         print("### INFO: Compute percentage of jets passing seed at 4 GeV & sum > "+str(thr)+" GeV : ", rate_list[i]/num_batches)
 
-if options.v == 'ECAL':
-    print("### INFO: Compute percentage of jets passing sum > 10 GeV : ", eg_passing_10/num_batches)
-    print("### INFO: Compute percentage of jets passing sum > 15 GeV : ", eg_passing_15/num_batches)
-    print("### INFO: Compute percentage of jets passing sum > 20 GeV : ", eg_passing_20/num_batches)
-    print("### INFO: Compute percentage of jets passing sum > 25 GeV : ", eg_passing_25/num_batches)
+# if options.v == 'ECAL':
+#     for i, thr in enumerate(thr_list):
+#         print("### INFO: Compute percentage of jets passing sum > "+str(thr)+" GeV : ", rate_list[i]/num_batches)
+
+odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/InputPlots/RateProxy'
+os.system('mkdir -p '+ odir)
+json_path = odir + '/rate_proxy.json'
+
+data = {float(thr): float(rate/num_batches) for thr, rate in zip(thr_list, rate_list)}
+
+json_data = json.dumps(data, indent=2)
+with open(json_path, "w") as json_file:
+    json_file.write(json_data)
