@@ -1,6 +1,7 @@
 import numpy as np
-import random, json, glob, os
+import random, json, glob, os, mplhep
 import matplotlib.pyplot as plt
+plt.style.use(mplhep.style.CMS)
 
 from NNModel_RegAndRate import *
 import tensorflow as tf
@@ -124,3 +125,12 @@ data = {float(thr): float(rate/num_batches) for thr, rate in zip(thr_list, rate_
 json_data = json.dumps(data, indent=2)
 with open(json_path, "w") as json_file:
     json_file.write(json_data)
+
+fig = plt.figure(figsize = [10,10])
+plt.plot(thr_list, rate_list/num_batches, marker='o', linestyle='dashed', linewidth=2)
+plt.xlabel(r'$p_{T}^{jet, offline} [GeV]$')
+plt.ylabel('Rate Proxy')
+plt.grid(linestyle='dotted')
+plt.legend(fontsize=15, loc='lower right')
+plt.savefig(odir + '/rate_proxy.png')
+plt.close() 
