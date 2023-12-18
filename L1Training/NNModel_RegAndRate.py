@@ -141,7 +141,7 @@ def create_model(version, seedThr=None):
     MainPredictionList = make_AddList(TTP, TTP_input)
     TTP_output = lay.Add(name="main_predicted_energy")(MainPredictionList)
     # The TTP_output is a vector of calibrated L1 jet energies, after the summation layer
-    
+
     ####################### RATE #######################
     # The rate_input is a vector of 9x9 chunky donuts before calibration
     rate_input = keras.Input(shape=(81,42), dtype=tf.float32, name='rate_proxy')
@@ -218,7 +218,9 @@ if __name__ == "__main__" :
     parser.add_option("--makeOnlyPlots",    dest="makeOnlyPlots",    help="Do not do the training, just make the plots",   default=False, action='store_true' )
     parser.add_option("--addtag",           dest="addtag",           help="Add tag to distinguish different trainings",    default="",                        )
     parser.add_option("--MaxLR",            dest="MaxLR",            help="Maximum learning rate",                         default='1E-3')
+    parser.add_option("--LRscheduler",      dest="LRscheduler",      help="Learning rate scheduler",                       default=False, action='store_true' )
     parser.add_option("--ThrRate",          dest="ThrRate",          help="Threshold for rate proxy",                      default=40)
+    parser.add_option("--weight_loss",      dest="weight_loss",      help="Type of weight loss [abs,sqr]",                 default='abs')
     (options, args) = parser.parse_args()
     print(options)
 
@@ -253,8 +255,9 @@ if __name__ == "__main__" :
                 'train_loss' : [], 'train_regressionLoss' : [], 'train_weightsLoss' : [], 'train_rateLoss' : [], 'train_RMSE' : [],
                 'test_loss'  : [], 'test_regressionLoss'  : [], 'test_weightsLoss'  : [], 'test_rateLoss'  : [], 'test_RMSE'  : []
               }
-    # new method to change learning rate over time (not to miss local minima)
-    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=MAX_LEARNING_RATE, decay_steps=5, decay_rate=0.1)
+    if options.LRscheduler:
+        # new method to change learning rate over time (not to miss local minima)
+        LR_SCHEDULE = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=MAX_LEARNING_RATE, decay_steps=2, decay_rate=0.1)
 
     ##############################################################################
     ################################# LOAD INPUTS ################################
@@ -297,7 +300,6 @@ if __name__ == "__main__" :
         rate_dataset = rate_dataset.shuffle(BUFFER_SIZE).batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
         print('** INFO : done batching TensorFlow datasets')
 
-
     ##############################################################################
     ########################### GPU DISTRIBUTION SETUP ###########################
     ##############################################################################
@@ -333,6 +335,7 @@ if __name__ == "__main__" :
     ##############################################################################
 
     with mirrored_strategy.scope():
+
         # part of the loss that controls the regression of teh energy
         def regressionLoss(y, y_pred):
             MAPE = tf.keras.losses.MeanAbsolutePercentageError(reduction=tf.keras.losses.Reduction.NONE)
@@ -340,16 +343,18 @@ if __name__ == "__main__" :
 
         # part of the loss that controls the weights overtraining
         def weightsLoss():
-            modelWeights = model.trainable_weights
-            # modelWeights_ss = float( tf.math.reduce_sum(tf.math.square(modelWeights[0]), keepdims=True) +
-            #                          tf.math.reduce_sum(tf.math.square(modelWeights[1]), keepdims=True) +
-            #                          tf.math.reduce_sum(tf.math.square(modelWeights[2]), keepdims=True)
-            #                         )
-            # Suggested be Frederic
-            modelWeights_ss = float( tf.math.reduce_sum(tf.math.abs(modelWeights[0]), keepdims=True) +
-                                     tf.math.reduce_sum(tf.math.abs(modelWeights[1]), keepdims=True) +
-                                     tf.math.reduce_sum(tf.math.abs(modelWeights[2]), keepdims=True)
-                                    )            
+            if options.weight_loss == 'abs':
+                modelWeights = model.trainable_weights
+                modelWeights_ss = float( tf.math.reduce_sum(tf.math.abs(modelWeights[0]), keepdims=True) +
+                                        tf.math.reduce_sum(tf.math.abs(modelWeights[1]), keepdims=True) +
+                                        tf.math.reduce_sum(tf.math.abs(modelWeights[2]), keepdims=True)
+                                        )            
+            elif options.weight_loss == 'sqr':
+                modelWeights = model.trainable_weights
+                modelWeights_ss = float( tf.math.reduce_sum(tf.math.square(modelWeights[0]), keepdims=True) +
+                                        tf.math.reduce_sum(tf.math.square(modelWeights[1]), keepdims=True) +
+                                        tf.math.reduce_sum(tf.math.square(modelWeights[2]), keepdims=True)
+                                        )        
             return  modelWeights_ss * 1 # FIXME: scaling to be optimized
 
         # part of the loss that controls the rate
@@ -374,11 +379,7 @@ if __name__ == "__main__" :
         def compute_losses(y, y_pred, z, z_pred):
             regressionLoss_value = regressionLoss(y, y_pred)
             weightsLoss_value = weightsLoss()
-            
-            if VERSION == 'ECAL': 
-                rateLoss_value = rateLoss(z, z_pred, ThrRate*2, TargetRate)
-            if VERSION == 'HCAL':
-                rateLoss_value = rateLoss(z, z_pred, ThrRate*2, TargetRate)
+            rateLoss_value = rateLoss(z, z_pred, ThrRate*2, TargetRate)
 
             fullLoss = regressionLoss_value + weightsLoss_value + rateLoss_value
 
@@ -389,8 +390,10 @@ if __name__ == "__main__" :
 
         # define model and related stuff
         model, TTP = create_model(VERSION, seedThr=8.)
-        # optimizer = keras.optimizers.Adam(learning_rate=lr_schedule)
-        optimizer = keras.optimizers.Adam(learning_rate=MAX_LEARNING_RATE)
+        if options.LRscheduler:
+            optimizer = keras.optimizers.Adam(learning_rate=LR_SCHEDULE)
+        else:
+            optimizer = keras.optimizers.Adam(learning_rate=MAX_LEARNING_RATE)
         checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=TTP)
         train_acc_metric = keras.metrics.RootMeanSquaredError(name='train_accuracy')
         test_acc_metric  = keras.metrics.RootMeanSquaredError(name='test_accuracy')
@@ -438,6 +441,9 @@ if __name__ == "__main__" :
                 mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[2], axis=None),
                 mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[3], axis=None)]
 
+    ##############################################################################
+    ############################## LOOP OVER EPOCHS ##############################
+    ##############################################################################
 
     # run training loop
     for epoch in range(EPOCHS):
