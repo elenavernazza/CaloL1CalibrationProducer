@@ -84,13 +84,13 @@ python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTu
 ################################################################################
 # Input 4 :     jetPt > 60      rawPt > 60      HoTot > 70%     0.3 < Resp < 3
 ################################################################################
-'''
+''' # DONE
 python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2022G-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
     --outdir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input4/JetMET_PuppiJet_BarrelEndcap_PtRaw60_HoTot70 \
     --target reco --type jet --chunk_size 5000 \
     --queue short \
     --hcalcut 0.70 --lJetPtCut 60 --lRawPtCut 60 --PuppiJet --matching --etacut 28
-'''
+''' 
 
 - Extract sample for the jet rate proxy
 
@@ -126,7 +126,7 @@ python3 batchSubmitOnTier3.py \
 ################################################################
 # Input 1 :     jetPt > 30      HoTot > 95%     0.3 < Resp < 3
 ################################################################
-'''
+''' (Training: 52946, Testing: 13241)
 python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 \
     --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
     --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
@@ -135,85 +135,75 @@ python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_Barr
 ################################################################
 # Input 2 :     jetPt > 30      HoTot > 70%     0.3 < Resp < 3
 ################################################################
-'''
+''' (Training: 79999, Testing: 20001)
 python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70 \
-    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
+    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 50 --selectResp --fix_stats 100000 \
     --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
 '''
 
 ################################################################
 # Input 3 :     jetPt > 60      HoTot > 70%     0.3 < Resp < 3
 ################################################################
-'''
+''' (Training: 79999, Testing: 20001)
 python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input3/JetMET_PuppiJet_BarrelEndcap_Pt60_HoTot70 \
-    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
+    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 50 --selectResp --fix_stats 100000 \
     --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
 '''
 
 ################################################################################
 # Input 4 :     jetPt > 60      rawPt > 60      HoTot > 70%     0.3 < Resp < 3
 ################################################################################
-'''
+''' (Training: 79999, Testing: 20001)
 python3 batchMerger.py --indir 2023_12_13_NtuplesV56/Input4/JetMET_PuppiJet_BarrelEndcap_PtRaw60_HoTot70 \
-    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 200 --selectResp --fix_stats 100000 \
+    --batchdir GoodNtuples --v HCAL --odir DataReco --filesPerRecord 50 --selectResp --fix_stats 100000 \
     --ratedir /data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias*__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data
 '''
 
-- Plot the inputs and check that the built CD energy distribution corresponds to the previous one
+#################################################################################################################################################################
+#################################################################################################################################################################
+#################################################################################################################################################################
+
+- Plot the inputs and check that the built CD energy distribution corresponds to the previous one # [FIXME] Make everything faster with npz instead of dataframes
 
 ''' 
-python3 PlotResponseTF.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem \
-    --v HCAL --tag DataReco --addtag _Uncalib --PlotRate --eventLim 100000
-python3 PlotResponseTF.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem \
-    --v HCAL --tag DataReco_200 --addtag _Uncalib --PlotRate --eventLim 100000
-'''
-
-- Compute target rate
-'''
-python3 TargetRateProxy.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem \
-    --v HCAL --tag DataReco
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 30 GeV :  0.7720753687787503
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 35 GeV :  0.7023885731391091
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 40 GeV :  0.6430205275269754
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 45 GeV :  0.5652868339522956
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 50 GeV :  0.46395590571676665
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 80 GeV :  0.041709171077529125
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 100 GeV :  0.007234602022088588
-
-python3 TargetRateProxy.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem \
-    --v HCAL --tag DataReco_200
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 30 GeV :  0.4127199651821744
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 35 GeV :  0.2508796041230602
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 40 GeV :  0.15787546798164545
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 45 GeV :  0.10342591281040156
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 50 GeV :  0.07017532053344484
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 80 GeV :  0.011455075436381072
-### INFO: Compute percentage of jets passing seed at 4 GeV & sum > 100 GeV :  0.00461894391320045
+python3 PlotResponseTF.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 \
+    --v HCAL --tag DataReco --PlotRate
+python3 PlotResponseTF.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70 \
+    --v HCAL --tag DataReco --PlotRate
+python3 PlotResponseTF.py --indir 2023_12_13_NtuplesV56/Input3/JetMET_PuppiJet_BarrelEndcap_Pt60_HoTot70 \
+    --v HCAL --tag DataReco --PlotRate
+python3 PlotResponseTF.py --indir 2023_12_13_NtuplesV56/Input4/JetMET_PuppiJet_BarrelEndcap_PtRaw60_HoTot70 \
+    --v HCAL --tag DataReco --PlotRate
 '''
 
 3) Training:
 
+- Compute target rate
+
 '''
-python3 NNModel_RegAndRate.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem \
-    --v HCAL --tag DataReco_Wrong --MaxLR 1E-4 --batch_size 1024 --epochs 20 --ThrRate 40 --TargetRate 0.6430205275269754 --addtag Test1 
-python3 ProgressionSFs.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem --v HCAL --tag DataReco_Wrong --addtag Test1 --epochs 20
-python3 ProgressionPerformance.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem --v HCAL --tag DataReco_Wrong --addtag Test1 --epochs 20 \
+python3 TargetRateProxy.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 --v HCAL --tag DataReco
+python3 TargetRateProxy.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70 --v HCAL --tag DataReco
+python3 TargetRateProxy.py --indir 2023_12_13_NtuplesV56/Input3/JetMET_PuppiJet_BarrelEndcap_Pt60_HoTot70 --v HCAL --tag DataReco
+python3 TargetRateProxy.py --indir 2023_12_13_NtuplesV56/Input4/JetMET_PuppiJet_BarrelEndcap_PtRaw60_HoTot70 --v HCAL --tag DataReco
+'''
+
+- Train the model with rate proxy
+
+'''
+python3 NNModel_RegAndRate.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 \
+    --v HCAL --tag DataReco --MaxLR 1E-3 --batch_size 256 --epochs 20 --ThrRate 40 --addtag Test0
+python3 ProgressionSFs.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 --v HCAL --tag DataReco --addtag Test0 --epochs 20
+python3 ProgressionPerformance.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 --v HCAL --tag DataReco --addtag Test0 --epochs 20 \
     --set Test --eventLim 20000 --filesLim 1
 
-python3 NNModel_RegAndRate.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem \
-    --v HCAL --tag DataReco --MaxLR 1E-4 --batch_size 1024 --epochs 20 --ThrRate 40 --TargetRate 0.6430205275269754 --addtag Test1 
-python3 ProgressionSFs.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem --v HCAL --tag DataReco --addtag Test1 --epochs 20
-python3 ProgressionPerformance.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot80_MinusIem --v HCAL --tag DataReco --addtag Test1 --epochs 20 \
-    --set Test --eventLim 20000
-
-python3 NNModel_RegAndRate.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem \
-    --v HCAL --tag DataReco_200 --MaxLR 1E-4 --batch_size 1024 --epochs 20 --ThrRate 40 --TargetRate 0.15787546798164545 --addtag Test1
-python3 ProgressionSFs.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem --v HCAL --tag DataReco_200 --addtag Test1 --epochs 20
-python3 ProgressionPerformance.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem --v HCAL --tag DataReco_200 --addtag Test1 --epochs 20 \
-    --set Test --eventLim 20000
+python3 NNModel_RegAndRate_AddEt.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 \
+    --v HCAL --tag DataReco --MaxLR 1E-3 --batch_size 256 --epochs 20 --ThrRate 40 --addtag Test1
+python3 ProgressionSFs.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 --v HCAL --tag DataReco --addtag Test1 --epochs 20
+python3 ProgressionPerformance.py --indir 2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95 --v HCAL --tag DataReco --addtag Test1 --epochs 20 \
+    --set Test --eventLim 20000 --filesLim 1
 '''
 
-4) Extract SFs, plot SFs and plot performance from testing sample:
+4) Extract SFs, plot SFs and plot performance from testing sample: # [FIXME] Make everything faster with npz instead of dataframes
 
 '''
 python3 PrepareReEmulation.py --indir 2023_12_10_NtuplesV55/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70_MinusIem \
