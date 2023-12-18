@@ -344,7 +344,6 @@ if __name__ == "__main__" :
         def regressionLoss(y, y_pred, other):
             MAPE = tf.keras.losses.MeanAbsolutePercentageError(reduction=tf.keras.losses.Reduction.NONE)
             Total_ET = tf.math.add(y_pred, other)
-            # print(Total_ET)
             return tf.reshape(MAPE(y, Total_ET), (1, 1)) * 500 # FIXME: scaling to be defined
 
         # part of the loss that controls the weights overtraining
