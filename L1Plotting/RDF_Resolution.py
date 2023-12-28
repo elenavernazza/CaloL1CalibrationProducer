@@ -219,8 +219,6 @@ if not options.plot_only:
 
     # Define response for matched jets
     df = df.Define("Response", "good_L1_pt / good_Of_pt")
-    df_b = df.Filter("abs(good_Of_eta) < 1.305")
-    df_e = df.Filter("(abs(good_Of_eta) > 1.479)")
 
     ##################################################################    
     ######################### CHUNKY DONUT ###########################
@@ -237,50 +235,22 @@ if not options.plot_only:
     df = df.Define("CD_ihad", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad).at(1)")
     df = df.Define("CD_iet",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad).at(2)")
 
+    df = df.Define("HoTot", "CD_ihad/CD_iet")
+    df = df.Define("EoTot", "CD_iem/CD_iet")
+
     # Define response for chunky donuts
     df = df.Define("Response_CD", "CD_iet / good_Of_pt")
-    df = df.Define("Ratio1", "CD_iet / good_L1_pt")
-    df = df.Define("Ratio2", "CD_ihad / good_L1_pt")
-    df = df.Define("Ratio3", "CD_iem / good_L1_pt")
-
-    pt_response_ptInclusive_CD = df.Histo1D(("pt_response_ptInclusive_CD", 
-        "pt_response_ptInclusive_CD", res_bins, 0, 3), "Response_CD")
+    df = df.Define("Ratio", "CD_iet / good_L1_pt")
     
-    print(" ### INFO: Plotting 2")
+    df_b = df.Filter("abs(good_Of_eta) < 1.305")
+    df_e = df.Filter("(abs(good_Of_eta) > 1.479)")
 
-    c = ROOT.TCanvas()
-    histo1 = df.Histo1D(("Ratio1", "", 200, 0, 2), "Ratio1")
-    histo1.Draw()
-    histo2 = df.Histo1D(("Ratio2", "", 200, 0, 2), "Ratio2")
-    histo2.Draw("SAME")
-    histo3 = df.Histo1D(("Ratio3", "", 200, 0, 2), "Ratio3")
-    histo3.Draw("SAME")
-    c.SaveAs("test_root.png")
-
-    c = ROOT.TCanvas()
-    histo1 = df.Histo2D(("Ratio", "", 50, 0, 2, 500, 0, 500), "Ratio1", "good_L1_pt")
-    histo1.Draw()
-    c.SaveAs("test_root_pt.png")
+    # print(" ### INFO: Plotting 2")
 
     # c = ROOT.TCanvas()
-    # histo1 = df.Histo2D(("Ratio1", "", 50, 0, 2, 41, 1, 41), "Ratio1", "good_L1_ieta")
+    # histo1 = df.Histo2D(("Ratio", "", 50, 0, 2, 500, 0, 500), "Ratio", "good_L1_pt")
     # histo1.Draw()
-    # c.SaveAs("test_root_ieta.png")
-
-    # c = ROOT.TCanvas()
-    # histo1 = df.Histo2D(("Ratio1", "", 50, 0, 2, 20, -5, 5), "Ratio1", "good_L1_eta")
-    # histo1.Draw()
-    # c.SaveAs("test_root_eta.png")
-
-    # c = ROOT.TCanvas()
-    # histo1 = df.Histo2D(("Ratio1", "", 50, 0, 2, 72, 1, 72), "Ratio1", "good_L1_iphi")
-    # histo1.Draw()
-    # c.SaveAs("test_root_iphi.png")
-
-    # c = ROOT.TCanvas()
-    # histo1 = df.Histo2D(("Ratio1", "", 50, 0, 2, 20, -3.14, 3.14), "Ratio1", "good_L1_phi")
-    # histo1.Draw()
-    # c.SaveAs("test_root_phi.png")
+    # c.SaveAs("test_root_pt.png")
 
     # print(" ### INFO: Plotting 3")
 
@@ -304,6 +274,13 @@ if not options.plot_only:
         "pt_barrel_resp_ptInclusive", res_bins, 0, 3), "Response")
     pt_endcap_resp_ptInclusive = df_e.Histo1D(("pt_endcap_resp_ptInclusive",
         "pt_endcap_resp_ptInclusive", res_bins, 0, 3), "Response") 
+
+    pt_response_ptInclusive_CD = df.Histo1D(("pt_response_ptInclusive_CD", 
+        "pt_response_ptInclusive_CD", res_bins, 0, 3), "Response_CD")
+    pt_barrel_resp_ptInclusive_CD = df_b.Histo1D(("pt_barrel_resp_ptInclusive_CD",
+        "pt_barrel_resp_ptInclusive", res_bins, 0, 3), "Response_CD")
+    pt_endcap_resp_ptInclusive_CD = df_e.Histo1D(("pt_endcap_resp_ptInclusive_CD",
+        "pt_endcap_resp_ptInclusive", res_bins, 0, 3), "Response_CD") 
 
     # PT RESPONSE - PT BINS HISTOGRAMS
     response_ptBins = []
@@ -341,17 +318,21 @@ if not options.plot_only:
         name = "pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
         plusEta_response_ptBins.append(df_PlusEtaBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
 
-    # # PT RESPONSE -  H/TOT BINS HISTIGRAMS
-    # if options.do_HoTot:
-    #     response_HoTotBins = []
-    #     for i in range(len(HoTotBins)-1):
-    #         response_HoTotBins.append(ROOT.TH1F("pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1]),"pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1]),res_bins,0,3))
+    # PT RESPONSE -  H/TOT BINS HISTIGRAMS
+    if options.do_HoTot:
+        response_HoTotBins = []
+        for i in range(len(HoTotBins)-1):
+            df_HoTotBin = df.Filter("(HoTot > {}) && (HoTot < {})".format(HoTotBins[i], HoTotBins[i+1]))
+            name = "pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1])
+            response_HoTotBins.append(df_HoTotBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
 
-    # # PT RESPONSE -  E/TOT BINS HISTIGRAMS
-    # if options.do_EoTot:
-    #     response_EoTotBins = []
-    #     for i in range(len(EoTotBins)-1):
-    #         response_EoTotBins.append(ROOT.TH1F("pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),"pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),res_bins,0,3))
+    # PT RESPONSE -  E/TOT BINS HISTIGRAMS
+    if options.do_EoTot:
+        response_EoTotBins = []
+        for i in range(len(EoTotBins)-1):
+            df_EoTotBin = df.Filter("(EoTot > {}) && (EoTot < {})".format(EoTotBins[i], EoTotBins[i+1]))
+            name = "pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1])
+            response_EoTotBins.append(df_EoTotBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
 
     ##################################################################    
     ########################### RESOLUTION ###########################
@@ -362,275 +343,6 @@ if not options.plot_only:
     pt_resol_fctPt = ROOT.TH1F("pt_resol_fctPt","pt_resol_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_resol_barrel_fctPt = ROOT.TH1F("pt_resol_barrel_fctPt","pt_resol_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_resol_endcap_fctPt = ROOT.TH1F("pt_resol_endcap_fctPt","pt_resol_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
-    pt_resol_fctEta = ROOT.TH1F("pt_resol_fctEta","pt_resol_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
-
-    pt_scale_fctPt = ROOT.TH1F("pt_scale_fctPt","pt_scale_fctPt",len(ptBins)-1, array('f',ptBins))
-    pt_scale_fctEta = ROOT.TH1F("pt_scale_fctEta","pt_scale_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
-
-    pt_scale_max_fctPt = ROOT.TH1F("pt_scale_max_fctPt","pt_scale_max_fctPt",len(ptBins)-1, array('f',ptBins))
-    pt_scale_max_fctEta = ROOT.TH1F("pt_scale_max_fctEta","pt_scale_max_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
-
-    if options.do_HoTot:
-        pt_resol_fctHoTot = ROOT.TH1F("pt_resol_fctHoTot","pt_resol_fctHoTot",len(HoTotBins)-1, array('f',HoTotBins))
-        pt_scale_fctHoTot = ROOT.TH1F("pt_scale_fctHoTot","pt_scale_fctHoTot",len(HoTotBins)-1, array('f',HoTotBins))
-        pt_scale_max_fctHoTot = ROOT.TH1F("pt_scale_max_fctHoTot","pt_scale_max_fctHoTot",len(HoTotBins)-1, array('f',HoTotBins))
-
-    if options.do_EoTot:
-        pt_resol_fctEoTot = ROOT.TH1F("pt_resol_fctEoTot","pt_resol_fctEoTot",len(EoTotBins)-1, array('f',EoTotBins))
-        pt_scale_fctEoTot = ROOT.TH1F("pt_scale_fctEoTot","pt_scale_fctEoTot",len(EoTotBins)-1, array('f',EoTotBins))
-        pt_scale_max_fctEoTot = ROOT.TH1F("pt_scale_max_fctEoTot","pt_scale_max_fctEoTot",len(EoTotBins)-1, array('f',EoTotBins))
-
-    for i in range(len(barrel_response_ptBins)):
-        pt_scale_fctPt.SetBinContent(i+1, response_ptBins[i].GetMean())
-        pt_scale_fctPt.SetBinError(i+1, response_ptBins[i].GetMeanError())
-
-        pt_scale_max_fctPt.SetBinContent(i+1, response_ptBins[i].GetBinCenter(response_ptBins[i].GetMaximumBin()))
-        pt_scale_max_fctPt.SetBinError(i+1, response_ptBins[i].GetBinWidth(response_ptBins[i].GetMaximumBin()))
-
-        if response_ptBins[i].GetMean() > 0:
-            pt_resol_fctPt.SetBinContent(i+1, response_ptBins[i].GetRMS()/response_ptBins[i].GetMean())
-            pt_resol_fctPt.SetBinError(i+1, response_ptBins[i].GetRMSError()/response_ptBins[i].GetMean())
-        else:
-            pt_resol_fctPt.SetBinContent(i+1, 0)
-            pt_resol_fctPt.SetBinError(i+1, 0)
-
-        if barrel_response_ptBins[i].GetMean() > 0:
-            pt_resol_barrel_fctPt.SetBinContent(i+1, barrel_response_ptBins[i].GetRMS()/barrel_response_ptBins[i].GetMean())
-            pt_resol_endcap_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetRMSError()/barrel_response_ptBins[i].GetMean())
-        else:
-            pt_resol_barrel_fctPt.SetBinContent(i+1, 0)
-            pt_resol_endcap_fctPt.SetBinError(i+1, 0)        
-
-        if endcap_response_ptBins[i].GetMean() > 0:
-            pt_resol_endcap_fctPt.SetBinContent(i+1, endcap_response_ptBins[i].GetRMS()/endcap_response_ptBins[i].GetMean())
-            pt_resol_endcap_fctPt.SetBinError(i+1, endcap_response_ptBins[i].GetRMSError()/endcap_response_ptBins[i].GetMean())
-        else:
-            pt_resol_endcap_fctPt.SetBinContent(i+1, 0)
-            pt_resol_endcap_fctPt.SetBinError(i+1, 0)
-
-    for i in range(len(minusEta_response_ptBins)):
-        pt_scale_fctEta.SetBinContent(len(etaBins)-1-i, minusEta_response_ptBins[i].GetMean())
-        pt_scale_fctEta.SetBinError(len(etaBins)-1-i, minusEta_response_ptBins[i].GetMeanError())
-        pt_scale_fctEta.SetBinContent(i+len(etaBins), plusEta_response_ptBins[i].GetMean())
-        pt_scale_fctEta.SetBinError(i+len(etaBins), plusEta_response_ptBins[i].GetMeanError())
-
-        pt_scale_max_fctEta.SetBinContent(len(etaBins)-1-i, minusEta_response_ptBins[i].GetBinCenter(minusEta_response_ptBins[i].GetMaximumBin()))
-        pt_scale_max_fctEta.SetBinError(len(etaBins)-1-i, minusEta_response_ptBins[i].GetBinWidth(minusEta_response_ptBins[i].GetMaximumBin()))
-        pt_scale_max_fctEta.SetBinContent(i+len(etaBins), plusEta_response_ptBins[i].GetBinCenter(plusEta_response_ptBins[i].GetMaximumBin()))
-        pt_scale_max_fctEta.SetBinError(i+len(etaBins), plusEta_response_ptBins[i].GetBinWidth(plusEta_response_ptBins[i].GetMaximumBin()))
-
-        if minusEta_response_ptBins[i].GetMean() > 0:
-            pt_resol_fctEta.SetBinContent(len(etaBins)-1-i, minusEta_response_ptBins[i].GetRMS()/minusEta_response_ptBins[i].GetMean())
-            pt_resol_fctEta.SetBinError(len(etaBins)-1-i, minusEta_response_ptBins[i].GetRMSError()/minusEta_response_ptBins[i].GetMean())
-        else:
-            pt_resol_fctEta.SetBinContent(len(etaBins)-1-i, 0)
-            pt_resol_fctEta.SetBinError(len(etaBins)-1-i, 0)
-
-        if plusEta_response_ptBins[i].GetMean() > 0:
-            pt_resol_fctEta.SetBinContent(i+len(etaBins), plusEta_response_ptBins[i].GetRMS()/plusEta_response_ptBins[i].GetMean())
-            pt_resol_fctEta.SetBinError(i+len(etaBins), plusEta_response_ptBins[i].GetRMSError()/plusEta_response_ptBins[i].GetMean())
-        else:
-            pt_resol_fctEta.SetBinContent(i+len(etaBins), 0)
-            pt_resol_fctEta.SetBinError(i+len(etaBins), 0)
-
-    print(" ### INFO: Saving to root format")
-    fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root','RECREATE')
-    pt_response_ptInclusive.Write()
-    pt_barrel_resp_ptInclusive.Write()
-    pt_endcap_resp_ptInclusive.Write()
-    for i in range(len(ptBins)-1):
-        response_ptBins[i].Write()
-        barrel_response_ptBins[i].Write()
-        endcap_response_ptBins[i].Write()
-    for i in range(len(etaBins)-1):
-        absEta_response_ptBins[i].Write()
-        minusEta_response_ptBins[i].Write()
-        plusEta_response_ptBins[i].Write()
-    pt_scale_fctPt.Write()
-    pt_scale_max_fctPt.Write()
-    pt_resol_fctPt.Write()
-    pt_scale_fctEta.Write()
-    pt_scale_max_fctEta.Write()
-    pt_resol_fctEta.Write()
-    pt_resol_barrel_fctPt.Write()
-    pt_resol_endcap_fctPt.Write()
-
-    # if options.do_HoTot:
-    #     pt_scale_fctHoTot.Write()
-    #     pt_scale_max_fctHoTot.Write()
-    #     pt_resol_fctHoTot.Write()
-    # if options.do_EoTot:
-    #     pt_scale_fctEoTot.Write()
-    #     pt_scale_max_fctEoTot.Write()
-    #     pt_resol_fctEoTot.Write()
-    # pt_scale_max_fctPt.Write()
-    # pt_scale_max_fctEta.Write()
-    # pt_resol_fctPt.Write()
-    # pt_resol_barrel_fctPt.Write()
-    # pt_resol_endcap_fctPt.Write()
-    # pt_resol_fctAbsEta.Write()
-    # pt_resol_fctEta.Write()
-    # pt_response_ptInclusive.Write()
-    # pt_barrel_resp_ptInclusive.Write()
-    # pt_endcap_resp_ptInclusive.Write()
-    # pt_response_ptInclusive_CD.Write()
-    # pt_barrel_resp_ptInclusive_CD.Write()
-    # pt_endcap_resp_ptInclusive_CD.Write()
-    # for i in range(len(response_ptBins)):
-    #     response_ptBins[i].Write()
-    #     barrel_response_ptBins[i].Write()
-    #     endcap_response_ptBins[i].Write()
-    # for i in range(len(minusEta_response_ptBins)):
-    #     absEta_response_ptBins[i].Write()
-    #     minusEta_response_ptBins[i].Write()
-    #     plusEta_response_ptBins[i].Write()
-    # if options.do_HoTot:
-    #     for i in range(len(response_HoTotBins)):
-    #         response_HoTotBins[i].Write()
-    # if options.do_EoTot:
-    #     for i in range(len(response_EoTotBins)):
-    #         response_EoTotBins[i].Write()
-
-    sys.exit()
-
-    # PT RESPONSE - INCLUSIVE HISTOGRAMS
-    res_bins = 240
-    pt_response_ptInclusive = ROOT.TH1F("pt_response_ptInclusive","pt_response_ptInclusive",res_bins,0,3)
-    pt_barrel_resp_ptInclusive = ROOT.TH1F("pt_barrel_resp_ptInclusive","pt_barrel_resp_ptInclusive",res_bins,0,3)
-    pt_endcap_resp_ptInclusive = ROOT.TH1F("pt_endcap_resp_ptInclusive","pt_endcap_resp_ptInclusive",res_bins,0,3)
-    pt_response_ptInclusive_CD = ROOT.TH1F("pt_response_ptInclusive_CD","pt_response_ptInclusive_CD",res_bins,0,3)
-    pt_barrel_resp_ptInclusive_CD = ROOT.TH1F("pt_barrel_resp_ptInclusive_CD","pt_barrel_resp_ptInclusive_CD",res_bins,0,3)
-    pt_endcap_resp_ptInclusive_CD = ROOT.TH1F("pt_endcap_resp_ptInclusive_CD","pt_endcap_resp_ptInclusive_CD",res_bins,0,3)
-
-    # PT RESPONSE - PT BINS HISTOGRAMS
-    response_ptBins = []
-    barrel_response_ptBins = []
-    endcap_response_ptBins = []
-    for i in range(len(ptBins)-1):
-        response_ptBins.append(ROOT.TH1F("pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
-        barrel_response_ptBins.append(ROOT.TH1F("pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
-        endcap_response_ptBins.append(ROOT.TH1F("pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
-
-    # PT RESPONSE -  ETA BINS HISTIGRAMS
-    absEta_response_ptBins = []
-    minusEta_response_ptBins = []
-    plusEta_response_ptBins = []
-    for i in range(len(etaBins)-1):
-        absEta_response_ptBins.append(ROOT.TH1F("pt_resp_AbsEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),"pt_resp_AbsEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),res_bins,0,3))
-        minusEta_response_ptBins.append(ROOT.TH1F("pt_resp_MinusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),"pt_resp_MinusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),res_bins,0,3))
-        plusEta_response_ptBins.append(ROOT.TH1F("pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),"pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),res_bins,0,3))
-
-    # PT RESPONSE -  H/TOT BINS HISTIGRAMS
-    if options.do_HoTot:
-        response_HoTotBins = []
-        for i in range(len(HoTotBins)-1):
-            response_HoTotBins.append(ROOT.TH1F("pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1]),"pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1]),res_bins,0,3))
-
-    # PT RESPONSE -  E/TOT BINS HISTIGRAMS
-    if options.do_EoTot:
-        response_EoTotBins = []
-        for i in range(len(EoTotBins)-1):
-            response_EoTotBins.append(ROOT.TH1F("pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),"pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),res_bins,0,3))
-
-            if matched:
-
-                L1Pt = myGoodLevel1Obj.Pt()
-                # print(L1Pt, targetObj.Pt())
-
-                iem_sum = 0
-                ihad_sum = 0
-                if options.do_HoTot or options.do_EoTot:
-                    # find Chunky Donut center
-                    jetIEta = FindIeta(targetObj.Eta())
-                    jetIPhi = FindIphi(targetObj.Phi())
-                    jetIEta_L1 = FindIeta(myGoodLevel1Obj.Eta())
-                    jetIPhi_L1 = FindIphi(myGoodLevel1Obj.Phi())
-                    
-                    max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(jetIEta))))
-                    min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(jetIEta))))
-                    max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(jetIPhi))))
-                    min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(jetIPhi))))
-
-                    nTowers = towersTree.L1CaloTower.nTower
-                    if min_IPhi <= max_IPhi:
-                        for iTower in range(0, nTowers):
-                            ieta = towersTree.L1CaloTower.ieta[iTower]
-                            iphi = towersTree.L1CaloTower.iphi[iTower]
-                            if ((ieta <= max_IEta) & (ieta >= min_IEta) & (iphi <= max_IPhi) & (iphi >= min_IPhi)):
-                                iem_sum += towersTree.L1CaloTower.iem[iTower]
-                                ihad_sum += towersTree.L1CaloTower.ihad[iTower]
-                    else: # when iphi > 72
-                        for iTower in range(0, nTowers):
-                            ieta = towersTree.L1CaloTower.ieta[iTower]
-                            iphi = towersTree.L1CaloTower.iphi[iTower]
-                            if ((ieta <= max_IEta) & (ieta >= min_IEta) & ((iphi >= min_IPhi) | (iphi <= max_IPhi))):
-                                iem_sum += towersTree.L1CaloTower.iem[iTower]
-                                ihad_sum += towersTree.L1CaloTower.ihad[iTower]
-                    # print(ihad_sum, iem_sum)
-                    if ihad_sum+iem_sum != 0:
-                        HoTot = ihad_sum/(ihad_sum+iem_sum)
-                        EoTot = iem_sum/(ihad_sum+iem_sum)
-                    else:
-                        HoTot = 0
-                        EoTot = 0
-
-                    # print("Res = {:2f}".format(L1Pt/targetObj.Pt()))
-
-                    ##########################################################################################
-
-                    if options.do_HoTot:
-                        for i in range(len(HoTotBins)-1):
-                            if HoTot > HoTotBins[i] and HoTot <= HoTotBins[i+1]:
-                                response_HoTotBins[i].Fill(L1Pt/targetObj.Pt())
-                    if options.do_EoTot:
-                        for i in range(len(EoTotBins)-1):
-                            if EoTot > EoTotBins[i] and EoTot <= EoTotBins[i+1]:
-                                response_EoTotBins[i].Fill(L1Pt/targetObj.Pt())
-                    
-                    ##########################################################################################
-
-                # fill histograms
-
-                pt_response_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                pt_response_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-
-                if abs(targetObj.Eta()) < 1.305:
-                    pt_barrel_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                    pt_barrel_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-                elif abs(targetObj.Eta()) < 5.191 and abs(targetObj.Eta()) > 1.479:
-                    pt_endcap_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                    pt_endcap_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-
-                for i in range(len(ptBins)-1):
-                    if targetObj.Pt() > ptBins[i] and targetObj.Pt() <= ptBins[i+1]:
-                        response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-                        
-                        if abs(targetObj.Eta()) < 1.305:
-                            barrel_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-                        elif abs(targetObj.Eta()) < 5.191 and abs(targetObj.Eta()) > 1.479:
-                            endcap_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-                for i in range(len(etaBins)-1):
-                    if abs(targetObj.Eta()) > etaBins[i] and abs(targetObj.Eta()) < etaBins[i+1]:
-                        absEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-                    if targetObj.Eta() > etaBins[i] and targetObj.Eta() < etaBins[i+1]:
-                        plusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-                    elif targetObj.Eta() < -etaBins[i] and targetObj.Eta() > -etaBins[i+1]:
-                        minusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-    ############################################################################################
-    ############################################################################################
-    ############################################################################################
-
-    print(" ### INFO: Compute resolution and scale")
-
-    # make resolution plots
-    pt_resol_fctPt = ROOT.TH1F("pt_resol_fctPt","pt_resol_fctPt",len(ptBins)-1, array('f',ptBins))
-    pt_resol_barrel_fctPt = ROOT.TH1F("pt_resol_barrel_fctPt","pt_resol_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
-    pt_resol_endcap_fctPt = ROOT.TH1F("pt_resol_endcap_fctPt","pt_resol_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
-    pt_resol_fctAbsEta = ROOT.TH1F("pt_resol_fctAbsEta","pt_resol_fctAbsEta",len(etaBins)-1, array('f',etaBins))
     pt_resol_fctEta = ROOT.TH1F("pt_resol_fctEta","pt_resol_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
 
     pt_scale_fctPt = ROOT.TH1F("pt_scale_fctPt","pt_scale_fctPt",len(ptBins)-1, array('f',ptBins))
@@ -728,49 +440,46 @@ if not options.plot_only:
                 pt_resol_fctEoTot.SetBinContent(i+1, 0)
                 pt_resol_fctEoTot.SetBinError(i+1, 0)
 
-    ############################################################################################
-    ############################################################################################
-    ############################################################################################
-
     print(" ### INFO: Saving to root format")
     fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root','RECREATE')
-    pt_scale_fctPt.Write()
-    pt_scale_fctEta.Write()
-    if options.do_HoTot:
-        pt_scale_fctHoTot.Write()
-        pt_scale_max_fctHoTot.Write()
-        pt_resol_fctHoTot.Write()
-    if options.do_EoTot:
-        pt_scale_fctEoTot.Write()
-        pt_scale_max_fctEoTot.Write()
-        pt_resol_fctEoTot.Write()
-    pt_scale_max_fctPt.Write()
-    pt_scale_max_fctEta.Write()
-    pt_resol_fctPt.Write()
-    pt_resol_barrel_fctPt.Write()
-    pt_resol_endcap_fctPt.Write()
-    pt_resol_fctAbsEta.Write()
-    pt_resol_fctEta.Write()
     pt_response_ptInclusive.Write()
     pt_barrel_resp_ptInclusive.Write()
     pt_endcap_resp_ptInclusive.Write()
     pt_response_ptInclusive_CD.Write()
     pt_barrel_resp_ptInclusive_CD.Write()
     pt_endcap_resp_ptInclusive_CD.Write()
-    for i in range(len(response_ptBins)):
+    for i in range(len(ptBins)-1):
         response_ptBins[i].Write()
         barrel_response_ptBins[i].Write()
         endcap_response_ptBins[i].Write()
-    for i in range(len(minusEta_response_ptBins)):
+    for i in range(len(etaBins)-1):
         absEta_response_ptBins[i].Write()
         minusEta_response_ptBins[i].Write()
         plusEta_response_ptBins[i].Write()
+    pt_scale_fctPt.Write()
+    pt_scale_max_fctPt.Write()
+    pt_resol_fctPt.Write()
+    pt_scale_fctEta.Write()
+    pt_scale_max_fctEta.Write()
+    pt_resol_fctEta.Write()
+    pt_resol_barrel_fctPt.Write()
+    pt_resol_endcap_fctPt.Write()
     if options.do_HoTot:
         for i in range(len(response_HoTotBins)):
             response_HoTotBins[i].Write()
+        pt_scale_fctHoTot.Write()
+        pt_scale_max_fctHoTot.Write()
+        pt_resol_fctHoTot.Write()
     if options.do_EoTot:
         for i in range(len(response_EoTotBins)):
             response_EoTotBins[i].Write()
+        pt_scale_fctEoTot.Write()
+        pt_scale_max_fctEoTot.Write()
+        pt_resol_fctEoTot.Write()
+
+    ############################################################################################
+    ############################################################################################
+    ############################################################################################
 
 else:
     print(" ### INFO: Read existing root files")
@@ -850,6 +559,7 @@ if options.norm:
 
 else:
     y_label_response = 'Entries'
+
 ############################################################################################
 ############################################################################################
 ############################################################################################
