@@ -108,6 +108,21 @@ ROOT.gInterpreter.Declare("""
 """)
 
 ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> SumHCAL (Vfloat TT_ihc, Vfloat TT_iet, Vfloat TT_ieta) {
+        ROOT::RVec<float> TT_ihad;
+        for (int i_TT = 0; i_TT < TT_ieta.size(); i_TT ++)
+            if (abs(TT_ieta.at(i_TT)) < 29) {
+                TT_ihad.push_back(TT_ihc.at(i_TT));
+            }
+            else {
+                TT_ihad.push_back(TT_iet.at(i_TT));
+            }
+        return TT_ihad;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
     int NextPhiTower(int iphi) {
         if (iphi == 72) return 1;
         else            return iphi + 1;
@@ -126,7 +141,7 @@ ROOT.gInterpreter.Declare("""
     }
                         
     using Vfloat = const ROOT::RVec<float>&;
-    ROOT::RVec<float> ChunkyDonutEnergy (float L1_ieta, float L1_iphi, Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iem, Vfloat TT_ihad) {
+    ROOT::RVec<float> ChunkyDonutEnergy (float L1_ieta, float L1_iphi, Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iem, Vfloat TT_ihad, Vfloat TT_iet) {
 
         int max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(L1_ieta))));
         int min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(L1_ieta))));
@@ -142,7 +157,7 @@ ROOT.gInterpreter.Declare("""
                     ((TT_iphi.at(i_TT) <= max_IPhi) && (TT_iphi.at(i_TT) >= min_IPhi))) {
                     iem_sum  += TT_iem.at(i_TT);
                     ihad_sum += TT_ihad.at(i_TT);
-                    iet_sum  += TT_iem.at(i_TT) + TT_ihad.at(i_TT); 
+                    iet_sum  += TT_iet.at(i_TT); 
                 }
             } 
             else {
@@ -150,7 +165,7 @@ ROOT.gInterpreter.Declare("""
                     ((TT_iphi.at(i_TT) >= min_IPhi) || (TT_iphi.at(i_TT) <= max_IPhi))) {
                     iem_sum  += TT_iem.at(i_TT);
                     ihad_sum += TT_ihad.at(i_TT);
-                    iet_sum  += TT_iem.at(i_TT) + TT_ihad.at(i_TT); 
+                    iet_sum  += TT_iet.at(i_TT); 
                 }                        
             }                         
         }

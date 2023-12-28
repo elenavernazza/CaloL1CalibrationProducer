@@ -192,9 +192,9 @@ if not options.plot_only:
         cut_eta = float(options.etacut)
 
     # [FIXME] Yet to be implemented
-    # if options.target == 'ele' and options.LooseEle:
+    if options.target == 'ele' and options.LooseEle:
+        sys.exit(" ERROR: This is not implemented yet")
     #     df = df.Define("isLooseElectron", "Electron.isLooseElectron")
-    #     selection += " && (isLooseElectron != 0)"
 
     df = df.Define("Offline_pt_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(0)".format(cut_pt, cut_eta, cut_phi))
@@ -226,14 +226,17 @@ if not options.plot_only:
     df = df.Define("TT_ieta", "L1CaloTower.ieta")
     df = df.Define("TT_iphi", "L1CaloTower.iphi")
     df = df.Define("TT_iem",  "L1CaloTower.iem")
-    df = df.Define("TT_ihad", "L1CaloTower.ihad")
+    df = df.Define("TT_ihc",  "L1CaloTower.ihad")
+    df = df.Define("TT_iet",  "L1CaloTower.iet")
+    # Define overall hcalET information, ihad for ieta < 29 and iet for ieta > 29
+    df = df.Define("TT_ihad", "SumHCAL (TT_ihc, TT_iet, TT_ieta)")
 
     df = df.Define("good_L1_ieta", "FindIeta(good_L1_eta)")
     df = df.Define("good_L1_iphi", "FindIphi(good_L1_phi)")
 
-    df = df.Define("CD_iem",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad).at(0)")
-    df = df.Define("CD_ihad", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad).at(1)")
-    df = df.Define("CD_iet",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad).at(2)")
+    df = df.Define("CD_iem",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(0)")
+    df = df.Define("CD_ihad", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(1)")
+    df = df.Define("CD_iet",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(2)")
 
     df = df.Define("HoTot", "CD_ihad/CD_iet")
     df = df.Define("EoTot", "CD_iem/CD_iet")
@@ -245,22 +248,17 @@ if not options.plot_only:
     df_b = df.Filter("abs(good_Of_eta) < 1.305")
     df_e = df.Filter("(abs(good_Of_eta) > 1.479)")
 
-    # print(" ### INFO: Plotting 2")
+    # print(" ### INFO: Plotting")
 
     # c = ROOT.TCanvas()
     # histo1 = df.Histo2D(("Ratio", "", 50, 0, 2, 500, 0, 500), "Ratio", "good_L1_pt")
     # histo1.Draw()
-    # c.SaveAs("test_root_pt.png")
+    # c.SaveAs("ratio_l1pt_pt.png")
 
-    # print(" ### INFO: Plotting 3")
-
-    # cmap = plt.get_cmap('viridis')
-    # fig, ax = plt.subplots(figsize=(10,10))
-    # X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive_CD)
-    # ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label='Response CD', lw=2, linestyle='', marker='o', color=cmap(0))
-    # plt.legend()
-    # plt.savefig('test.png')
-    # plt.close()  
+    # c = ROOT.TCanvas()
+    # histo1 = df.Histo2D(("Ratio", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_eta")
+    # histo1.Draw()
+    # c.SaveAs("ratio_l1pt_eta.png")
 
     ##################################################################    
     ########################### HISTOGRAMS ###########################
