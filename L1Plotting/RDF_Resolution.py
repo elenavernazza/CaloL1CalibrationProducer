@@ -1,7 +1,7 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(000000)
-import sys, os, matplotlib, glob, sys
+import sys, os, sys
 import numpy as np
 from array import array
 import matplotlib.patches as patches
@@ -46,6 +46,7 @@ parser.add_option("--do_HoTot",  dest="do_HoTot", action='store_true', default=F
 parser.add_option("--do_EoTot",  dest="do_EoTot", action='store_true', default=False)
 parser.add_option("--plot_only", dest="plot_only",action='store_true', default=False)
 parser.add_option("--norm",      dest="norm",     action='store_true', default=False)
+parser.add_option("--HCALcalib", dest="HCALcalib",action='store_true', default=False)
 (options, args) = parser.parse_args()
 
 cmap = plt.get_cmap('Set1')
@@ -248,12 +249,29 @@ if not options.plot_only:
     df_b = df.Filter("abs(good_Of_eta) < 1.305")
     df_e = df.Filter("(abs(good_Of_eta) > 1.479)")
 
-    # print(" ### INFO: Plotting")
+    # Add option to calibrate HCAL on the fly
+    if options.HCALcalib:
+        caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/caloParams_2023_v51_Test3_newCalib_cfi.py"
+        from RDF_Calibration import *
+        ROOT.load_HCAL_SFs(caloParams_file)
+        df = df.Define("TT_ihad_calib", "CalibrateIhad(TT_ihad, TT_ieta)")
+        df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad_calib, TT_iet).at(1)")
+
+    print(" ### INFO: Plotting")
 
     # c = ROOT.TCanvas()
-    # histo1 = df.Histo2D(("Ratio", "", 50, 0, 2, 500, 0, 500), "Ratio", "good_L1_pt")
+    # df = df.Define("Response_uncalib", "(CD_iem+CD_ihad) / good_Of_pt")
+    # df = df.Define("Response_calib", "(CD_iem+CD_ihad_calib) / good_Of_pt")
+    # histo1 = df.Histo1D("Response_uncalib")
+    # histo2 = df.Histo1D("Response_calib")
     # histo1.Draw()
-    # c.SaveAs("ratio_l1pt_pt.png")
+    # histo2.Draw("SAME")
+    # c.SaveAs("calib_ihad.png")
+
+    # f = ROOT.TFile("/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/L1Plotting/test.root","RECREATE")
+    # histo1.Write()
+    # histo2.Write()
+    # f.Close()
 
     # c = ROOT.TCanvas()
     # histo1 = df.Histo2D(("Ratio", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_eta")
