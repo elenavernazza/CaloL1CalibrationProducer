@@ -229,7 +229,7 @@ if __name__ == "__main__" :
     CKPTdir = odir+'/training_checkpoints'
     CKPTpf = os.path.join(CKPTdir, "ckpt")
     os.system('mkdir -p '+ odir)
-    os.system('mkdir -p '+ odir+'/plots')
+    os.system('mkdir -p '+ odir+'/loss_plots')
     os.system('mkdir -p '+ CKPTdir)
 
     if options.makeOnlyPlots:
@@ -346,14 +346,14 @@ if __name__ == "__main__" :
             if options.weight_loss == 'abs':
                 modelWeights = model.trainable_weights
                 modelWeights_ss = float( tf.math.reduce_sum(tf.math.abs(modelWeights[0]), keepdims=True) +
-                                        tf.math.reduce_sum(tf.math.abs(modelWeights[1]), keepdims=True) +
-                                        tf.math.reduce_sum(tf.math.abs(modelWeights[2]), keepdims=True)
+                                         tf.math.reduce_sum(tf.math.abs(modelWeights[1]), keepdims=True) +
+                                         tf.math.reduce_sum(tf.math.abs(modelWeights[2]), keepdims=True)
                                         )            
             elif options.weight_loss == 'sqr':
                 modelWeights = model.trainable_weights
                 modelWeights_ss = float( tf.math.reduce_sum(tf.math.square(modelWeights[0]), keepdims=True) +
-                                        tf.math.reduce_sum(tf.math.square(modelWeights[1]), keepdims=True) +
-                                        tf.math.reduce_sum(tf.math.square(modelWeights[2]), keepdims=True)
+                                         tf.math.reduce_sum(tf.math.square(modelWeights[1]), keepdims=True) +
+                                         tf.math.reduce_sum(tf.math.square(modelWeights[2]), keepdims=True)
                                         )        
             return  modelWeights_ss * 1 # FIXME: scaling to be optimized
 

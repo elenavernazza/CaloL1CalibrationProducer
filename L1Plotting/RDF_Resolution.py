@@ -45,8 +45,11 @@ parser.add_option("--PuppiJet",  dest="PuppiJet", action='store_true', default=F
 parser.add_option("--do_HoTot",  dest="do_HoTot", action='store_true', default=False)
 parser.add_option("--do_EoTot",  dest="do_EoTot", action='store_true', default=False)
 parser.add_option("--plot_only", dest="plot_only",action='store_true', default=False)
+parser.add_option("--no_plot",   dest="no_plot",  action='store_true', default=False)
 parser.add_option("--norm",      dest="norm",     action='store_true', default=False)
 parser.add_option("--HCALcalib", dest="HCALcalib",action='store_true', default=False)
+parser.add_option("--ECALcalib", dest="ECALcalib",action='store_true', default=False)
+parser.add_option("--caloParam", dest="caloParam",type=str,   default='')
 (options, args) = parser.parse_args()
 
 cmap = plt.get_cmap('Set1')
@@ -238,6 +241,7 @@ if not options.plot_only:
     df = df.Define("CD_iem",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(0)")
     df = df.Define("CD_ihad", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(1)")
     df = df.Define("CD_iet",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(2)")
+    df = df.Define("CD_iesum", "CD_iem + CD_ihad")
 
     df = df.Define("HoTot", "CD_ihad/CD_iet")
     df = df.Define("EoTot", "CD_iem/CD_iet")
@@ -245,19 +249,32 @@ if not options.plot_only:
     # Define response for chunky donuts
     df = df.Define("Response_CD", "CD_iet / good_Of_pt")
     df = df.Define("Ratio", "CD_iet / good_L1_pt")
-    
+
+    response_name = 'Response'
+
+    if options.HCALcalib or options.ECALcalib:
+        from RDF_Calibration import *
+        # caloParams_file = options.caloParam
+        caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/caloParams_2023_v51_Test3_newCalib_cfi.py"
+
+        ROOT.load_HCAL_SFs(caloParams_file)
+        ROOT.load_HF_SFs(caloParams_file)
+        df = df.Define("TT_ihad_calib", "CalibrateIhad(TT_ihad, TT_ieta, {})".format(str(options.HCALcalib).lower()))
+        
+        ROOT.load_ECAL_SFs(caloParams_file)
+        df = df.Define("TT_iem_calib", "CalibrateIem(TT_iem, TT_ieta, {})".format(str(options.ECALcalib).lower()))
+        
+        df = df.Define("CD_iem_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(0)")
+        df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
+        df = df.Define("CD_iesum_calib", "CD_iem_calib + CD_ihad_calib")
+        df = df.Define("Response_CD_calib", "(CD_iem_calib + CD_ihad_calib) / good_Of_pt")
+
+        response_name = "Response_CD_calib"
+
     df_b = df.Filter("abs(good_Of_eta) < 1.305")
     df_e = df.Filter("(abs(good_Of_eta) > 1.479)")
-
-    # Add option to calibrate HCAL on the fly
-    if options.HCALcalib:
-        caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/caloParams_2023_v51_Test3_newCalib_cfi.py"
-        from RDF_Calibration import *
-        ROOT.load_HCAL_SFs(caloParams_file)
-        df = df.Define("TT_ihad_calib", "CalibrateIhad(TT_ihad, TT_ieta)")
-        df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad_calib, TT_iet).at(1)")
-
-    print(" ### INFO: Plotting")
+    
+    # print(" ### INFO: Plotting")
 
     # c = ROOT.TCanvas()
     # df = df.Define("Response_uncalib", "(CD_iem+CD_ihad) / good_Of_pt")
@@ -281,22 +298,26 @@ if not options.plot_only:
     ##################################################################    
     ########################### HISTOGRAMS ###########################
 
+    print(" ### INFO: Define energy histograms")
+
+    # INCLUSIVE HISTOGRAMS
+    nbins = 100; min = 0; max = 500
+    offline_pt = df.Histo1D(("good_Of_pt", "good_Of_pt", nbins, min, max), "good_Of_pt")
+    online_pt = df.Histo1D(("good_L1_pt", "good_L1_pt", nbins, min, max), "good_L1_pt")
+    CD_iet = df.Histo1D(("CD_iet", "CD_iet", nbins, min, max), "CD_iet")     
+    CD_iesum = df.Histo1D(("CD_iesum", "CD_iesum", nbins, min, max), "CD_iesum")
+    if options.HCALcalib or options.ECALcalib:
+        CD_iet_calib = df.Histo1D(("CD_iesum_calib", "CD_iesum_calib", nbins, min, max), "CD_iesum_calib")
+
     print(" ### INFO: Define response histograms")
 
     # INCLUSIVE HISTOGRAMS
     pt_response_ptInclusive = df.Histo1D(("pt_response_ptInclusive", 
-        "pt_response_ptInclusive", res_bins, 0, 3), "Response")
+        "pt_response_ptInclusive", res_bins, 0, 3), response_name)
     pt_barrel_resp_ptInclusive = df_b.Histo1D(("pt_barrel_resp_ptInclusive",
-        "pt_barrel_resp_ptInclusive", res_bins, 0, 3), "Response")
+        "pt_barrel_resp_ptInclusive", res_bins, 0, 3), response_name)
     pt_endcap_resp_ptInclusive = df_e.Histo1D(("pt_endcap_resp_ptInclusive",
-        "pt_endcap_resp_ptInclusive", res_bins, 0, 3), "Response") 
-
-    pt_response_ptInclusive_CD = df.Histo1D(("pt_response_ptInclusive_CD", 
-        "pt_response_ptInclusive_CD", res_bins, 0, 3), "Response_CD")
-    pt_barrel_resp_ptInclusive_CD = df_b.Histo1D(("pt_barrel_resp_ptInclusive_CD",
-        "pt_barrel_resp_ptInclusive", res_bins, 0, 3), "Response_CD")
-    pt_endcap_resp_ptInclusive_CD = df_e.Histo1D(("pt_endcap_resp_ptInclusive_CD",
-        "pt_endcap_resp_ptInclusive", res_bins, 0, 3), "Response_CD") 
+        "pt_endcap_resp_ptInclusive", res_bins, 0, 3), response_name) 
 
     # PT RESPONSE - PT BINS HISTOGRAMS
     response_ptBins = []
@@ -306,15 +327,15 @@ if not options.plot_only:
 
         df_PtBin = df.Filter("(good_Of_pt > {}) && (good_Of_pt < {})".format(ptBins[i], ptBins[i+1]))
         name = "pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
-        response_ptBins.append(df_PtBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+        response_ptBins.append(df_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
         df_barrel_PtBin = df_b.Filter("(good_Of_pt > {}) && (good_Of_pt < {})".format(ptBins[i], ptBins[i+1]))
         name = "pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
-        barrel_response_ptBins.append(df_barrel_PtBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+        barrel_response_ptBins.append(df_barrel_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
         df_endcap_PtBin = df_e.Filter("(good_Of_pt > {}) && (good_Of_pt < {})".format(ptBins[i], ptBins[i+1]))
         name = "pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
-        endcap_response_ptBins.append(df_endcap_PtBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+        endcap_response_ptBins.append(df_endcap_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
     # PT RESPONSE -  ETA BINS HISTIGRAMS
     absEta_response_ptBins = []
@@ -324,15 +345,15 @@ if not options.plot_only:
 
         df_EtaBin = df.Filter("(abs(good_Of_eta) > {}) && (abs(good_Of_eta) < {})".format(etaBins[i], etaBins[i+1]))
         name = "pt_resp_AbsEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
-        absEta_response_ptBins.append(df_EtaBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+        absEta_response_ptBins.append(df_EtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
         df_MinusEtaBin = df.Filter("(good_Of_eta < -{}) && (good_Of_eta > -{})".format(etaBins[i], etaBins[i+1]))
         name = "pt_resp_MinusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
-        minusEta_response_ptBins.append(df_MinusEtaBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+        minusEta_response_ptBins.append(df_MinusEtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
         df_PlusEtaBin = df.Filter("(good_Of_eta > {}) && (good_Of_eta < {})".format(etaBins[i], etaBins[i+1]))
         name = "pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
-        plusEta_response_ptBins.append(df_PlusEtaBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+        plusEta_response_ptBins.append(df_PlusEtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
     # PT RESPONSE -  H/TOT BINS HISTIGRAMS
     if options.do_HoTot:
@@ -340,7 +361,7 @@ if not options.plot_only:
         for i in range(len(HoTotBins)-1):
             df_HoTotBin = df.Filter("(HoTot > {}) && (HoTot < {})".format(HoTotBins[i], HoTotBins[i+1]))
             name = "pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1])
-            response_HoTotBins.append(df_HoTotBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+            response_HoTotBins.append(df_HoTotBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
     # PT RESPONSE -  E/TOT BINS HISTIGRAMS
     if options.do_EoTot:
@@ -348,7 +369,7 @@ if not options.plot_only:
         for i in range(len(EoTotBins)-1):
             df_EoTotBin = df.Filter("(EoTot > {}) && (EoTot < {})".format(EoTotBins[i], EoTotBins[i+1]))
             name = "pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1])
-            response_EoTotBins.append(df_EoTotBin.Histo1D((name, name, res_bins, 0, 3), "Response"))
+            response_EoTotBins.append(df_EoTotBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
     ##################################################################    
     ########################### RESOLUTION ###########################
@@ -458,12 +479,15 @@ if not options.plot_only:
 
     print(" ### INFO: Saving to root format")
     fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root','RECREATE')
+    offline_pt.Write()
+    online_pt.Write()
+    CD_iet.Write()
+    CD_iesum.Write()
+    if options.HCALcalib or options.ECALcalib:
+        CD_iet_calib.Write()
     pt_response_ptInclusive.Write()
     pt_barrel_resp_ptInclusive.Write()
     pt_endcap_resp_ptInclusive.Write()
-    pt_response_ptInclusive_CD.Write()
-    pt_barrel_resp_ptInclusive_CD.Write()
-    pt_endcap_resp_ptInclusive_CD.Write()
     for i in range(len(ptBins)-1):
         response_ptBins[i].Write()
         barrel_response_ptBins[i].Write()
@@ -493,6 +517,9 @@ if not options.plot_only:
         pt_scale_max_fctEoTot.Write()
         pt_resol_fctEoTot.Write()
 
+    if options.no_plot:
+        sys.exit()
+
     ############################################################################################
     ############################################################################################
     ############################################################################################
@@ -519,9 +546,6 @@ else:
     pt_response_ptInclusive = filein.Get('pt_response_ptInclusive')
     pt_barrel_resp_ptInclusive = filein.Get('pt_barrel_resp_ptInclusive')
     pt_endcap_resp_ptInclusive = filein.Get('pt_endcap_resp_ptInclusive')
-    pt_response_ptInclusive_CD = filein.Get('pt_response_ptInclusive_CD')
-    pt_barrel_resp_ptInclusive_CD = filein.Get('pt_barrel_resp_ptInclusive_CD')
-    pt_endcap_resp_ptInclusive_CD = filein.Get('pt_endcap_resp_ptInclusive_CD')
     response_ptBins = []
     barrel_response_ptBins = []
     endcap_response_ptBins = []
@@ -652,24 +676,6 @@ Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/response_ptInclusive_'+label+'_'+options.target+'.png')
-plt.close()
-
-############################################################################################
-## response inclusive CD
-
-fig, ax = plt.subplots(figsize=(10,10))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
-Ymax = max(Y)
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_endcap_resp_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
-Ymax = max(Ymax, max(Y))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(2))
-Ymax = max(Ymax, max(Y))
-SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_CD_'+label+'_'+options.target+'.pdf')
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/response_ptInclusive_CD_'+label+'_'+options.target+'.png')
 plt.close()
 
 ############################################################################################

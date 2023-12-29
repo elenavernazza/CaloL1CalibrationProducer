@@ -233,7 +233,7 @@ if __name__ == "__main__" :
     CKPTdir = odir+'/training_checkpoints'
     CKPTpf = os.path.join(CKPTdir, "ckpt")
     os.system('mkdir -p '+ odir)
-    os.system('mkdir -p '+ odir+'/plots')
+    os.system('mkdir -p '+ odir+'/loss_plots')
     os.system('mkdir -p '+ CKPTdir)
 
     if options.makeOnlyPlots:
