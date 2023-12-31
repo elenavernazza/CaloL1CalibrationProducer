@@ -31,7 +31,7 @@ parser = OptionParser()
 parser.add_option("--indir",     dest="indir",    default=None)
 parser.add_option("--tag",       dest="tag",      default='')
 parser.add_option("--outdir",    dest="outdir",   default=None)
-parser.add_option("--label",     dest="label",    default=None)
+parser.add_option("--label",     dest="label",    default='')
 parser.add_option("--nEvts",     dest="nEvts",    type=int, default=-1)
 parser.add_option("--target",    dest="target",   default=None)
 parser.add_option("--reco",      dest="reco",     action='store_true', default=False)
@@ -247,22 +247,22 @@ if not options.plot_only:
     df = df.Define("EoTot", "CD_iem/CD_iet")
 
     # Define response for chunky donuts
-    df = df.Define("Response_CD", "CD_iet / good_Of_pt")
+    df = df.Define("Response_CD", "(CD_ihad+CD_iem) / good_Of_pt")
     df = df.Define("Ratio", "CD_iet / good_L1_pt")
 
-    response_name = 'Response'
+    response_name = 'Response_CD'
 
     if options.HCALcalib or options.ECALcalib:
         from RDF_Calibration import *
-        # caloParams_file = options.caloParam
-        caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/caloParams_2023_v51_Test3_newCalib_cfi.py"
+        caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/" + options.caloParam
+        save_folder = outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs'
 
-        ROOT.load_HCAL_SFs(caloParams_file)
-        ROOT.load_HF_SFs(caloParams_file)
-        df = df.Define("TT_ihad_calib", "CalibrateIhad(TT_ihad, TT_ieta, {})".format(str(options.HCALcalib).lower()))
+        ROOT.load_HCAL_SFs(caloParams_file, save_folder)
+        ROOT.load_HF_SFs(caloParams_file, save_folder)
+        df = df.Define("TT_ihad_calib", "CalibrateIhad(TT_ieta, TT_ihad, {})".format(str(options.HCALcalib).lower()))
         
-        ROOT.load_ECAL_SFs(caloParams_file)
-        df = df.Define("TT_iem_calib", "CalibrateIem(TT_iem, TT_ieta, {})".format(str(options.ECALcalib).lower()))
+        ROOT.load_ECAL_SFs(caloParams_file, save_folder)
+        df = df.Define("TT_iem_calib", "CalibrateIem(TT_ieta, TT_iem, {})".format(str(options.ECALcalib).lower()))
         
         df = df.Define("CD_iem_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(0)")
         df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
@@ -270,20 +270,29 @@ if not options.plot_only:
         df = df.Define("Response_CD_calib", "(CD_iem_calib + CD_ihad_calib) / good_Of_pt")
 
         response_name = "Response_CD_calib"
+    
+    # [FIXME] understand why sometimes they are different
+    df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
 
     df_b = df.Filter("abs(good_Of_eta) < 1.305")
     df_e = df.Filter("(abs(good_Of_eta) > 1.479)")
     
+    ##################################################################    
+    ########################### DEBUGGING ############################
+
+    # print("Test iem 1,1 =",ROOT.TestCalibrateIem(1,1))
+    # print("Test ihad 1,1 =",ROOT.TestCalibrateIhad(1,1))
+
     # print(" ### INFO: Plotting")
 
     # c = ROOT.TCanvas()
-    # df = df.Define("Response_uncalib", "(CD_iem+CD_ihad) / good_Of_pt")
-    # df = df.Define("Response_calib", "(CD_iem+CD_ihad_calib) / good_Of_pt")
-    # histo1 = df.Histo1D("Response_uncalib")
-    # histo2 = df.Histo1D("Response_calib")
+    # # df = df.Define("Response_uncalib", "CD_ihad")
+    # # df = df.Define("Response_calib", "CD_ihad_calib")
+    # histo1 = df.Histo1D("CD_ihad")
+    # histo2 = df.Histo1D("CD_ihad_calib")
     # histo1.Draw()
     # histo2.Draw("SAME")
-    # c.SaveAs("calib_ihad.png")
+    # c.SaveAs("test_ihad.png")
 
     # f = ROOT.TFile("/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/L1Plotting/test.root","RECREATE")
     # histo1.Write()
