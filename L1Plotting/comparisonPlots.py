@@ -15,7 +15,7 @@ warnings.simplefilter(action='ignore')
 
 def GetArraysFromHisto(histo):
     X = [] ; Y = [] ; X_err = [] ; Y_err = []
-    for ibin in range(0,histo.GetNbinsX()):
+    for ibin in range(1,histo.GetNbinsX()):
         X.append(histo.GetBinLowEdge(ibin+1) + histo.GetBinWidth(ibin+1)/2.)
         Y.append(histo.GetBinContent(ibin+1))
         X_err.append(histo.GetBinWidth(ibin+1)/2.)
@@ -71,7 +71,7 @@ parser = OptionParser()
 parser.add_option("--indir",       dest="indir",                            default=None)
 parser.add_option("--tag",         dest="tag",                              default='')
 parser.add_option("--ref",         dest="ref",                              default='')
-parser.add_option("--label",       dest="label",                            default=None)
+parser.add_option("--label",       dest="label",                            default='')
 parser.add_option("--target",      dest="target",                           default=None)
 parser.add_option("--reco",        dest="reco",        action='store_true', default=False)
 parser.add_option("--gen",         dest="gen",         action='store_true', default=False)
@@ -169,7 +169,8 @@ if options.doResponse == True:
     print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root'))
     print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root'))
 
-    for histo_name in ["pt_response_ptInclusive", "pt_response_ptInclusive_CD"]:
+    # for histo_name in ["pt_response_ptInclusive", "pt_response_ptInclusive_CD"]:
+    for histo_name in ["pt_response_ptInclusive"]:
 
         if histo_name == "pt_response_ptInclusive": name = ''
         if histo_name == "pt_response_ptInclusive_CD": name = '_CD'
