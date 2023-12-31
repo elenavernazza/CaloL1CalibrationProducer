@@ -400,6 +400,6 @@ if __name__ == "__main__" :
     json.dump(HISTORY, open(odir+'/HISTORY.json', 'w'))
     print('Training history saved to file: {}/HISTORY.json'.format(odir))
 
-    makePlotsReg(HISTORY, odir)
+    makePlotsReg(HISTORY, odir+'/loss_plots')
     
     
