@@ -238,7 +238,7 @@ if __name__ == "__main__" :
 
     if options.makeOnlyPlots:
         HISTORY = json.load(open(odir+'/HISTORY.json', 'r'))
-        makePlotsRegAndRate(HISTORY, odir)
+        makePlotsRegAndRate(HISTORY, odir+'/loss_plots')
         print('** INFO : made the plots, exiting')
         exit()
 

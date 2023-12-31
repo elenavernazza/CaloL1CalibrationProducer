@@ -234,7 +234,7 @@ if __name__ == "__main__" :
 
     if options.makeOnlyPlots:
         HISTORY = json.load(open(odir+'/HISTORY.json', 'r'))
-        makePlotsRegAndRate(HISTORY, odir)
+        makePlotsRegAndRate(HISTORY, odir+'/loss_plots')
         print('** INFO : made the plots, exiting')
         exit()
 
@@ -513,6 +513,6 @@ if __name__ == "__main__" :
     json.dump(HISTORY, open(odir+'/HISTORY.json', 'w'))
     print('Training history saved to file: {}/HISTORY.json'.format(odir))
 
-    makePlotsRegAndRate(HISTORY, odir)
+    makePlotsRegAndRate(HISTORY, odir+'/loss_plots')
     
     
