@@ -212,3 +212,30 @@ ROOT.gInterpreter.Declare("""
     }
 """)
 
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<int> LeadingJets(Vfloat L1_pt, Vfloat L1_eta, Vfloat L1_phi, float etacut) {
+        float leading_L1_pt = -1;
+        float subleading_L1_pt = -1;
+        int leading_L1_id = -1;
+        int subleading_L1_id = -1;
+        for (int i_L1 = 0; i_L1 < L1_pt.size(); i_L1 ++) {
+            if (L1_eta.at(i_L1) > etacut) continue;
+            if (L1_pt.at(i_L1) > leading_L1_pt) {
+                leading_L1_id = i_L1;
+                leading_L1_pt = L1_pt.at(i_L1);
+            }
+        }
+        for (int i_L1 = 0; i_L1 < L1_pt.size(); i_L1 ++) {
+            if (i_L1 == leading_L1_id) continue;
+            if (L1_eta.at(i_L1) > etacut) continue;
+            if (L1_pt.at(i_L1) > subleading_L1_pt) {
+                subleading_L1_id = i_L1;
+                subleading_L1_pt = L1_pt.at(i_L1);
+            }
+        }
+        return {leading_L1_id, subleading_L1_id};
+
+    }
+""")
+

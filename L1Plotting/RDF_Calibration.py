@@ -98,8 +98,8 @@ ROOT.gInterpreter.Declare("""
             }
         }
 
-        cout << "Saving to " << Form("%s/HCAL_SFmap.root", output) << endl;
-        TFile* f = new TFile(Form("%s/HCAL_SFmap.root", output),"RECREATE");
+        cout << "Saving to " << Form("%s/SFmap_HCAL.root", output) << endl;
+        TFile* f = new TFile(Form("%s/SFmap_HCAL.root", output),"RECREATE");
         HCAL_SFmap->Write();
         f->Close();
     }
@@ -126,8 +126,8 @@ ROOT.gInterpreter.Declare("""
             }
         }
     
-        cout << "Saving to " << Form("%s/HF_SFmap.root", output) << endl;
-        TFile* f = new TFile(Form("%s/HF_SFmap.root", output),"RECREATE");
+        cout << "Saving to " << Form("%s/SFmap_HF.root", output) << endl;
+        TFile* f = new TFile(Form("%s/SFmap_HF.root", output),"RECREATE");
         HF_SFmap->Write();
         f->Close();
     }
@@ -154,8 +154,8 @@ ROOT.gInterpreter.Declare("""
             }
         }
         
-        cout << "Saving to " << Form("%s/ECAL_SFmap.root", output) << endl;
-        TFile* f = new TFile(Form("%s/ECAL_SFmap.root", output),"RECREATE");
+        cout << "Saving to " << Form("%s/SFmap_ECAL.root", output) << endl;
+        TFile* f = new TFile(Form("%s/SFmap_ECAL.root", output),"RECREATE");
         ECAL_SFmap->Write();
         f->Close();
     }
