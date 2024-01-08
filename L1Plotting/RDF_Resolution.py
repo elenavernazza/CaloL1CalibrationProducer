@@ -80,6 +80,9 @@ EoTotBins = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 x_lim_response = (0,3)
 res_bins = 240
 
+thresholds = np.arange(8,150+1)
+thresholds2plot = [10, 20, 35, 50, 100, 150]
+
 if not options.plot_only:
 
     print(" ### INFO: Start loading data")
@@ -304,10 +307,14 @@ if not options.plot_only:
     # histo1.Draw()
     # c.SaveAs("ratio_l1pt_eta.png")
 
-    ##################################################################    
-    ########################### HISTOGRAMS ###########################
+    #################################################################    
+    #################################################################    
+    #################################################################    
 
-    print(" ### INFO: Define energy histograms")
+    #################################################################    
+    ########################## HISTOGRAMS ###########################
+
+    print("\n ### INFO: Define energy histograms")
 
     # INCLUSIVE HISTOGRAMS
     nbins = 100; min = 0; max = 500
@@ -484,9 +491,13 @@ if not options.plot_only:
                 pt_resol_fctEoTot.SetBinError(i+1, response_EoTotBins[i].GetRMSError()/response_EoTotBins[i].GetMean())
             else:
                 pt_resol_fctEoTot.SetBinContent(i+1, 0)
-                pt_resol_fctEoTot.SetBinError(i+1, 0)
+                pt_resol_fctEoTot.SetBinError(i+1, 0)   
 
-    print(" ### INFO: Saving to root format")
+    ##################################################################    
+    ##################################################################    
+    ################################################################## 
+
+    print(" ### INFO: Saving resolution to root format")
     fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root','RECREATE')
     offline_pt.Write()
     online_pt.Write()
@@ -525,6 +536,79 @@ if not options.plot_only:
         pt_scale_fctEoTot.Write()
         pt_scale_max_fctEoTot.Write()
         pt_resol_fctEoTot.Write()
+    
+    fileout.Close()
+
+    ##################################################################    
+    ########################### TURN ON CURVES #######################
+
+    print("\n ### INFO: Computing turn ons for thresholds [{}, ... {}]".format(thresholds[0], thresholds[-1]))
+    bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100, 120, 150, 180, 250]
+
+    CD_iesum_name = "CD_iesum"
+    if options.HCALcalib or options.ECALcalib:
+        CD_iesum_name = "CD_iesum_calib"
+
+    total = df.Histo1D(("total", "total", len(bins)-1, array('f',bins)), "good_Of_pt")
+    df_er2p5 = df.Filter("good_Of_eta < 2.5")
+    total_er2p5 = df_er2p5.Histo1D(("total_Er2p5", "total_Er2p5", len(bins)-1, array('f',bins)), "good_Of_pt")
+    df_er1p305 = df.Filter("good_Of_eta < 1.305")
+    total_er1p305 = df_er1p305.Histo1D(("total_Er1p305", "total_Er1p305", len(bins)-1, array('f',bins)), "good_Of_pt")
+
+    passing = []
+    for i, threshold in enumerate(thresholds):
+        df_cut = df.Filter("{} > {}".format(CD_iesum_name, threshold))
+        name = "passing_"+str(int(threshold))
+        passing.append(df_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
+
+    passing_er2p5 = []
+    for i, threshold in enumerate(thresholds):
+        df_er2p5_cut = df_er2p5.Filter("{} > {}".format(CD_iesum_name, threshold))
+        name = "passing_Er2p5_"+str(int(threshold))
+        passing_er2p5.append(df_er2p5_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
+
+    passing_er1p305 = []
+    for i, threshold in enumerate(thresholds):
+        df_er1p305_cut = df_er1p305.Filter("{} > {}".format(CD_iesum_name, threshold))
+        name = "passing_Er1p305_"+str(int(threshold))
+        passing_er1p305.append(df_er1p305_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
+
+    print(" ### INFO: Saving turn on to root format")
+    fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_histos_'+label+'_'+options.target+'.root','RECREATE')
+    total.Write()
+    total_er2p5.Write()
+    total_er1p305.Write()
+    for i, thr in enumerate(thresholds): 
+        passing[i].Write()
+        passing_er2p5[i].Write()
+        passing_er1p305[i].Write()
+    fileout.Close()
+
+    filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_histos_'+label+'_'+options.target+'.root')
+    total = filein.Get('total')
+    total_er2p5 = filein.Get('total_Er2p5')
+    total_er1p305 = filein.Get('total_Er1p305')
+    passing = []
+    turnons = []
+    passing_er2p5 = []
+    turnons_er2p5 = []
+    passing_er1p305 = []
+    turnons_er1p305 = []
+    for i, thr in enumerate(thresholds): 
+        passing.append(filein.Get("passing_"+str(int(thr))))
+        turnons.append(ROOT.TGraphAsymmErrors(passing[i], total, "cp"))
+        passing_er2p5.append(filein.Get("passing_Er2p5_"+str(int(thr))))
+        turnons_er2p5.append(ROOT.TGraphAsymmErrors(passing_er2p5[i], total_er2p5, "cp"))
+        passing_er1p305.append(filein.Get("passing_Er1p305_"+str(int(thr))))
+        turnons_er1p305.append(ROOT.TGraphAsymmErrors(passing_er1p305[i], total_er1p305, "cp"))
+    filein.Close()
+
+    fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+options.target+'.root','RECREATE')
+    for i, thr in enumerate(thresholds): 
+        turnons[i].Write()
+        turnons_er2p5[i].Write()
+        turnons_er1p305[i].Write()
+    fileout.Close()
 
     if options.no_plot:
         sys.exit()
@@ -913,3 +997,89 @@ if options.do_EoTot:
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/scale_max_EoTotBins_'+label+'_'+options.target+'.pdf')
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/scale_max_EoTotBins_'+label+'_'+options.target+'.png')
     plt.close()
+
+############################################################################################
+############################################################################################
+############################################################################################
+
+############################################################################################
+print(" ### INFO: Produce plots turn ons")
+############################################################################################
+
+filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+options.target+'.root')
+turnons = []
+turnons_er2p5 = []
+turnons_er1p305 = []
+for i, thr in enumerate(thresholds): 
+    turnons.append(filein.Get(f'divide_passing_{thr}_by_total'))
+    turnons_er2p5.append(filein.Get(f'divide_passing_Er2p5_{thr}_by_total_Er2p5'))
+    turnons_er1p305.append(filein.Get(f'divide_passing_Er1p305_{thr}_by_total_Er1p305'))
+filein.Close()
+
+if options.reco:
+    if options.target == 'jet': x_label = '$E_{T}^{jet, offline}$ [GeV]'
+    if options.target == 'ele': x_label = '$E_{T}^{e, offline}$ [GeV]'
+    if options.target == 'met': x_label = '$MET_{\mu corrected}^{offline}$ [GeV]'
+if options.gen:
+    x_label = '$E_{T}^{jet, gen}$ [GeV]'
+
+def SetStyle(ax, x_label):
+    for xtick in ax.xaxis.get_major_ticks():
+        xtick.set_pad(10)
+    leg = plt.legend(loc = 'lower right', fontsize=20)
+    leg._legend_box.align = "left"
+    plt.xlabel(x_label)
+    plt.ylabel('Efficiency')
+    plt.xlim(0, 220)
+    plt.ylim(0, 1.05)
+    plt.grid()
+    if options.reco: mplhep.cms.label(data=False, rlabel='(13.6 TeV)')
+    else:            mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
+
+thresholds = list(thresholds)
+# cmap = matplotlib.cm.get_cmap('tab20c')
+fig, ax = plt.subplots(figsize=(10,10))
+for i, thr in enumerate(thresholds2plot):
+    X = [] ; Y = [] ; Y_low = [] ; Y_high = []
+    turnon = turnons[thresholds.index(thr)]
+    for ibin in range(0,turnon.GetN()):
+        X.append(turnon.GetPointX(ibin))
+        Y.append(turnon.GetPointY(ibin))
+        Y_low.append(turnon.GetErrorYlow(ibin))
+        Y_high.append(turnon.GetErrorYhigh(ibin))
+    ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label="$p_{T}^{L1} > $"+str(thr)+" GeV", lw=2, marker='o', color=cmap(i))
+SetStyle(ax, x_label)
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/turnOns_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/turnOns_'+label+'_'+options.target+'.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10,10))
+for i, thr in enumerate(thresholds2plot):
+    X = [] ; Y = [] ; Y_low = [] ; Y_high = []
+    turnon = turnons_er2p5[thresholds.index(thr)]
+    for ibin in range(0,turnon.GetN()):
+        X.append(turnon.GetPointX(ibin))
+        Y.append(turnon.GetPointY(ibin))
+        Y_low.append(turnon.GetErrorYlow(ibin))
+        Y_high.append(turnon.GetErrorYhigh(ibin))
+    ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label="$p_{T}^{L1} > $"+str(thr)+" GeV", lw=2, marker='o', color=cmap(i))
+SetStyle(ax, x_label)
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/turnOns_Er2p5_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/turnOns_Er2p5_'+label+'_'+options.target+'.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10,10))
+for i, thr in enumerate(thresholds2plot):
+    X = [] ; Y = [] ; Y_low = [] ; Y_high = []
+    turnon = turnons_er1p305[thresholds.index(thr)]
+    for ibin in range(0,turnon.GetN()):
+        X.append(turnon.GetPointX(ibin))
+        Y.append(turnon.GetPointY(ibin))
+        Y_low.append(turnon.GetErrorYlow(ibin))
+        Y_high.append(turnon.GetErrorYhigh(ibin))
+    ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label="$p_{T}^{L1} > $"+str(thr)+" GeV", lw=2, marker='o', color=cmap(i))
+SetStyle(ax, x_label)
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/turnOns_Er1p305_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/turnOns_Er1p305_'+label+'_'+options.target+'.png')
+plt.close()
+

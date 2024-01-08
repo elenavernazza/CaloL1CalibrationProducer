@@ -126,6 +126,7 @@ ROOT.gInterpreter.Declare("""
             }
         }
     
+        cout << "Saving to " << Form("%s/HF_SFmap.root", output) << endl;
         TFile* f = new TFile(Form("%s/HF_SFmap.root", output),"RECREATE");
         HF_SFmap->Write();
         f->Close();
@@ -153,6 +154,7 @@ ROOT.gInterpreter.Declare("""
             }
         }
         
+        cout << "Saving to " << Form("%s/ECAL_SFmap.root", output) << endl;
         TFile* f = new TFile(Form("%s/ECAL_SFmap.root", output),"RECREATE");
         ECAL_SFmap->Write();
         f->Close();
