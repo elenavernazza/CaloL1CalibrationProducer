@@ -50,6 +50,7 @@ parser.add_option("--norm",      dest="norm",     action='store_true', default=F
 parser.add_option("--HCALcalib", dest="HCALcalib",action='store_true', default=False)
 parser.add_option("--ECALcalib", dest="ECALcalib",action='store_true', default=False)
 parser.add_option("--caloParam", dest="caloParam",type=str,   default='')
+parser.add_option("--no_CD",     dest="no_CD",   action='store_true', default=False)
 (options, args) = parser.parse_args()
 
 cmap = plt.get_cmap('Set1')
@@ -274,8 +275,10 @@ if not options.plot_only:
 
         response_name = "Response_CD_calib"
     
-    # [FIXME] understand why sometimes they are different
-    df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
+    if options.no_CD: response_name = 'Response'
+    else:
+        # [FIXME] understand why sometimes they are different
+        df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
 
     df_b = df.Filter("abs(good_Of_eta) < 1.305")
     df_e = df.Filter("(abs(good_Of_eta) > 1.479)")

@@ -1,6 +1,6 @@
 from array import array
 import numpy as np
-import pickle, os, matplotlib
+import pickle, os, matplotlib, sys
 import ROOT
 ROOT.gROOT.SetBatch(True)
 from tqdm import tqdm
@@ -33,6 +33,7 @@ parser.add_option("--unpacked",  dest="unpacked", action='store_true', default=F
 parser.add_option("--offline",   dest="offline",  action='store_true', default=False)
 parser.add_option("--er",        dest="er",       default='2.5') #eta restriction
 parser.add_option("--plot_only", dest="plot_only",action='store_true', default=False)
+parser.add_option("--no_plot",   dest="no_plot",  action='store_true', default=False)
 (options, args) = parser.parse_args()
 
 cmap = matplotlib.cm.get_cmap('Set1')
@@ -225,6 +226,8 @@ if not options.plot_only:
         rateProgression0er0p0.Write()
         rateDiProgression0er0p0.Write()
     fileout.Close()
+
+    if options.no_plot: sys.exit()
 
 else:
     print(" ### INFO: Read existing root files")

@@ -79,7 +79,7 @@ parser.add_option("--thrsFixRate", dest="thrsFixRate", action='append',     defa
 parser.add_option("--old",         dest="olddir_name",                      default='0000_00_00_NtuplesVold')
 parser.add_option("--unc",         dest="uncdir_name",                      default='0000_00_00_NtuplesVunc')
 parser.add_option("--doResponse",  dest="doResponse",                       default=True)
-parser.add_option("--doResolution",dest="doResolution",                     default=True)
+parser.add_option("---",dest="doResolution",                     default=True)
 parser.add_option("--doTurnOn",    dest="doTurnOn",                         default=True)
 parser.add_option("--doRate",      dest="doRate",                           default=True)
 parser.add_option("--do_HoTot",    dest="do_HoTot",    action='store_true', default=False)
