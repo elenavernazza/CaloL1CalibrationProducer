@@ -5,8 +5,8 @@ import os
 
 def splitInBlocks (l, n):
     """split the list l in n blocks of equal size"""
-    k = len(l) / n
-    r = len(l) % n
+    k = int(len(l) / n)
+    r = int(len(l) % n)
 
     i = 0
     blocks = []
@@ -59,7 +59,7 @@ if __name__ == "__main__" :
     os.system('mkdir -p ' + folder)
     os.system('cp listAll.sh /data_CMS/cms/motta/CaloL1calibraton/L1NTuples')
     files = [f.strip() for f in filelist]
-    print "Input has" , len(files) , "files" 
+    print("Input has", len(files) , "files")
     if options.nJobs > len(files) : options.nJobs = len(files)
     filelist.close()
 
@@ -112,7 +112,7 @@ if __name__ == "__main__" :
 
         os.system ('chmod u+rwx ' + outJobName)
         command = ('/data_CMS/cms/motta/CaloL1calibraton/t3submit -'+options.queue+' \'' + outJobName +"\'")
-        print command
+        print(command)
         if not options.no_exec: os.system (command)
         # break
         # if idx == 2: break
