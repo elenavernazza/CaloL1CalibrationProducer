@@ -15,6 +15,7 @@ def PlotTrainingTesting(x, y_train, y_test, loss_Name, outdir):
     leg._legend_box.align = "left"
     mplhep.cms.label('Preliminary', data=True, rlabel=r'')
     plt.savefig(outdir+'/'+loss_Name+'.pdf')
+    plt.savefig(outdir+'/'+loss_Name+'.png')
     plt.close()
 
 def PlotAllLosses(x, y_reg, y_weight, y_rate, type, outdir):
@@ -31,6 +32,7 @@ def PlotAllLosses(x, y_reg, y_weight, y_rate, type, outdir):
     leg._legend_box.align = "left"
     mplhep.cms.label('Preliminary', data=True, rlabel=r'')
     plt.savefig(outdir+'/'+type+'Losses.pdf')
+    plt.savefig(outdir+'/'+type+'Losses.png')
     plt.close() 
 
 def makePlotsRegAndRate(HISTORY, outdir):
