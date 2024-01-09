@@ -551,6 +551,7 @@ if not options.plot_only:
     CD_iesum_name = "CD_iesum"
     if options.HCALcalib or options.ECALcalib:
         CD_iesum_name = "CD_iesum_calib"
+    if options.no_CD: CD_iesum_name = 'good_L1_pt'
 
     total = df.Histo1D(("total", "total", len(bins)-1, array('f',bins)), "good_Of_pt")
     df_er2p5 = df.Filter("good_Of_eta < 2.5")
