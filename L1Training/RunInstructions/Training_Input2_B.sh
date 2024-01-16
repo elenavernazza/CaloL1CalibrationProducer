@@ -28,17 +28,17 @@ python3 submitOnTier3.py --inFileList EphemeralZeroBias0__Run2022G-v1__Run362617
  --globalTag 130X_dataRun3_Prompt_v3 --data \
  --caloParams caloParams_2023_v56_B_Input2_cfi 
 
-python3 submitOnTier3.py --inFileList JetMET__Run2022G-PromptReco-v1__Run362617__AOD \
- --outTag GT130XdataRun3Promptv3_CaloParams2023v02_data_reco_json \
- --nJobs 31 --queue short --maxEvts 5000 --inJson Cert_Collisions2022_355100_362760_Golden \
- --globalTag 130X_dataRun3_Prompt_v3 --data --recoFromAOD \
- --caloParams caloParams_2023_v0_2_cfi 
+# python3 submitOnTier3.py --inFileList JetMET__Run2022G-PromptReco-v1__Run362617__AOD \
+#  --outTag GT130XdataRun3Promptv3_CaloParams2023v02_data_reco_json \
+#  --nJobs 31 --queue short --maxEvts 5000 --inJson Cert_Collisions2022_355100_362760_Golden \
+#  --globalTag 130X_dataRun3_Prompt_v3 --data --recoFromAOD \
+#  --caloParams caloParams_2023_v0_2_cfi 
 
-python3 submitOnTier3.py --inFileList EphemeralZeroBias0__Run2022G-v1__Run362617__RAW \
- --outTag GT130XdataRun3Promptv3_CaloParams2023v02_data \
- --nJobs 31 --queue short --maxEvts 5000 \
- --globalTag 130X_dataRun3_Prompt_v3 --data \
- --caloParams caloParams_2023_v0_2_cfi 
+# python3 submitOnTier3.py --inFileList EphemeralZeroBias0__Run2022G-v1__Run362617__RAW \
+#  --outTag GT130XdataRun3Promptv3_CaloParams2023v02_data \
+#  --nJobs 31 --queue short --maxEvts 5000 \
+#  --globalTag 130X_dataRun3_Prompt_v3 --data \
+#  --caloParams caloParams_2023_v0_2_cfi 
 
 cd - 
 
