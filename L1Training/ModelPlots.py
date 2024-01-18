@@ -43,49 +43,51 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers):
     plt.grid(linestyle='dotted')
     #plt.title('Calibration vs Eta')
     mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
-    savefile = odir + '/Calib_vs_Eta_'+v_sample+'.png'
-    plt.savefig(savefile)
+    savefile = odir + '/Calib_vs_Eta_'+v_sample
+    plt.savefig(savefile+'.png')
+    plt.savefig(savefile+'.pdf')
     print(savefile)
-    plt.ylim(0,13)
-    legend = plt.legend(fontsize=10, ncol=8, loc = 'upper center')
-    savefile = odir + '/Calib_vs_Eta_'+v_sample+'_legend.png'
-    export_legend(legend, savefile)
-    print(savefile)
+    # plt.ylim(0,13)
+    # legend = plt.legend(fontsize=10, ncol=8, loc = 'upper center')
+    # savefile = odir + '/Calib_vs_Eta_'+v_sample+'_legend.png'
+    # export_legend(legend, savefile)
+    # print(savefile)
     
-    # Plot 2) Calibration constant vs ET for a few ieta
+    if False:
+        # Plot 2) Calibration constant vs ET for a few ieta
 
-    # eta_towers_plot = [1,5,10,15,20] # to be chosen
-    eta_towers_plot = eta_towers
+        # eta_towers_plot = [1,5,10,15,20] # to be chosen
+        eta_towers_plot = eta_towers
 
-    plt.figure(figsize=(12,8))
-    colors = plt.cm.viridis_r(np.linspace(0,1,len(eta_towers)))
-    for i in range(len(eta_towers)):
-        if eta_towers[i] in eta_towers_plot:
-            plt.plot(bins[:-1], SF_matrix[:-1,i], 'o--', color=colors[i], label = f"$\eta = ${eta_towers[i]}")
-    plt.xlabel(f'i$E_T$', fontsize=20)
-    plt.ylabel('{} calibration constant'.format(v_sample), fontsize=20)
-    plt.legend(fontsize=10, ncol=4, loc = 'upper right')
-    plt.grid(linestyle='dotted')
-    # plt.title('Calibration vs Energy')
-    savefile = odir + '/Calib_vs_Energy_'+v_sample+'.png'
-    mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
-    plt.savefig(savefile)
-    print(savefile)
+        plt.figure(figsize=(12,8))
+        colors = plt.cm.viridis_r(np.linspace(0,1,len(eta_towers)))
+        for i in range(len(eta_towers)):
+            if eta_towers[i] in eta_towers_plot:
+                plt.plot(bins[:-1], SF_matrix[:-1,i], 'o--', color=colors[i], label = f"$\eta = ${eta_towers[i]}")
+        plt.xlabel(f'i$E_T$', fontsize=20)
+        plt.ylabel('{} calibration constant'.format(v_sample), fontsize=20)
+        plt.legend(fontsize=10, ncol=4, loc = 'upper right')
+        plt.grid(linestyle='dotted')
+        # plt.title('Calibration vs Energy')
+        savefile = odir + '/Calib_vs_Energy_'+v_sample+'.png'
+        mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
+        plt.savefig(savefile)
+        print(savefile)
 
-    plt.figure(figsize=(12,8))
-    colors = plt.cm.viridis_r(np.linspace(0,1,len(eta_towers)))
-    for i in range(len(eta_towers)):
-        if eta_towers[i] in eta_towers_plot:
-            plt.plot(bins[:-1], [SF*IE for SF,IE in zip(SF_matrix[:-1,i],bins[:-1])], 'o--', color=colors[i], label = f"$\eta = ${eta_towers[i]}")
-    plt.xlabel(f'i$E_T$', fontsize=20)
-    plt.ylabel('i$E_T$ calibrated', fontsize=20)
-    plt.legend(fontsize=10, ncol=3, loc = 'upper left')
-    plt.grid(linestyle='dotted')
-    # plt.title('Calibration vs Energy')
-    savefile = odir + '/CalibratedIet_vs_Energy_'+v_sample+'.png'
-    mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
-    plt.savefig(savefile)
-    print(savefile)
+        plt.figure(figsize=(12,8))
+        colors = plt.cm.viridis_r(np.linspace(0,1,len(eta_towers)))
+        for i in range(len(eta_towers)):
+            if eta_towers[i] in eta_towers_plot:
+                plt.plot(bins[:-1], [SF*IE for SF,IE in zip(SF_matrix[:-1,i],bins[:-1])], 'o--', color=colors[i], label = f"$\eta = ${eta_towers[i]}")
+        plt.xlabel(f'i$E_T$', fontsize=20)
+        plt.ylabel('i$E_T$ calibrated', fontsize=20)
+        plt.legend(fontsize=10, ncol=3, loc = 'upper left')
+        plt.grid(linestyle='dotted')
+        # plt.title('Calibration vs Energy')
+        savefile = odir + '/CalibratedIet_vs_Energy_'+v_sample+'.png'
+        mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
+        plt.savefig(savefile)
+        print(savefile)
 
     return True
 
@@ -416,7 +418,7 @@ if __name__ == "__main__" :
     if options.odir:
        odir = options.odir
     else: 
-       odir = indir + '/plots' + options.addtag + '/SFPlots_' + str(options.energystep) + 'iEt'
+       odir = modeldir + '/SFs_' + str(options.energystep) + 'iEt' + '/SFplots'
     os.system('mkdir -p '+ odir)
 
     #######################################################
@@ -431,7 +433,7 @@ if __name__ == "__main__" :
         if options.sf:
             SF_filename = options.sf
         else:
-            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_ECAL_energystep'+str(energy_step)+'iEt.csv'
+            SF_filename = modeldir + '/SFs_' + str(options.energystep) + 'iEt' + '/ScaleFactors_ECAL_energystep'+str(energy_step)+'iEt.csv'
         ScaleFactors = np.loadtxt(open(SF_filename, "rb"), delimiter=',', usecols=range(0,28))
         eta_towers = range(1, len(ScaleFactors[1])+1)
 
@@ -453,7 +455,7 @@ if __name__ == "__main__" :
         if options.sf:
             SF_filename = options.sf
         else:
-            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HCAL_energystep'+str(energy_step)+'iEt.csv'
+            SF_filename = modeldir + '/SFs_' + str(options.energystep) + 'iEt' + '/ScaleFactors_HCAL_energystep'+str(energy_step)+'iEt.csv'
         ScaleFactors = np.loadtxt(open(SF_filename, "rb"), delimiter=',', usecols=range(0,28))
         eta_towers = range(1, len(ScaleFactors[1])+1)
 
@@ -476,7 +478,7 @@ if __name__ == "__main__" :
         if options.sf_HF:
             SF_filename = options.sf_HF
         else:
-            SF_filename = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/SFs/ScaleFactors_HF_energystep'+str(energy_step)+'iEt.csv'
+            SF_filename = modeldir + '/SFs_' + str(options.energystep) + 'iEt' + '/ScaleFactors_HF_energystep'+str(energy_step)+'iEt.csv'
         ScaleFactors = np.loadtxt(open(SF_filename, "rb"), delimiter=',', usecols=range(0,12))
         eta_towers = range(30, 30+len(ScaleFactors[1]))
 
@@ -492,91 +494,6 @@ if __name__ == "__main__" :
         bin_edges = bin_edges[:np.array(ScaleFactors).shape[0]]
 
         PlotSF(ScaleFactors, bin_edges, odir, "HF", eta_towers)
-        # PlotSF2D(ScaleFactors, bin_edges, odir, "HF")
 
         ## HCAL+HF
         PlotSF(ScaleFactors_HCALpHF, bin_edges, odir, "HCALpHF", range(1, 40+1))
-
-    #######################################################
-    ################## Resolution plots ###################
-    #######################################################
-
-    plot_npz = False
-    if plot_npz:
-        model = keras.models.load_model(modeldir + '/model', compile=False, custom_objects={'Fgrad': Fgrad})
-
-        # Build the two pandas for the training (uncalibrated) and testing (calibrated)
-        # X samples contain : iesum = iem + ihad, eta tower
-        # Y samples contain : jetPt, jetEta
-        print('\nLoad data')
-        # X_train = np.load(indir+'/X_train.npz')['arr_0']
-        X_test = np.load(indir+'/X_test.npz')['arr_0']
-        # Y_train = np.load(indir+'/Y_train.npz')['arr_0']
-        Y_test = np.load(indir+'/Y_test.npz')['arr_0']
-
-        # clean from the events that are completely outside of a 'regular' resposne
-        # if options.v == 'ECAL': uncalibResp = Y_test[:,3] / np.sum(X_test[:,:,0], axis=1)
-        # if options.v == 'HCAL': uncalibResp = Y_test[:,3] / np.sum(X_test[:,:,1], axis=1)
-        # X_test = X_test[(uncalibResp < 3) & (uncalibResp > 0.3)]
-        # Y_test = Y_test[(uncalibResp < 3) & (uncalibResp > 0.3)]
-        # del uncalibResp
-
-        # Define the uncalibrated jet energy (sum of the energies in each tower of the chuncky donut)
-        X_test_iem = np.sum(X_test,axis = 1)[:,0:1].ravel() # [ET]
-        X_test_ihad = np.sum(X_test,axis = 1)[:,1:2].ravel() # [ET]
-        X_test_iesum = np.sum(X_test,axis = 1)[:,2:3].ravel() # [ET]
-
-        # Define the calibrated jet energy (applying the model to the test samples)
-        X_test_model, Y_test_model, _ = convert_samples(X_test, Y_test, None, options.v)
-        if options.v == "ECAL": dummy_rateProxy_input = np.repeat([np.zeros(42)], len(X_test_model), axis=0)
-        if options.v == "HCAL": dummy_rateProxy_input = np.repeat([np.repeat([np.zeros(42)], 81, axis=0)], len(X_test_model), axis=0)
-
-        X_test_calib_sum, _ = model.predict([X_test_model, dummy_rateProxy_input]) # [ET]
-
-        print('\nBuild pandas')
-        # Produce the pandas dataframes with jetPt, jetEta and jetEnergy (sum of the deposited energy in all the towers)
-        df_uncalib = pd.DataFrame(data = {'jetPt': Y_test[:,0].ravel(), 'jetEta': np.abs(Y_test[:,1].ravel()), 'jetIem': X_test_iem, 'jetIhad': X_test_ihad, 'jetEnergy': X_test_iesum})
-        df_calib   = pd.DataFrame(data = {'jetPt': Y_test[:,0].ravel(), 'jetEta': np.abs(Y_test[:,1].ravel()), 'jetIem': X_test_iem, 'jetIhad': X_test_ihad, 'jetEnergy': X_test_calib_sum.ravel()})
-
-        # sum together the 'other' part of the enrgy to have a meaningful comparison with uncalib
-        if options.v=='ECAL':
-            df_calib['jetEnergy'] = df_calib['jetEnergy'] + df_calib['jetIhad']
-        elif options.v=='HCAL':
-            df_calib['jetEnergy'] = df_calib['jetEnergy'] + df_calib['jetIem']
-
-        # Compute resolution
-        print('\nCompute resolution')
-        df_uncalib['res'] = df_uncalib['jetEnergy']/df_uncalib['jetPt']*0.5
-        df_calib['res']   = df_calib['jetEnergy']/df_calib['jetPt']*0.5
-
-        PlotResolution(df_uncalib,df_calib,odir,options.v)
-        PlotGenJetPtSpectrum(df_uncalib,df_calib,odir,options.v)
-        resolution = PlotResolution_bins(df_uncalib,df_calib,odir,options.v,'energy',15)
-        resolution_eta = PlotResolution_bins(df_uncalib,df_calib,odir,options.v,'eta',0.5)
-
-        ### New plots ###
-
-        FindIeta_vctd = np.vectorize(FindIeta)
-        df_uncalib['jetIeta'] = FindIeta_vctd(df_uncalib['jetEta'])
-        df_calib['jetIeta'] = FindIeta_vctd(df_calib['jetEta'])
-
-        ieta_values = [1,2,3,4,5,6]
-        PlotResolution_vs_Pt_Etabin(df_uncalib, odir, options.v, ieta_values, 'uncalib')
-        PlotResolution_vs_Pt_Etabin(df_calib,   odir, options.v, ieta_values, 'calib')
-
-        pt_values = [1,5,10,15,20,25,30,35,40,60]
-        PlotResolution_vs_Eta_Ptbin(df_uncalib, odir, options.v, pt_values, 'uncalib')
-        PlotResolution_vs_Eta_Ptbin(df_calib,   odir, options.v, pt_values, 'calib')
-
-        eta_values = [1,1.5]
-        PlotResolution_vs_Pt_Etavalue(df_uncalib, df_calib, odir, options.v, eta_values)
-
-        pt_values = [50,100]
-        PlotResolution_vs_Eta_Ptvalue(df_uncalib, df_calib, odir, options.v, pt_values)
-
-        PlotECALratio(df_uncalib)
-
-        #df_uncalib.to_csv('df_uncalib.csv')
-        #df_calib.to_csv('df_calib.csv')
-
-    print('\nDONE!!!\n')
