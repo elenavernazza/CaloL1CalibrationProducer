@@ -221,10 +221,13 @@ if __name__ == "__main__" :
     parser.add_option("--no-verbose",       dest="verbose",          help="Deactivate verbose training",                   default=True,  action='store_false')
     parser.add_option("--makeOnlyPlots",    dest="makeOnlyPlots",    help="Do not do the training, just make the plots",   default=False, action='store_true' )
     parser.add_option("--addtag",           dest="addtag",           help="Add tag to distinguish different trainings",    default="",                        )
-    parser.add_option("--MaxLR",            dest="MaxLR",            help="Maximum learning rate",                         default='1E-3')
+    parser.add_option("--MaxLR",            dest="MaxLR",            help="Maximum learning rate",                         default='1E-3'                     )
     parser.add_option("--LRscheduler",      dest="LRscheduler",      help="Learning rate scheduler",                       default=False, action='store_true' )
-    parser.add_option("--ThrRate",          dest="ThrRate",          help="Threshold for rate proxy",                      default=40)
-    parser.add_option("--weight_loss",      dest="weight_loss",      help="Type of weight loss [abs,sqr]",                 default='abs')
+    parser.add_option("--ThrRate",          dest="ThrRate",          help="Threshold for rate proxy",                      default=40                         )
+    parser.add_option("--weight_loss",      dest="weight_loss",      help="Type of weight loss [abs,sqr]",                 default='abs'                      )
+    parser.add_option("--regr_w",           dest="regr_w",           help="Multiplicative parameter for regression",       default=500,   type=float          )
+    parser.add_option("--weig_w",           dest="weig_w",           help="Multiplicative parameter for regularization",   default=1,     type=float          )
+    parser.add_option("--rate_w",           dest="rate_w",           help="Multiplicative parameter for rate",             default=1,     type=float          )
     (options, args) = parser.parse_args()
     print(options)
 
@@ -344,7 +347,7 @@ if __name__ == "__main__" :
         def regressionLoss(y, y_pred, other):
             MAPE = tf.keras.losses.MeanAbsolutePercentageError(reduction=tf.keras.losses.Reduction.NONE)
             Total_ET = tf.math.add(y_pred, other)
-            return tf.reshape(MAPE(y, Total_ET), (1, 1)) * 500 # FIXME: scaling to be defined
+            return tf.reshape(MAPE(y, Total_ET), (1, 1)) * float(options.regr_w) # FIXME: scaling to be defined
 
         # part of the loss that controls the weights overtraining
         def weightsLoss():
@@ -360,7 +363,7 @@ if __name__ == "__main__" :
                                         tf.math.reduce_sum(tf.math.square(modelWeights[1]), keepdims=True) +
                                         tf.math.reduce_sum(tf.math.square(modelWeights[2]), keepdims=True)
                                         )        
-            return  modelWeights_ss * 1 # FIXME: scaling to be optimized
+            return  modelWeights_ss * float(options.weig_w) # FIXME: scaling to be optimized
 
         # part of the loss that controls the rate
         def rateLoss(z, z_pred, jetThr, targetRate):
@@ -376,7 +379,7 @@ if __name__ == "__main__" :
             jets_passing_threshold = threshold_relaxation_sigmoid(z_pred, jetThr, 10.)
             proxyRate = tf.reduce_sum(jets_passing_threshold, keepdims=True) / BATCH_SIZE_PER_REPLICA
             realtive_diff = (proxyRate - targetRate) / targetRate
-            return tf.cosh(1.0 * realtive_diff) * 1
+            return tf.cosh(1.0 * realtive_diff) * float(options.rate_w)
             # sharpness of 10 corresponds to +/- 1 kHz
             # return threshold_relaxation_sigmoid(proxyRate, targetRate, 0.1) # FIXME: scaling to be optimized
 
@@ -519,6 +522,6 @@ if __name__ == "__main__" :
     json.dump(HISTORY, open(odir+'/HISTORY.json', 'w'))
     print('Training history saved to file: {}/HISTORY.json'.format(odir))
 
-    makePlotsRegAndRate(HISTORY, odir)
+    makePlotsRegAndRate(HISTORY, odir+'/loss_plots')
     
     
