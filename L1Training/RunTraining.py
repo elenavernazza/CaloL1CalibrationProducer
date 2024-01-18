@@ -6,6 +6,10 @@ import os,sys
 
 # python3 RunTraining.py --addtag _A --indir 1
 # python3 RunTraining.py --addtag _B --indir 2,3,4 --add_iem
+# python3 RunTraining.py --addtag _C --indir 2 --model_py NNModel_RegAndRate_AddEt_1.py
+# python3 RunTraining.py --addtag _D --indir 2 --model_py NNModel_RegAndRate_AddEt_2.py
+# python3 RunTraining.py --addtag _D1 --indir 2 --model_py NNModel_RegAndRate_AddEt_2.py --regr_w 0.01
+# python3 RunTraining.py --addtag _D2 --indir 2 --model_py NNModel_RegAndRate_AddEt_2.py --regr_w 0.1
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -17,12 +21,19 @@ parser.add_option("--batch_size",       dest="batch_size",       help="Batch siz
 parser.add_option("--ThrRate",          dest="ThrRate",          help="Threshold for rate proxy",                      default='40'                         )
 # parser.add_option("--weight_loss",      dest="weight_loss",      help="Type of weight loss [abs,sqr]",                 default='abs'                        )
 parser.add_option("--add_iem",          dest="add_iem",          help="Add iem to the training loss",                  default=False,    action='store_true')
+parser.add_option("--model_py",         dest="model_py",         help="Python script to be used for the training",     default=None)
+parser.add_option("--regr_w",           dest="regr_w",           help="Multiplicative parameter for regression",       default=500,     type=float          )
+parser.add_option("--weig_w",           dest="weig_w",           help="Multiplicative parameter for regularization",   default=1,       type=float          )
+parser.add_option("--rate_w",           dest="rate_w",           help="Multiplicative parameter for rate",             default=1,       type=float          )
 (options, args) = parser.parse_args()
 
-if not options.add_iem:
-    NNModel = 'NNModel_RegAndRate.py'
+if not options.model_py:
+    if not options.add_iem:
+        NNModel = 'NNModel_RegAndRate.py'
+    else:
+        NNModel = 'NNModel_RegAndRate_AddEt.py'
 else:
-    NNModel = 'NNModel_RegAndRate_AddEt.py'
+    NNModel = options.model_py
 
 run = True
 indir1 = '2023_12_13_NtuplesV56/Input1/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot95'
@@ -42,10 +53,13 @@ for i in options.indir.split(','):
 
     cmd.append('python3 ' + NNModel + ' --indir ' + indir + ' \\')
     cmd.append(' --v HCAL --tag DataReco' + ' --addtag ' + options.addtag + ' --epochs ' + options.epochs + ' \\')
-    cmd.append(' --MaxLR ' + options.MaxLR + ' --batch_size ' + options.batch_size + ' --ThrRate ' + options.ThrRate + '\n')
+    cmd.append(' --MaxLR ' + options.MaxLR + ' --batch_size ' + options.batch_size + ' --ThrRate ' + options.ThrRate + ' \\')
+    cmd.append(' --regr_w ' + str(options.regr_w) + ' --weig_w ' + str(options.weig_w) + ' --rate_w ' + str(options.rate_w) + '\n')
 
     cmd.append('python3 CalibrationFactor.py --indir ' + indir + ' --v HCAL --tag DataReco --reg HCAL --energystep 2 --addtag ' + options.addtag + '\n')
     cmd.append('python3 CalibrationFactor.py --indir ' + indir + ' --v HCAL --tag DataReco --reg HF --energystep 2 --addtag ' + options.addtag + '\n')
+
+    cmd.append('python3 ModelPlots.py --indir ' + indir + ' --v HCAL --tag DataReco --energystep 2 --addtag ' + options.addtag + '\n')
 
     cmd.append('python3 ProduceCaloParams.py --name caloParams_2023_v56' + options.addtag + '_Input' + i + '_cfi \\')
     cmd.append(' --base caloParams_2023_v0_2_noL1Calib_cfi.py \\')
@@ -71,7 +85,7 @@ for i in options.indir.split(','):
     cmd.append(run + ' --caloParams caloParams_2023_v56' + options.addtag + '_Input' + i + '_cfi \n')
 
     # Re-emulation OLD of jets
-    run = '' # or '# '
+    run = '# ' # or '# '
     cmd.append(run + 'python3 submitOnTier3.py --inFileList JetMET__Run2022G-PromptReco-v1__Run362617__AOD \\')
     cmd.append(run + ' --outTag GT130XdataRun3Promptv3_CaloParams2023v02_data_reco_json \\')
     cmd.append(run + ' --nJobs 31 --queue short --maxEvts 5000 --inJson Cert_Collisions2022_355100_362760_Golden \\')
@@ -79,7 +93,7 @@ for i in options.indir.split(','):
     cmd.append(run + ' --caloParams caloParams_2023_v0_2_cfi \n')
 
     # Re-emulation OLD of zero-bias
-    run = '' # or '# '
+    run = '# ' # or '# '
     cmd.append(run + 'python3 submitOnTier3.py --inFileList EphemeralZeroBias0__Run2022G-v1__Run362617__RAW \\')
     cmd.append(run + ' --outTag GT130XdataRun3Promptv3_CaloParams2023v02_data \\')
     cmd.append(run + ' --nJobs 31 --queue short --maxEvts 5000 \\')
