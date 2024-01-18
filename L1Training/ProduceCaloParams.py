@@ -66,15 +66,26 @@ else:
 for line in Old_Lines[end_ECAL:start_HCAL]:
     New_Lines.append(line)
 
-print('### INFO: Adding ECAL')
+print('### INFO: Adding HCAL')
 if options.HCAL:
     New_Lines.append("    layer1HCalScaleETBins = cms.vint32([ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 256]),\n")
     New_Lines.append("    layer1HCalScaleFactors = cms.vdouble([\n")
     f_HCAL = options.HCAL
     with open(f_HCAL) as f:
+        first_line = True
         for line in f.readlines():
             if '#' in line: continue
-            New_Lines.append('        ' + line)
+            if first_line == True:
+                print("### INFO: Apply Zero Suppression\n")
+                print(line)
+                SF_zs = line.split(",")
+                SF_zs[:15] = ["0.0000"] * 15
+                line_to_add = ",".join(SF_zs)
+                print(line_to_add)
+                New_Lines.append('        ' + line_to_add)
+                first_line = False
+            else:
+                New_Lines.append('        ' + line)
 else:
     for line in Old_Lines[start_HCAL:end_HCAL]:
         New_Lines.append(line)
