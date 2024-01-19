@@ -235,7 +235,7 @@ if __name__ == "__main__" :
     print(options)
 
     indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
-    odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/model_' + options.v + options.addtag
+    odir = './' + options.indir + '/' + options.v + 'training' + options.tag + '/model_' + options.v + options.addtag
     CKPTdir = odir+'/training_checkpoints'
     CKPTpf = os.path.join(CKPTdir, "ckpt")
     os.system('mkdir -p '+ odir)
@@ -395,14 +395,15 @@ if __name__ == "__main__" :
             for i_energy in energies:
                 for i_eta in etas:
                     one_hot_tower = np.array(np.array([i_energy] + [0 if j != i_eta else 1 for j in range(1,40+1)]))
-                    print(one_hot_tower)
+                    # print(one_hot_tower)
                     one_hot_tower_reshaped = one_hot_tower.reshape(1, 41)
-                    print(" ** 1:", TTP(one_hot_tower_reshaped).eval())
+                    # print(" ** 1:", TTP(one_hot_tower_reshaped))
                     pred_energy = TTP(one_hot_tower_reshaped)
                     SF = pred_energy/i_energy
-                    print(" ** 2:", SF)
-                    print(i_energy, i_eta, pred_energy)
-                    # modelSaturation += threshold_relaxation_sigmoid(SF, 1, 100)
+                    # print(" ** 2:", SF)
+                    # print(i_energy, i_eta, pred_energy)
+                    # print(" ** 3:", threshold_relaxation_sigmoid(SF, 0, 100))
+                    modelSaturation += threshold_relaxation_sigmoid(SF, 0, 100)
             
             return modelSaturation
 
