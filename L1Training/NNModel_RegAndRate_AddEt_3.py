@@ -146,7 +146,7 @@ def create_model(version, seedThr=None):
     # The TTP_output is a vector of calibrated L1 jet energies, after the summation layer
 
     OtherETs = lay.Lambda(lambda x : x[:,:,0], name=f"OtherETs")(TTP_input)
-    OtherET  = lay.Lambda(lambda x : tf.reduce_sum(x, axis=1, keepdims=True), name='OtherET')(OtherETs)
+    OtherET  = lay.Lambda(lambda x : tf.reduce_sum(x/2., axis=1, keepdims=True), name='OtherET')(OtherETs)
 
     ####################### RATE #######################
     # The rate_input is a vector of 9x9 chunky donuts before calibration
@@ -224,18 +224,19 @@ if __name__ == "__main__" :
     parser.add_option("--no-verbose",       dest="verbose",          help="Deactivate verbose training",                   default=True,  action='store_false')
     parser.add_option("--makeOnlyPlots",    dest="makeOnlyPlots",    help="Do not do the training, just make the plots",   default=False, action='store_true' )
     parser.add_option("--addtag",           dest="addtag",           help="Add tag to distinguish different trainings",    default="",                        )
-    parser.add_option("--MaxLR",            dest="MaxLR",            help="Maximum learning rate",                         default='1E-3')
+    parser.add_option("--MaxLR",            dest="MaxLR",            help="Maximum learning rate",                         default='1E-3'                     )
     parser.add_option("--LRscheduler",      dest="LRscheduler",      help="Learning rate scheduler",                       default=False, action='store_true' )
-    parser.add_option("--ThrRate",          dest="ThrRate",          help="Threshold for rate proxy",                      default=40)
-    parser.add_option("--weight_loss",      dest="weight_loss",      help="Type of weight loss [abs,sqr]",                 default='abs')
+    parser.add_option("--ThrRate",          dest="ThrRate",          help="Threshold for rate proxy",                      default=40                         )
+    parser.add_option("--weight_loss",      dest="weight_loss",      help="Type of weight loss [abs,sqr]",                 default='abs'                      )
     parser.add_option("--regr_w",           dest="regr_w",           help="Multiplicative parameter for regression",       default=500,   type=float          )
     parser.add_option("--weig_w",           dest="weig_w",           help="Multiplicative parameter for regularization",   default=1,     type=float          )
     parser.add_option("--rate_w",           dest="rate_w",           help="Multiplicative parameter for rate",             default=1,     type=float          )
+    parser.add_option("--satu_w",           dest="satu_w",           help="Multiplicative parameter for saturation",       default=10,    type=float          )
     (options, args) = parser.parse_args()
     print(options)
 
     indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
-    odir = './' + options.indir + '/' + options.v + 'training' + options.tag + '/model_' + options.v + options.addtag
+    odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/model_' + options.v + options.addtag
     CKPTdir = odir+'/training_checkpoints'
     CKPTpf = os.path.join(CKPTdir, "ckpt")
     os.system('mkdir -p '+ odir)
@@ -267,7 +268,7 @@ if __name__ == "__main__" :
               }
     if options.LRscheduler:
         # new method to change learning rate over time (not to miss local minima)
-        LR_SCHEDULE = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=MAX_LEARNING_RATE, decay_steps=5, decay_rate=0.1)
+        LR_SCHEDULE = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=MAX_LEARNING_RATE, decay_steps=10000, decay_rate=0.9)
 
     ##############################################################################
     ################################# LOAD INPUTS ################################
@@ -390,23 +391,17 @@ if __name__ == "__main__" :
         def saturationLoss():
 
             modelSaturation = 0
-            energies = [2]
-            etas = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+            energies = [1,2,3,4,5,6,7,8,9,10]
+            etas = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41]
             for i_energy in energies:
                 for i_eta in etas:
                     one_hot_tower = np.array(np.array([i_energy] + [0 if j != i_eta else 1 for j in range(1,40+1)]))
-                    # print(one_hot_tower)
                     one_hot_tower_reshaped = one_hot_tower.reshape(1, 41)
-                    # print(" ** 1:", TTP(one_hot_tower_reshaped))
                     pred_energy = TTP(one_hot_tower_reshaped)
                     SF = pred_energy/i_energy
-                    # print(" ** 2:", SF)
-                    # print(i_energy, i_eta, pred_energy)
-                    # print(" ** 3:", threshold_relaxation_sigmoid(SF, 0, 100))
-                    modelSaturation += threshold_relaxation_sigmoid(SF, 0, 100)
-            
+                    modelSaturation += threshold_relaxation_sigmoid(SF, 1 + 0.05, 100) * float(options.satu_w)
             return modelSaturation
-
+        
         # GPU distribution friendly loss computation
         def compute_losses(y, y_pred, other, z, z_pred):
 
@@ -420,7 +415,8 @@ if __name__ == "__main__" :
             return [tf.nn.compute_average_loss(fullLoss,             global_batch_size=GLOBAL_BATCH_SIZE),
                     tf.nn.compute_average_loss(regressionLoss_value, global_batch_size=GLOBAL_BATCH_SIZE),
                     tf.nn.compute_average_loss(weightsLoss_value,    global_batch_size=GLOBAL_BATCH_SIZE),
-                    tf.nn.compute_average_loss(rateLoss_value,       global_batch_size=GLOBAL_BATCH_SIZE)]
+                    tf.nn.compute_average_loss(rateLoss_value,       global_batch_size=GLOBAL_BATCH_SIZE),
+                    tf.nn.compute_average_loss(saturationLoss_value, global_batch_size=GLOBAL_BATCH_SIZE)]
 
         # define model and related stuff
         model, TTP = create_model(VERSION, seedThr=8.)
@@ -465,7 +461,8 @@ if __name__ == "__main__" :
         return [mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[0], axis=None),
                 mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[1], axis=None),
                 mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[2], axis=None),
-                mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[3], axis=None)]
+                mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[3], axis=None),
+                mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[4], axis=None)]
 
     @tf.function
     def distributed_test_step(dataset_inputs, rate_inputs):
@@ -473,7 +470,8 @@ if __name__ == "__main__" :
         return [mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[0], axis=None),
                 mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[1], axis=None),
                 mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[2], axis=None),
-                mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[3], axis=None)]
+                mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[3], axis=None),
+                mirrored_strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses[4], axis=None)]
 
     ##############################################################################
     ############################## LOOP OVER EPOCHS ##############################
@@ -485,8 +483,8 @@ if __name__ == "__main__" :
         print('\nStart of epoch %d' % (epoch+1,))
 
         # TRAIN LOOP
-        train_losses = np.array([0., 0., 0., 0.])
-        train_losses_avg = np.array([0., 0., 0., 0.])
+        train_losses = np.array([0., 0., 0., 0., 0.])
+        train_losses_avg = np.array([0., 0., 0., 0., 0.])
         num_batches = 0
         for batch, rate_batch in zip(train_dist_dataset, rate_dist_dataset):
             train_losses = distributed_train_step(batch, rate_batch)
@@ -495,16 +493,16 @@ if __name__ == "__main__" :
 
             # Log every N batches
             if VERBOSE and num_batches % 1 == 0:
-                print(
-                      '    At batch %d (seen %d samples so far) : loss = %.4f ; regressionLoss = %.4f ; weightsLoss = %.4f ; rateLoss = %.4f ; RMSE = %.4f'
-                      %
-                      (num_batches, num_batches*GLOBAL_BATCH_SIZE, float(train_losses[0]), float(train_losses[1]), float(train_losses[2]), float(train_losses[3]), float(train_acc_metric.result()))
-                     )
+                print(' ***** At batch %d (seen %d samples so far) : loss = %.4f ; regressionLoss = %.4f ; weightsLoss = %.4f ; rateLoss = %.4f ; saturationLoss = %.4f ; RMSE = %.4f'
+                      % (num_batches, num_batches*GLOBAL_BATCH_SIZE, 
+                        float(train_losses[0]), float(train_losses[1]), 
+                        float(train_losses[2]), float(train_losses[3]), 
+                        float(train_losses[4]), float(train_acc_metric.result())))
 
         train_losses_avg = train_losses_avg / num_batches
 
         # TEST LOOP
-        test_losses = np.array([0., 0., 0., 0.])
+        test_losses = np.array([0., 0., 0., 0., 0.])
         num_batches = 0
         for batch, rate_batch in zip(test_dist_dataset, rate_dist_dataset):
             test_losses += distributed_test_step(batch, rate_batch)
@@ -514,8 +512,14 @@ if __name__ == "__main__" :
 
         train_RMSE = train_acc_metric.result()
         test_RMSE = test_acc_metric.result()
-        print('Training : loss = %.4f ; regressionLoss = %.4f ; weightsLoss = %.4f ; rateLoss = %.4f ; RMSE = %.4f' % (float(train_losses_avg[0]), float(train_losses_avg[1]), float(train_losses_avg[2]), float(train_losses_avg[3]), float(train_RMSE)) )
-        print('Testing  : loss = %.4f ; regressionLoss = %.4f ; weightsLoss = %.4f ; rateLoss = %.4f ; RMSE = %.4f' % (float(test_losses[0]), float(test_losses[1]), float(test_losses[2]), float(test_losses[3]), float(test_RMSE)) )
+        print('Training : loss = %.4f ; regressionLoss = %.4f ; weightsLoss = %.4f ; rateLoss = %.4f ; saturationLoss = %.4f ; RMSE = %.4f' 
+            % (float(train_losses_avg[0]), float(train_losses_avg[1]), 
+               float(train_losses_avg[2]), float(train_losses_avg[3]), 
+               float(train_losses_avg[4]), float(train_RMSE)) )
+        print('Testing  : loss = %.4f ; regressionLoss = %.4f ; weightsLoss = %.4f ; rateLoss = %.4f ; saturationLoss = %.4f ; RMSE = %.4f' 
+            % (float(test_losses[0]), float(test_losses[1]), 
+               float(test_losses[2]), float(test_losses[3]), 
+               float(test_losses[4]), float(test_RMSE)) )
 
         HISTORY['x'].append(epoch+1)
         if epoch < EPOCHS-1: HISTORY['learning_rate'].append([])

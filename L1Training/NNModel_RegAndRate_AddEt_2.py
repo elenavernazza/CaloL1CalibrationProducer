@@ -143,7 +143,7 @@ def create_model(version, seedThr=None):
     # The TTP_output is a vector of calibrated L1 jet energies, after the summation layer
 
     OtherETs = lay.Lambda(lambda x : x[:,:,0], name=f"OtherETs")(TTP_input)
-    OtherET  = lay.Lambda(lambda x : tf.reduce_sum(x, axis=1, keepdims=True), name='OtherET')(OtherETs)
+    OtherET  = lay.Lambda(lambda x : tf.reduce_sum(x/2., axis=1, keepdims=True), name='OtherET')(OtherETs)
 
     ####################### RATE #######################
     # The rate_input is a vector of 9x9 chunky donuts before calibration
