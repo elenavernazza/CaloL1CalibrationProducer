@@ -8,7 +8,7 @@ plt.style.use(mplhep.style.CMS)
 warnings.simplefilter(action='ignore')
 
 sys.path.insert(0,'..')
-from L1Training.NNModel_RegAndRate_AddEt_4 import *
+from CMSSW_13_1_0_pre4.src.CaloL1CalibrationProducer.L1Training.NNModel_RegAndRate_AddEt_4_bugged import *
 
 c_uncalib = 'black'; c_oldcalib = 'red'; c_newcalib = 'green'
 leg_uncalib = 'No calib'; leg_oldcalib = 'Old calib'; leg_newcalib = 'New calib'
@@ -161,7 +161,7 @@ if __name__ == "__main__" :
     ieta = ietas[:, 0]
 
     unCalib  = np.sum(Towers[:, :, 1], axis=1) + np.sum(Towers[:, :, 0], axis=1) / 2. # GeV
-    newCalib = (TTP_output + OtherET / 2.).reshape(-1) # [FIXME] Inside the loss function !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    newCalib = (TTP_output + OtherET).reshape(-1)
     TargetPt = Jets / 2. # GeV
 
     unRes  = unCalib/TargetPt
