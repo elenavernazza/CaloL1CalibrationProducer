@@ -53,6 +53,7 @@ parser.add_option("--PuppiJet",  dest="PuppiJet", action='store_true', default=F
 parser.add_option("--do_HoTot",  dest="do_HoTot", action='store_true', default=False)
 parser.add_option("--do_EoTot",  dest="do_EoTot", action='store_true', default=False)
 parser.add_option("--plot_only", dest="plot_only",action='store_true', default=False)
+parser.add_option("--no_plot",   dest="no_plot",  action='store_true', default=False)
 parser.add_option("--norm",      dest="norm",     action='store_true', default=False)
 (options, args) = parser.parse_args()
 
@@ -484,6 +485,9 @@ if not options.plot_only:
     if options.do_EoTot:
         for i in range(len(response_EoTotBins)):
             response_EoTotBins[i].Write()
+
+    if options.no_plot:
+        sys.exit()
 
 else:
     print(" ### INFO: Read existing root files")

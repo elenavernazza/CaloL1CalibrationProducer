@@ -187,7 +187,7 @@ ROOT.gInterpreter.Declare("""
         
         ROOT::RVec<float> iphi;
         for (int i = 0; i < phi.size(); ++i) {
-            int p = phi.at(i);
+            float p = phi.at(i);
             if (p < 0) p = p + 2 * M_PI;                        
 
             if (p == 0)               iphi.push_back(1);
@@ -233,12 +233,14 @@ ROOT.gInterpreter.Declare("""
         else            return iphi - 1;
     }
     int NextEtaTower(int ieta) {
-        if (ieta == -1) return 1;
-        else            return ieta + 1;
+        if (ieta == -1)         return 1;
+        else if (ieta == 28)    return 30;
+        else                    return ieta + 1;
     }
     int PrevEtaTower(int ieta) {
-        if (ieta == 1)  return -1;
-        else            return ieta - 1;
+        if (ieta == 1)          return -1;
+        else if (ieta == 30)    return 28;
+        else                    return ieta - 1;
     }
                         
     using Vfloat = const ROOT::RVec<float>&;

@@ -234,12 +234,8 @@ if not options.plot_only:
 
     # Define response for matched jets
     df = df.Define("Response", "GetRatio (good_L1_pt, good_Of_pt)")
-
-    df = df.Redefine("good_L1_pt", "vector<float>(good_L1_pt.begin(), good_L1_pt.end())")
-    df = df.Redefine("good_Of_pt", "vector<float>(good_Of_pt.begin(), good_Of_pt.end())")
-    df = df.Redefine("Response", "vector<float>(Response.begin(), Response.end())")
-
-    df.Snapshot("Events", "./test.root", {"good_L1_pt", "good_Of_pt", "Response"})
+    # DEBUG df = df.Redefine("Response", "vector<float>(Response.begin(), Response.end())")
+    # DEBUG df.Snapshot("Events", "./test.root", {"good_L1_pt", "good_Of_pt", "Response"})
 
     ##################################################################    
     ######################### CHUNKY DONUT ###########################
@@ -266,11 +262,12 @@ if not options.plot_only:
 
     # Define response for chunky donuts
     df = df.Define("Response_CD", "GetRatio (CD_iesum, good_Of_pt)")
-    df = df.Define("Ratio", "GetRatio (CD_iet, good_L1_pt)")
 
-    response_name = 'Response_CD'
+    if options.no_CD: response_name = 'Response'
+    else: response_name = 'Response_CD'
 
     if options.HCALcalib or options.ECALcalib:
+        response_name = "Response_CD_calib"
         from RDF_Calibration import *
         caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/" + options.caloParam
         save_folder = outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs'
@@ -286,10 +283,7 @@ if not options.plot_only:
         df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
         df = df.Define("CD_iesum_calib", "GetSum (CD_iem_calib, CD_ihad_calib)")
         df = df.Define("Response_CD_calib", "GetRatio (CD_iesum_calib, good_L1_pt)")
-
-        response_name = "Response_CD_calib"
     
-    if options.no_CD: response_name = 'Response'
     # else:
     #     # [FIXME] understand why sometimes they are different
     #     df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
@@ -307,30 +301,19 @@ if not options.plot_only:
     # print("Test iem 1,1 =",ROOT.TestCalibrateIem(1,1))
     # print("Test ihad 1,1 =",ROOT.TestCalibrateIhad(1,1))
 
-    # print(" ### INFO: Plotting")
+    # df = df.Define("Ratio", "GetRatio (CD_iesum, CD_iet)")
+    # df = df.Define("Ratio", "GetRatio (CD_iesum, good_L1_pt)")
 
-    # c = ROOT.TCanvas()
-    # # df = df.Define("Response_uncalib", "CD_ihad")
-    # # df = df.Define("Response_calib", "CD_ihad_calib")
-    # histo1 = df.Histo1D("CD_ihad")
-    # histo2 = df.Histo1D("CD_ihad_calib")
-    # histo1.Draw()
-    # histo2.Draw("SAME")
-    # c.SaveAs("test_ihad.png")
+    # histo1 = df.Histo1D("Ratio")
+    # histo2 = df.Histo2D(("Ratio2", "", 50, 0, 2, 50, 0, 500), "Ratio", "good_L1_pt")
+    # histo3 = df.Histo2D(("Ratio3", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_eta")
+    # histo4 = df.Histo2D(("Ratio4", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_phi")
+    # histo5 = df.Histo2D(("Ieta", "", 42, 0, 41, 50, -5, 5), "good_L1_ieta", "good_L1_eta")
+    # histo6 = df.Histo2D(("Iphi", "", 73, 0, 72, 50, -5, 5), "good_L1_iphi", "good_L1_phi")
 
-    # f = ROOT.TFile("/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/L1Plotting/test.root","RECREATE")
-    # histo1.Write()
-    # histo2.Write()
+    # f = ROOT.TFile("./test.root","RECREATE")
+    # histo1.Write(); histo2.Write(); histo3.Write(); histo4.Write(); histo5.Write(); histo6.Write()
     # f.Close()
-
-    # c = ROOT.TCanvas()
-    # histo1 = df.Histo2D(("Ratio", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_eta")
-    # histo1.Draw()
-    # c.SaveAs("ratio_l1pt_eta.png")
-
-    #################################################################    
-    #################################################################    
-    #################################################################    
 
     #################################################################    
     ########################## HISTOGRAMS ###########################
@@ -409,7 +392,6 @@ if not options.plot_only:
             name = "pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1])
             response_EoTotBins.append(df_EoTotBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
-    '''
     ##################################################################    
     ########################### RESOLUTION ###########################
         
@@ -516,7 +498,6 @@ if not options.plot_only:
                 pt_resol_fctEoTot.SetBinContent(i+1, 0)
                 pt_resol_fctEoTot.SetBinError(i+1, 0)   
 
-    '''
     ##################################################################    
     ##################################################################    
     ################################################################## 
@@ -540,26 +521,6 @@ if not options.plot_only:
         absEta_response_ptBins[i].Write()
         minusEta_response_ptBins[i].Write()
         plusEta_response_ptBins[i].Write()
-    # pt_scale_fctPt.Write()
-    # pt_scale_max_fctPt.Write()
-    # pt_resol_fctPt.Write()
-    # pt_scale_fctEta.Write()
-    # pt_scale_max_fctEta.Write()
-    # pt_resol_fctEta.Write()
-    # pt_resol_barrel_fctPt.Write()
-    # pt_resol_endcap_fctPt.Write()
-    # if options.do_HoTot:
-    #     for i in range(len(response_HoTotBins)):
-    #         response_HoTotBins[i].Write()
-    #     pt_scale_fctHoTot.Write()
-    #     pt_scale_max_fctHoTot.Write()
-    #     pt_resol_fctHoTot.Write()
-    # if options.do_EoTot:
-    #     for i in range(len(response_EoTotBins)):
-    #         response_EoTotBins[i].Write()
-    #     pt_scale_fctEoTot.Write()
-    #     pt_scale_max_fctEoTot.Write()
-    #     pt_resol_fctEoTot.Write()
     
     fileout.Close()
 
