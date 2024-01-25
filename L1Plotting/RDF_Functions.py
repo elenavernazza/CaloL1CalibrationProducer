@@ -2,32 +2,141 @@ import ROOT
 
 ROOT.gInterpreter.Declare("""
     using Vfloat = const ROOT::RVec<float>&;
-    ROOT::RVec<int> Matching(Vfloat L1_pt, Vfloat L1_eta, Vfloat L1_phi, Vfloat Offline_pt, Vfloat Offline_eta, Vfloat Offline_phi) {
-        float highestL1_pt = -1;
-        int good_L1 = -1;
-        int good_Of = -1;
+    ROOT::RVec<ROOT::RVec<int>> Matching(Vfloat L1_pt, Vfloat L1_eta, Vfloat L1_phi, Vfloat Offline_pt, Vfloat Offline_eta, Vfloat Offline_phi) {
+        ROOT::RVec<int> good_L1;
+        ROOT::RVec<int> good_Of;
         for (int i_Of = 0; i_Of < Offline_pt.size(); i_Of ++) {
             auto Of_part_tlv = TLorentzVector();
             Of_part_tlv.SetPtEtaPhiM(Offline_pt.at(i_Of), Offline_eta.at(i_Of), Offline_phi.at(i_Of), 0);
+            float highestL1_pt = -1;
+            int highestL1_pt_idx = -1;
             for (int i_L1 = 0; i_L1 < L1_pt.size(); i_L1 ++) {
+                // Skip if this online jet has already been matched
                 auto L1_part_tlv = TLorentzVector();
                 L1_part_tlv.SetPtEtaPhiM(L1_pt.at(i_L1), L1_eta.at(i_L1), L1_phi.at(i_L1), 0);
                 if (Of_part_tlv.DeltaR(L1_part_tlv) < 0.5) {
                     if (L1_part_tlv.Pt() > highestL1_pt) {
                         highestL1_pt = L1_part_tlv.Pt();
-                        good_L1 = i_L1;
-                        good_Of = i_Of;
+                        highestL1_pt_idx = i_L1;
                     }
                 }
             }
+            if (highestL1_pt_idx != -1) {
+                good_L1.push_back(highestL1_pt_idx);
+                good_Of.push_back(i_Of);
+            }
         }
+        // for (int i = 0; i < good_L1.size(); ++i) {
+        //     cout << L1_pt.at(good_L1.at(i)) << ", " << Offline_pt.at(good_Of.at(i)) << endl;
+        // }
+
         return {good_L1, good_Of};
 
     }
 """)
 
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    using Vint = const ROOT::RVec<int>&;
+    ROOT::RVec<float> SelectGood (Vfloat Jets, Vint good) {
+        ROOT::RVec<float> good_jets;
+        for (int i = 0; i < good.size(); ++i) {
+            good_jets.push_back(Jets.at(good.at(i)));
+        }
+        return good_jets;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> GetRatio (Vfloat A, Vfloat B) {
+        ROOT::RVec<float> ratio;
+        for (int i = 0; i < A.size(); ++i) {
+            ratio.push_back(A.at(i)/B.at(i));
+        }
+        return ratio;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> GetSum (Vfloat A, Vfloat B) {
+        ROOT::RVec<float> sum;
+        for (int i = 0; i < A.size(); ++i) {
+            sum.push_back(A.at(i) + B.at(i));
+        }
+        return sum;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> SelectBarrel (Vfloat A, Vfloat good_Of_eta) {
+        ROOT::RVec<float> A_barrel;
+        for (int i = 0; i < good_Of_eta.size(); ++i) {
+            if (good_Of_eta.at(i) < 1.305) {
+                A_barrel.push_back(A.at(i));
+            }
+        }
+        return A_barrel;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> SelectEndcap (Vfloat A, Vfloat good_Of_eta) {
+        ROOT::RVec<float> A_barrel;
+        for (int i = 0; i < good_Of_eta.size(); ++i) {
+            if (good_Of_eta.at(i) > 1.479) {
+                A_barrel.push_back(A.at(i));
+            }
+        }
+        return A_barrel;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> SelectBin (Vfloat A, Vfloat B, float l_bin, float u_bin) {
+        ROOT::RVec<float> A_SelectBin;
+        for (int i = 0; i < B.size(); ++i) {
+            if ((B.at(i) >= l_bin) && (B.at(i) < u_bin)) {
+                A_SelectBin.push_back(A.at(i));
+            }
+        }
+        return A_SelectBin;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> SelectBinAbs (Vfloat A, Vfloat B, float l_bin, float u_bin) {
+        ROOT::RVec<float> A_SelectBin;
+        for (int i = 0; i < B.size(); ++i) {
+            if ((abs(B.at(i)) >= l_bin) && (abs(B.at(i)) < u_bin)) {
+                A_SelectBin.push_back(A.at(i));
+            }
+        }
+        return A_SelectBin;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> PassThreshold (Vfloat A, Vfloat B, float thr) {
+        ROOT::RVec<float> A_SelectBin;
+        for (int i = 0; i < B.size(); ++i) {
+            if (B.at(i) > thr) {
+                A_SelectBin.push_back(A.at(i));
+            }
+        }
+        return A_SelectBin;
+    }
+""")
+
 ROOT.gInterpreter.Declare("""  
-    float FindIeta(float eta) {
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> FindIeta(Vfloat eta) {
                             
         map<const int, std::vector<float>> TowersEta = {
         {1, {0,      0.087}},   {2, {0.087,  0.174}},   {3, {0.174,  0.261}},   {4, {0.261,  0.348}},   {5, {0.348,  0.435}},
@@ -42,42 +151,29 @@ ROOT.gInterpreter.Declare("""
         {41, {4.889, 5.191}},
         };
         
-        if (eta == 0)           return 1;
-        else if (eta == 5.191)  return 41;
-        else {
-            int Ieta = -1;
-            int sign = copysign(1, eta);
-            for (const auto &[key, value] : TowersEta) {
-                if ((abs(eta) > value[0]) && (abs(eta) <= value[1])) {
-                    Ieta = key;
-                    break;
+        ROOT::RVec<float> ieta;
+        for (int i = 0; i < eta.size(); ++i) {
+            if (eta.at(i) == 0)           ieta.push_back(1);
+            else if (eta.at(i) == 5.191)  ieta.push_back(41);
+            else {
+                int Ieta = -1;
+                int sign = copysign(1, eta.at(i));
+                for (const auto &[key, value] : TowersEta) {
+                    if ((abs(eta.at(i)) > value[0]) && (abs(eta.at(i)) <= value[1])) {
+                        Ieta = key;
+                        break;
+                    }
                 }
+                ieta.push_back(sign*Ieta);
             }
-            return sign*Ieta;
         }
+        return ieta;
     }
 """)
 
-# ROOT.gInterpreter.Declare("""
-#     float FindIphi(float phi) {
-        
-#         if (phi == 0) return 1;
-        
-#         for (int i = 0; i < 72; i++) {
-#             float min_phi = float(i) / 72. * 2. * M_PI;
-#             float max_phi = float(i+1) / 72. * 2. * M_PI;
-#             if ((phi > min_phi) && (phi <= max_phi)) {
-#                 return i + 1;
-#                 break;
-#             }
-#         }
-#         return -1;
-#     }
-
-# """)
-
 ROOT.gInterpreter.Declare("""
-    float FindIphi(float phi) {
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> FindIphi(Vfloat phi) {
 
         map<int, std::vector<double>> TowersPhi;
         vector<double> x(73);
@@ -89,20 +185,25 @@ ROOT.gInterpreter.Declare("""
             TowersPhi[i+1].push_back(x[i+1]);
         }
         
-        if (phi < 0) phi = phi + 2 * M_PI;                        
+        ROOT::RVec<float> iphi;
+        for (int i = 0; i < phi.size(); ++i) {
+            int p = phi.at(i);
+            if (p < 0) p = p + 2 * M_PI;                        
 
-        if (phi == 0)               return 1;
-        else if (phi == 2 * M_PI)   return 72;
-        else {
-            int Iphi = -1;
-            for (const auto &[key, value] : TowersPhi) {
-                if ((phi > value[0]) && (phi <= value[1])) {
-                    Iphi = key;
-                    break;
+            if (p == 0)               iphi.push_back(1);
+            else if (p == 2 * M_PI)   iphi.push_back(72);
+            else {
+                int Iphi = -1;
+                for (const auto &[key, value] : TowersPhi) {
+                    if ((p > value[0]) && (p <= value[1])) {
+                        Iphi = key;
+                        break;
+                    }
                 }
+                iphi.push_back(Iphi);
             }
-            return Iphi;
         }
+        return iphi;
     }
 
 """)
@@ -141,36 +242,45 @@ ROOT.gInterpreter.Declare("""
     }
                         
     using Vfloat = const ROOT::RVec<float>&;
-    ROOT::RVec<float> ChunkyDonutEnergy (float L1_ieta, float L1_iphi, Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iem, Vfloat TT_ihad, Vfloat TT_iet) {
+    ROOT::RVec<ROOT::RVec<float>> ChunkyDonutEnergy (Vfloat L1_ieta, Vfloat L1_iphi, Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iem, Vfloat TT_ihad, Vfloat TT_iet) {
 
-        int max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(L1_ieta))));
-        int min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(L1_ieta))));
-        int max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(L1_iphi))));
-        int min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(L1_iphi))));
+        ROOT::RVec<float> vec_iem_sum;
+        ROOT::RVec<float> vec_ihad_sum;
+        ROOT::RVec<float> vec_iet_sum;
         
-        float iem_sum = 0;
-        float ihad_sum = 0;
-        float iet_sum = 0;
-        for (int i_TT = 0; i_TT < TT_ieta.size(); i_TT ++) {
-            if (min_IPhi <= max_IPhi) {
-                if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) && 
-                    ((TT_iphi.at(i_TT) <= max_IPhi) && (TT_iphi.at(i_TT) >= min_IPhi))) {
-                    iem_sum  += TT_iem.at(i_TT);
-                    ihad_sum += TT_ihad.at(i_TT);
-                    iet_sum  += TT_iet.at(i_TT); 
-                }
-            } 
-            else {
-                if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) &&
-                    ((TT_iphi.at(i_TT) >= min_IPhi) || (TT_iphi.at(i_TT) <= max_IPhi))) {
-                    iem_sum  += TT_iem.at(i_TT);
-                    ihad_sum += TT_ihad.at(i_TT);
-                    iet_sum  += TT_iet.at(i_TT); 
-                }                        
-            }                         
-        }
-        return {iem_sum/2, ihad_sum/2, iet_sum/2};
+        for (int i = 0; i < L1_ieta.size(); ++i) {
+            int max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(L1_ieta.at(i)))));
+            int min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(L1_ieta.at(i)))));
+            int max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(L1_iphi.at(i)))));
+            int min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(L1_iphi.at(i)))));
+            
+            float iem_sum = 0;
+            float ihad_sum = 0;
+            float iet_sum = 0;
 
+            for (int i_TT = 0; i_TT < TT_ieta.size(); i_TT ++) {
+                if (min_IPhi <= max_IPhi) {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) && 
+                        ((TT_iphi.at(i_TT) <= max_IPhi) && (TT_iphi.at(i_TT) >= min_IPhi))) {
+                        iem_sum  += TT_iem.at(i_TT);
+                        ihad_sum += TT_ihad.at(i_TT);
+                        iet_sum  += TT_iet.at(i_TT); 
+                    }
+                } 
+                else {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) &&
+                        ((TT_iphi.at(i_TT) >= min_IPhi) || (TT_iphi.at(i_TT) <= max_IPhi))) {
+                        iem_sum  += TT_iem.at(i_TT);
+                        ihad_sum += TT_ihad.at(i_TT);
+                        iet_sum  += TT_iet.at(i_TT); 
+                    }                        
+                }                         
+            }
+            vec_iem_sum.push_back(iem_sum/2);
+            vec_ihad_sum.push_back(ihad_sum/2);
+            vec_iet_sum.push_back(iet_sum/2);
+        }
+        return {vec_iem_sum, vec_ihad_sum, vec_iet_sum};
     }
 """)
 

@@ -204,29 +204,42 @@ if not options.plot_only:
         sys.exit(" ERROR: This is not implemented yet")
     #     df = df.Define("isLooseElectron", "Electron.isLooseElectron")
 
+    print(df.Count().GetValue())
+
     df = df.Define("Offline_pt_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(0)".format(cut_pt, cut_eta, cut_phi))
     df = df.Define("Offline_eta_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(1)".format(cut_pt, cut_eta, cut_phi))
     df = df.Define("Offline_phi_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(2)".format(cut_pt, cut_eta, cut_phi))
-        
+    
+    print(df.Count().GetValue())
+
     ##################################################################    
     ########################### MATCHING #############################
 
     df = df.Define("good_L1_id", "Matching(L1_pt, L1_eta, L1_phi, Offline_pt_cut, Offline_eta_cut, Offline_phi_cut).at(0)")
     df = df.Define("good_Of_id", "Matching(L1_pt, L1_eta, L1_phi, Offline_pt_cut, Offline_eta_cut, Offline_phi_cut).at(1)")
 
-    df = df.Filter("(good_L1_id != -1) && (good_Of_id != -1)")
-    df = df.Define("good_L1_pt",    "L1_pt.at(good_L1_id)")
-    df = df.Define("good_L1_eta",   "L1_eta.at(good_L1_id)")
-    df = df.Define("good_L1_phi",   "L1_phi.at(good_L1_id)")
-    df = df.Define("good_Of_pt",    "Offline_pt_cut.at(good_Of_id)")
-    df = df.Define("good_Of_eta",   "Offline_eta_cut.at(good_Of_id)")
-    df = df.Define("good_Of_phi",   "Offline_phi_cut.at(good_Of_id)")
+    df = df.Filter("(good_L1_id.size() > 0) && (good_Of_id.size() > 0)")
+
+    df = df.Define("good_L1_pt",    "SelectGood (L1_pt, good_L1_id)")
+    df = df.Define("good_L1_eta",   "SelectGood (L1_eta, good_L1_id)")
+    df = df.Define("good_L1_phi",   "SelectGood (L1_phi, good_L1_id)")
+    df = df.Define("good_Of_pt",    "SelectGood (Offline_pt_cut, good_Of_id)")
+    df = df.Define("good_Of_eta",   "SelectGood (Offline_eta_cut, good_Of_id)")
+    df = df.Define("good_Of_phi",   "SelectGood (Offline_phi_cut, good_Of_id)")
+
+    print(df.Count().GetValue())
 
     # Define response for matched jets
-    df = df.Define("Response", "good_L1_pt / good_Of_pt")
+    df = df.Define("Response", "GetRatio (good_L1_pt, good_Of_pt)")
+
+    df = df.Redefine("good_L1_pt", "vector<float>(good_L1_pt.begin(), good_L1_pt.end())")
+    df = df.Redefine("good_Of_pt", "vector<float>(good_Of_pt.begin(), good_Of_pt.end())")
+    df = df.Redefine("Response", "vector<float>(Response.begin(), Response.end())")
+
+    df.Snapshot("Events", "./test.root", {"good_L1_pt", "good_Of_pt", "Response"})
 
     ##################################################################    
     ######################### CHUNKY DONUT ###########################
@@ -245,14 +258,15 @@ if not options.plot_only:
     df = df.Define("CD_iem",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(0)")
     df = df.Define("CD_ihad", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(1)")
     df = df.Define("CD_iet",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(2)")
-    df = df.Define("CD_iesum", "CD_iem + CD_ihad")
 
-    df = df.Define("HoTot", "CD_ihad/CD_iet")
-    df = df.Define("EoTot", "CD_iem/CD_iet")
+    df = df.Define("CD_iesum", "GetSum (CD_iem, CD_ihad)")
+
+    df = df.Define("HoTot", "GetRatio (CD_ihad, CD_iet)")
+    df = df.Define("EoTot", "GetRatio (CD_iem, CD_iet)")
 
     # Define response for chunky donuts
-    df = df.Define("Response_CD", "(CD_ihad+CD_iem) / good_Of_pt")
-    df = df.Define("Ratio", "CD_iet / good_L1_pt")
+    df = df.Define("Response_CD", "GetRatio (CD_iesum, good_Of_pt)")
+    df = df.Define("Ratio", "GetRatio (CD_iet, good_L1_pt)")
 
     response_name = 'Response_CD'
 
@@ -270,18 +284,22 @@ if not options.plot_only:
         
         df = df.Define("CD_iem_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(0)")
         df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
-        df = df.Define("CD_iesum_calib", "CD_iem_calib + CD_ihad_calib")
-        df = df.Define("Response_CD_calib", "(CD_iem_calib + CD_ihad_calib) / good_Of_pt")
+        df = df.Define("CD_iesum_calib", "GetSum (CD_iem_calib, CD_ihad_calib)")
+        df = df.Define("Response_CD_calib", "GetRatio (CD_iesum_calib, good_L1_pt)")
 
         response_name = "Response_CD_calib"
     
     if options.no_CD: response_name = 'Response'
-    else:
-        # [FIXME] understand why sometimes they are different
-        df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
+    # else:
+    #     # [FIXME] understand why sometimes they are different
+    #     df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
 
-    df_b = df.Filter("abs(good_Of_eta) < 1.305")
-    df_e = df.Filter("(abs(good_Of_eta) > 1.479)")
+    df_b = df.Redefine("good_Of_pt", "SelectBarrel (good_Of_pt, good_Of_eta)")
+    df_b = df_b.Redefine("good_Of_eta", "SelectBarrel (good_Of_eta, good_Of_eta)")
+    df_b = df_b.Redefine(response_name, "SelectBarrel ({}, good_Of_eta)".format(response_name))
+    df_e = df.Redefine("good_Of_pt", "SelectEndcap (good_Of_pt, good_Of_eta)")
+    df_e = df_e.Redefine("good_Of_eta", "SelectEndcap (good_Of_eta, good_Of_eta)")
+    df_e = df_e.Redefine(response_name, "SelectEndcap ({}, good_Of_eta)".format(response_name))
     
     ##################################################################    
     ########################### DEBUGGING ############################
@@ -344,15 +362,15 @@ if not options.plot_only:
     endcap_response_ptBins = []
     for i in range(len(ptBins)-1):
 
-        df_PtBin = df.Filter("(good_Of_pt > {}) && (good_Of_pt < {})".format(ptBins[i], ptBins[i+1]))
+        df_PtBin = df.Redefine(response_name, "SelectBin ({}, good_Of_pt, {}, {})".format(response_name, ptBins[i], ptBins[i+1]))
         name = "pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
         response_ptBins.append(df_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
-        df_barrel_PtBin = df_b.Filter("(good_Of_pt > {}) && (good_Of_pt < {})".format(ptBins[i], ptBins[i+1]))
+        df_barrel_PtBin = df_b.Redefine(response_name, "SelectBin ({}, good_Of_pt, {}, {})".format(response_name, ptBins[i], ptBins[i+1]))
         name = "pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
         barrel_response_ptBins.append(df_barrel_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
-        df_endcap_PtBin = df_e.Filter("(good_Of_pt > {}) && (good_Of_pt < {})".format(ptBins[i], ptBins[i+1]))
+        df_endcap_PtBin = df_e.Redefine(response_name, "SelectBin ({}, good_Of_pt, {}, {})".format(response_name, ptBins[i], ptBins[i+1]))
         name = "pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
         endcap_response_ptBins.append(df_endcap_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
@@ -362,23 +380,24 @@ if not options.plot_only:
     plusEta_response_ptBins = []
     for i in range(len(etaBins)-1):
 
-        df_EtaBin = df.Filter("(abs(good_Of_eta) > {}) && (abs(good_Of_eta) < {})".format(etaBins[i], etaBins[i+1]))
+        df_EtaBin = df.Redefine(response_name, "SelectBinAbs ({}, good_Of_eta, {}, {})".format(response_name, etaBins[i], etaBins[i+1]))
         name = "pt_resp_AbsEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
         absEta_response_ptBins.append(df_EtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
-        df_MinusEtaBin = df.Filter("(good_Of_eta < -{}) && (good_Of_eta > -{})".format(etaBins[i], etaBins[i+1]))
+        df_MinusEtaBin = df.Redefine(response_name, "SelectBin ({}, good_Of_eta, {}, {})".format(response_name, -1.*etaBins[i+1], -1.*etaBins[i]))
         name = "pt_resp_MinusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
         minusEta_response_ptBins.append(df_MinusEtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
-        df_PlusEtaBin = df.Filter("(good_Of_eta > {}) && (good_Of_eta < {})".format(etaBins[i], etaBins[i+1]))
+        df_PlusEtaBin = df.Redefine(response_name, "SelectBin ({}, good_Of_eta, {}, {})".format(response_name, etaBins[i], etaBins[i+1]))
         name = "pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
         plusEta_response_ptBins.append(df_PlusEtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
+
 
     # PT RESPONSE -  H/TOT BINS HISTIGRAMS
     if options.do_HoTot:
         response_HoTotBins = []
         for i in range(len(HoTotBins)-1):
-            df_HoTotBin = df.Filter("(HoTot > {}) && (HoTot < {})".format(HoTotBins[i], HoTotBins[i+1]))
+            df_HoTotBin = df.Redefine(response_name, "SelectBin ({}, HoTot, {}, {})".format(response_name, HoTotBins[i], HoTotBins[i+1]))
             name = "pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1])
             response_HoTotBins.append(df_HoTotBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
@@ -386,10 +405,11 @@ if not options.plot_only:
     if options.do_EoTot:
         response_EoTotBins = []
         for i in range(len(EoTotBins)-1):
-            df_EoTotBin = df.Filter("(EoTot > {}) && (EoTot < {})".format(EoTotBins[i], EoTotBins[i+1]))
+            df_EoTotBin = df.Redefine(response_name, "SelectBin ({}, EoTot, {}, {})".format(response_name, HoTotBins[i], HoTotBins[i+1]))
             name = "pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1])
             response_EoTotBins.append(df_EoTotBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
+    '''
     ##################################################################    
     ########################### RESOLUTION ###########################
         
@@ -496,6 +516,7 @@ if not options.plot_only:
                 pt_resol_fctEoTot.SetBinContent(i+1, 0)
                 pt_resol_fctEoTot.SetBinError(i+1, 0)   
 
+    '''
     ##################################################################    
     ##################################################################    
     ################################################################## 
@@ -519,26 +540,26 @@ if not options.plot_only:
         absEta_response_ptBins[i].Write()
         minusEta_response_ptBins[i].Write()
         plusEta_response_ptBins[i].Write()
-    pt_scale_fctPt.Write()
-    pt_scale_max_fctPt.Write()
-    pt_resol_fctPt.Write()
-    pt_scale_fctEta.Write()
-    pt_scale_max_fctEta.Write()
-    pt_resol_fctEta.Write()
-    pt_resol_barrel_fctPt.Write()
-    pt_resol_endcap_fctPt.Write()
-    if options.do_HoTot:
-        for i in range(len(response_HoTotBins)):
-            response_HoTotBins[i].Write()
-        pt_scale_fctHoTot.Write()
-        pt_scale_max_fctHoTot.Write()
-        pt_resol_fctHoTot.Write()
-    if options.do_EoTot:
-        for i in range(len(response_EoTotBins)):
-            response_EoTotBins[i].Write()
-        pt_scale_fctEoTot.Write()
-        pt_scale_max_fctEoTot.Write()
-        pt_resol_fctEoTot.Write()
+    # pt_scale_fctPt.Write()
+    # pt_scale_max_fctPt.Write()
+    # pt_resol_fctPt.Write()
+    # pt_scale_fctEta.Write()
+    # pt_scale_max_fctEta.Write()
+    # pt_resol_fctEta.Write()
+    # pt_resol_barrel_fctPt.Write()
+    # pt_resol_endcap_fctPt.Write()
+    # if options.do_HoTot:
+    #     for i in range(len(response_HoTotBins)):
+    #         response_HoTotBins[i].Write()
+    #     pt_scale_fctHoTot.Write()
+    #     pt_scale_max_fctHoTot.Write()
+    #     pt_resol_fctHoTot.Write()
+    # if options.do_EoTot:
+    #     for i in range(len(response_EoTotBins)):
+    #         response_EoTotBins[i].Write()
+    #     pt_scale_fctEoTot.Write()
+    #     pt_scale_max_fctEoTot.Write()
+    #     pt_resol_fctEoTot.Write()
     
     fileout.Close()
 
@@ -554,26 +575,32 @@ if not options.plot_only:
     if options.no_CD: CD_iesum_name = 'good_L1_pt'
 
     total = df.Histo1D(("total", "total", len(bins)-1, array('f',bins)), "good_Of_pt")
-    df_er2p5 = df.Filter("good_Of_eta < 2.5")
+
+    df_er2p5 = df.Redefine("good_Of_eta", "SelectBinAbs (good_Of_eta, good_Of_eta, 0, 2.5)")
+    df_er2p5 = df_er2p5.Redefine("good_Of_pt", "SelectBinAbs (good_Of_pt, good_Of_eta, 0, 2.5)")
+    df_er2p5 = df_er2p5.Redefine(CD_iesum_name, "SelectBinAbs ({}, good_Of_eta, 0, 2.5)".format(CD_iesum_name))
     total_er2p5 = df_er2p5.Histo1D(("total_Er2p5", "total_Er2p5", len(bins)-1, array('f',bins)), "good_Of_pt")
-    df_er1p305 = df.Filter("good_Of_eta < 1.305")
+
+    df_er1p305 = df.Redefine("good_Of_eta", "SelectBinAbs (good_Of_eta, good_Of_eta, 0, 1.305)")
+    df_er1p305 = df_er1p305.Redefine("good_Of_pt", "SelectBinAbs (good_Of_pt, good_Of_eta, 0, 1.305)")
+    df_er1p305 = df_er1p305.Redefine(CD_iesum_name, "SelectBinAbs ({}, good_Of_eta, 0, 1.305)".format(CD_iesum_name))
     total_er1p305 = df_er1p305.Histo1D(("total_Er1p305", "total_Er1p305", len(bins)-1, array('f',bins)), "good_Of_pt")
 
     passing = []
     for i, threshold in enumerate(thresholds):
-        df_cut = df.Filter("{} > {}".format(CD_iesum_name, threshold))
+        df_cut = df.Redefine("good_Of_pt", "PassThreshold (good_Of_pt, {}, {})".format(CD_iesum_name, threshold))
         name = "passing_"+str(int(threshold))
         passing.append(df_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
 
     passing_er2p5 = []
     for i, threshold in enumerate(thresholds):
-        df_er2p5_cut = df_er2p5.Filter("{} > {}".format(CD_iesum_name, threshold))
+        df_er2p5_cut = df_er2p5.Redefine("good_Of_pt", "PassThreshold (good_Of_pt, {}, {})".format(CD_iesum_name, threshold))
         name = "passing_Er2p5_"+str(int(threshold))
         passing_er2p5.append(df_er2p5_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
 
     passing_er1p305 = []
     for i, threshold in enumerate(thresholds):
-        df_er1p305_cut = df_er1p305.Filter("{} > {}".format(CD_iesum_name, threshold))
+        df_er1p305_cut = df_er1p305.Redefine("good_Of_pt", "PassThreshold (good_Of_pt, {}, {})".format(CD_iesum_name, threshold))
         name = "passing_Er1p305_"+str(int(threshold))
         passing_er1p305.append(df_er1p305_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
 

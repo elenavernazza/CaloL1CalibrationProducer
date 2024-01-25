@@ -4,7 +4,8 @@ import os,sys
 ######################### SCRIPT BODY #################################
 #######################################################################
 
-# python3 RunPerformance.py --addtag _A
+# python3 RunPerformance.py --addtag _A --indir 1
+# python3 RunPerformance.py --addtag _B --indir 2,3,4
 
 from optparse import OptionParser
 parser = OptionParser()
@@ -25,23 +26,8 @@ for i in options.indir.split(','):
     indir = indirs[int(i)-1]
     log_file = os.getcwd() + '/RunInstructions/Performance_Input' + i + options.addtag + '.sh'
 
-    # resolution and turn on plots uncalib
     cmd = []
     cmd.append('cmsenv \n')
-    uncalib_outdir = indir + '/HCALtrainingDataReco/model_HCAL' + options.addtag + '/NtuplesVunc_Raw_Puppi_BarrelEndcap_Pt30'
-    cmd.append('python3 RDF_Resolution.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \\')
-    cmd.append(' --outdir ' + uncalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
-    cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot --no_CD \n')
-    # resolution and turn on plots oldcalib
-    oldcalib_outdir = indir + '/HCALtrainingDataReco/model_HCAL' + options.addtag + '/NtuplesVold_Raw_Puppi_BarrelEndcap_Pt30'
-    cmd.append('python3 RDF_Resolution.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_data_reco_json \\')
-    cmd.append(' --outdir ' + oldcalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
-    cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot --no_CD \n')
-    # resolution and turn on plots newcalib
-    newcalib_outdir = indir + '/HCALtrainingDataReco/model_HCAL' + options.addtag + '/NtuplesVnew_Raw_Puppi_BarrelEndcap_Pt30'
-    cmd.append('python3 RDF_Resolution.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v56' + options.addtag + '_Input' + str(i+1) + '_data_reco_json \\')
-    cmd.append(' --outdir ' + newcalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
-    cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot --no_CD \n')
 
     # rate plots uncalib
     uncalib_outdir = indir + '/HCALtrainingDataReco/model_HCAL' + options.addtag + '/NtuplesVunc_Raw_Puppi_BarrelEndcap_Pt30'
@@ -55,15 +41,47 @@ for i in options.indir.split(','):
     cmd.append(' --raw --nEvts 100000 --no_plot --er 1.305 \n')
     # rate plots newcalib
     newcalib_outdir = indir + '/HCALtrainingDataReco/model_HCAL' + options.addtag + '/NtuplesVnew_Raw_Puppi_BarrelEndcap_Pt30'
-    cmd.append('python3 rate.py --indir EphemeralZeroBias0__Run2022G-v1__Run362617__RAW__GT130XdataRun3Promptv3_CaloParams2023v56' + options.addtag + '_Input' + str(i+1) + '_data \\')
+    cmd.append('python3 rate.py --indir EphemeralZeroBias0__Run2022G-v1__Run362617__RAW__GT130XdataRun3Promptv3_CaloParams2023v56' + options.addtag + '_Input' + i + '_data \\')
     cmd.append(' --outdir ' + newcalib_outdir + ' --label Jet_data_reco --target jet \\')
     cmd.append(' --raw --nEvts 100000 --no_plot --er 1.305 \n')
+
+    # turn on plots uncalib
+    cmd.append('python3 turnOn.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \\')
+    cmd.append(' --outdir ' + uncalib_outdir + ' --label Jet_data_reco --reco --target jet \\')
+    cmd.append(' --raw --PuppiJet --nEvts 100000 --er 1.305 \n')
+    # turn on plots oldcalib
+    cmd.append('python3 turnOn.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_data_reco_json \\')
+    cmd.append(' --outdir ' + oldcalib_outdir + ' --label Jet_data_reco --reco --target jet \\')
+    cmd.append(' --raw --PuppiJet --nEvts 100000 --er 1.305 \n')
+    # turn on plots newcalib
+    cmd.append('python3 turnOn.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v56' + options.addtag + '_Input' + i + '_data_reco_json \\')
+    cmd.append(' --outdir ' + newcalib_outdir + ' --label Jet_data_reco --reco --target jet \\')
+    cmd.append(' --raw --PuppiJet --nEvts 100000 --er 1.305 \n')
 
     # comparison plots
     cmd.append('python3 comparisonPlots.py --indir ' + newcalib_outdir + ' --label Jet_data_reco  --target jet --reco \\')
     cmd.append(' --old ' + oldcalib_outdir + ' \\')
     cmd.append(' --unc ' + uncalib_outdir + ' \\')
-    cmd.append(' --do_HoTot --thrsFixRate 30 --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 \n')
+    cmd.append(' --do_HoTot --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 --er 1.305 --doResolution False --doResponse False \n')
+
+    # resolution plots uncalib
+    cmd.append('python3 resolutions.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \\')
+    cmd.append(' --outdir ' + uncalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
+    cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \n')
+    # resolution plots oldcalib
+    cmd.append('python3 resolutions.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_data_reco_json \\')
+    cmd.append(' --outdir ' + oldcalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
+    cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \n')
+    # resolution plots newcalib
+    cmd.append('python3 resolutions.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v56' + options.addtag + '_Input' + i + '_data_reco_json \\')
+    cmd.append(' --outdir ' + newcalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
+    cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \n')
+
+    # comparison plots
+    cmd.append('python3 comparisonPlots.py --indir ' + newcalib_outdir + ' --label Jet_data_reco  --target jet --reco \\')
+    cmd.append(' --old ' + oldcalib_outdir + ' \\')
+    cmd.append(' --unc ' + uncalib_outdir + ' \\')
+    cmd.append(' --do_HoTot --doRate False --doTurnOn False  \n')
 
     file = open (log_file, 'w')
     for line in cmd:
