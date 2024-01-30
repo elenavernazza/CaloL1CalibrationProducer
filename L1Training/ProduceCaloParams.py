@@ -18,6 +18,7 @@ parser.add_option("--base",      dest="base",       default='caloParams_2023_v0_
 parser.add_option("--ECAL",      dest="ECAL",       default=None)
 parser.add_option("--HCAL",      dest="HCAL",       default=None)
 parser.add_option("--HF",        dest="HF",         default=None)
+parser.add_option("--cureSFs",   dest="cureSFs",    default=False,      action='store_true')
 (options, args) = parser.parse_args()
 
 # prepare caloParams file
@@ -77,11 +78,14 @@ if options.HCAL:
             if '#' in line: continue
             if first_line == True:
                 print("### INFO: Apply Zero Suppression\n")
-                print(line)
+                print(" --> BEFORE: ", line)
                 SF_zs = line.split(",")
                 SF_zs[:15] = ["0.0000"] * 15
+                if options.cureSFs:
+                    print("### INFO: Apply Ones to all iEt = 1\n")
+                    SF_zs[15:28] = ["1.0000"] * 13
                 line_to_add = ",".join(SF_zs)
-                print(line_to_add)
+                print(" --> AFTER:  ", line_to_add)
                 New_Lines.append('        ' + line_to_add)
                 first_line = False
             else:
@@ -99,9 +103,23 @@ if options.HF:
     New_Lines.append("    layer1HFScaleFactors = cms.vdouble([\n")
     f_HF = options.HF
     with open(f_HF) as f:
+        first_line = True
         for line in f.readlines():
             if '#' in line: continue
-            New_Lines.append('        ' + line)
+            if first_line == True:
+                SF_zs = line.split(",")
+                if options.cureSFs:
+                    print("### INFO: Apply Ones to all iEt = 1\n")
+                    print(" --> BEFORE: ", line)
+                    SF_zs = line.split(",")
+                    SF_zs[0:12] = ["1.0000"] * 12
+                line_to_add = ",".join(SF_zs)
+                if options.cureSFs: 
+                    print(" --> AFTER:  ", line_to_add)
+                New_Lines.append('        ' + line_to_add)
+                first_line = False
+            else:
+                New_Lines.append('        ' + line)
 else:
     for line in Old_Lines[start_HF:end_HF]:
         New_Lines.append(line)

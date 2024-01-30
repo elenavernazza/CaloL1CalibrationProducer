@@ -282,7 +282,7 @@ if not options.plot_only:
         df = df.Define("CD_iem_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(0)")
         df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
         df = df.Define("CD_iesum_calib", "GetSum (CD_iem_calib, CD_ihad_calib)")
-        df = df.Define("Response_CD_calib", "GetRatio (CD_iesum_calib, good_L1_pt)")
+        df = df.Define("Response_CD_calib", "GetRatio (CD_iesum_calib, good_Of_pt)")
     
     # else:
     #     # [FIXME] understand why sometimes they are different
@@ -513,6 +513,14 @@ if not options.plot_only:
     pt_response_ptInclusive.Write()
     pt_barrel_resp_ptInclusive.Write()
     pt_endcap_resp_ptInclusive.Write()
+    pt_scale_fctPt.Write()
+    pt_scale_max_fctPt.Write()
+    pt_resol_fctPt.Write()
+    pt_resol_barrel_fctPt.Write()
+    pt_resol_endcap_fctPt.Write()
+    pt_scale_fctEta.Write()
+    pt_scale_max_fctEta.Write()
+    pt_resol_fctEta.Write()
     for i in range(len(ptBins)-1):
         response_ptBins[i].Write()
         barrel_response_ptBins[i].Write()
@@ -521,7 +529,18 @@ if not options.plot_only:
         absEta_response_ptBins[i].Write()
         minusEta_response_ptBins[i].Write()
         plusEta_response_ptBins[i].Write()
-    
+    if options.do_HoTot:
+        pt_scale_fctHoTot.Write()
+        pt_scale_max_fctHoTot.Write()
+        pt_resol_fctHoTot.Write()
+        for i in range(len(HoTotBins)-1):
+            response_HoTotBins[i].Write()
+    if options.do_EoTot:
+        pt_scale_fctEoTot.Write()
+        pt_scale_max_fctEoTot.Write()
+        pt_resol_fctEoTot.Write()
+        for i in range(len(EoTotBins)-1):
+            response_EoTotBins[i].Write()
     fileout.Close()
 
     ##################################################################    

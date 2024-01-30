@@ -164,7 +164,7 @@ ROOT.gInterpreter.Declare("""
 ROOT.gInterpreter.Declare("""
     using Vfloat = const ROOT::RVec<float>&;
     ROOT::RVec<int> CalibrateIhad (Vfloat TT_ieta, Vfloat TT_ihad, bool apply) {
-        ROOT::RVec<int> TT_ihad_calib;
+        ROOT::RVec<float> TT_ihad_calib;
         for (int i_TT = 0; i_TT < TT_ihad.size(); i_TT ++) {
             if (apply) {
                 float SF = 0;
@@ -174,8 +174,8 @@ ROOT.gInterpreter.Declare("""
                 else {
                     SF = HF_SFmap->GetBinContent(HF_SFmap->FindBin(abs(TT_ieta.at(i_TT))-29, TT_ihad.at(i_TT)));
                 }
-                TT_ihad_calib.push_back((int) TT_ihad.at(i_TT)*SF);
-                // if ((int) TT_ihad.at(i_TT)*SF != TT_ihad.at(i_TT)) cout << TT_ihad.at(i_TT) << " " << TT_ieta.at(i_TT) << endl;
+                TT_ihad_calib.push_back((int) (TT_ihad.at(i_TT)*SF));
+                // cout << TT_ihad.at(i_TT) << " " << TT_ieta.at(i_TT) << " " << SF << " " << (int) (TT_ihad.at(i_TT)*SF) << endl;
             }
             else {
                 TT_ihad_calib.push_back(TT_ihad.at(i_TT));
@@ -187,12 +187,12 @@ ROOT.gInterpreter.Declare("""
 
 ROOT.gInterpreter.Declare("""
     using Vfloat = const ROOT::RVec<float>&;
-    ROOT::RVec<int> CalibrateIem (Vfloat TT_ieta, Vfloat TT_iem, bool apply) {
+    ROOT::RVec<float> CalibrateIem (Vfloat TT_ieta, Vfloat TT_iem, bool apply) {
         ROOT::RVec<float> TT_iem_calib;
         for (int i_TT = 0; i_TT < TT_iem.size(); i_TT ++) {
             if (apply) {
                 float SF = ECAL_SFmap->GetBinContent(ECAL_SFmap->FindBin(abs(TT_ieta.at(i_TT)), TT_iem.at(i_TT)));
-                TT_iem_calib.push_back((int) TT_iem.at(i_TT)*SF);
+                TT_iem_calib.push_back((int) (TT_iem.at(i_TT)*SF));
             }
             else {
                 TT_iem_calib.push_back(TT_iem.at(i_TT));
@@ -203,24 +203,24 @@ ROOT.gInterpreter.Declare("""
 """)
 
 ROOT.gInterpreter.Declare("""
-    int TestCalibrateIem (float TT_ieta, float TT_iem) {
-        int TT_iem_calib;
+    float TestCalibrateIem (float TT_ieta, float TT_iem) {
+        float TT_iem_calib;
         cout << "Bin x = " << ECAL_SFmap->GetXaxis()->FindBin(abs(TT_ieta)) << endl;
         cout << "Bin y = " << ECAL_SFmap->GetYaxis()->FindBin(TT_iem) << endl;
         float SF = ECAL_SFmap->GetBinContent(ECAL_SFmap->FindBin(abs(TT_ieta), TT_iem));
-        TT_iem_calib = (int) TT_iem*SF;
+        TT_iem_calib = (int) (TT_iem*SF);
         cout << SF << endl;
         return TT_iem_calib;
     }
 """)
 
 ROOT.gInterpreter.Declare("""
-    int TestCalibrateIhad (float TT_ieta, float TT_ihad) {
-        int TT_ihad_calib;
+    float TestCalibrateIhad (float TT_ieta, float TT_ihad) {
+        float TT_ihad_calib;
         cout << "Bin x = " << HCAL_SFmap->GetXaxis()->FindBin(abs(TT_ieta)) << endl;
         cout << "Bin y = " << HCAL_SFmap->GetYaxis()->FindBin(TT_ihad) << endl;
         float SF = HCAL_SFmap->GetBinContent(HCAL_SFmap->FindBin(abs(TT_ieta), TT_ihad));
-        TT_ihad_calib = (int) TT_ihad*SF;
+        TT_ihad_calib = (int) (TT_ihad*SF);
         cout << SF << endl;
         return TT_ihad_calib;
     }

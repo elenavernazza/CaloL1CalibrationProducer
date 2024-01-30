@@ -60,6 +60,18 @@ ROOT.gInterpreter.Declare("""
 
 ROOT.gInterpreter.Declare("""
     using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> GetRatioDebug (Vfloat A, Vfloat B) {
+        ROOT::RVec<float> ratio;
+        for (int i = 0; i < A.size(); ++i) {
+            cout << A.at(i) << " " << B.at(i) << " " << A.at(i)/B.at(i) << endl;
+            ratio.push_back(A.at(i)/B.at(i));
+        }
+        return ratio;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
     ROOT::RVec<float> GetSum (Vfloat A, Vfloat B) {
         ROOT::RVec<float> sum;
         for (int i = 0; i < A.size(); ++i) {
@@ -271,7 +283,7 @@ ROOT.gInterpreter.Declare("""
                 } 
                 else {
                     if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) &&
-                        ((TT_iphi.at(i_TT) >= min_IPhi) || (TT_iphi.at(i_TT) <= max_IPhi))) {
+                        ((TT_iphi.at(i_TT) >= max_IPhi) || (TT_iphi.at(i_TT) <= min_IPhi))) {
                         iem_sum  += TT_iem.at(i_TT);
                         ihad_sum += TT_ihad.at(i_TT);
                         iet_sum  += TT_iet.at(i_TT); 
@@ -351,3 +363,147 @@ ROOT.gInterpreter.Declare("""
     }
 """)
 
+ROOT.gInterpreter.Declare("""
+    struct TT_idx_ieta_iphi_iesum {
+        int idx; 
+        float ieta;
+        float iphi;
+        float iesum;
+    };
+
+    bool TTSort_iphi (const TT_idx_ieta_iphi_iesum& TT_A, const TT_idx_ieta_iphi_iesum& TT_B) {
+        return (TT_A.iphi < TT_B.iphi);
+    }
+    bool TTSort_ieta (const TT_idx_ieta_iphi_iesum& TT_A, const TT_idx_ieta_iphi_iesum& TT_B) {
+        return (TT_A.ieta < TT_B.ieta);
+    }
+    bool TTSort_iesum (const TT_idx_ieta_iphi_iesum& TT_A, const TT_idx_ieta_iphi_iesum& TT_B) {
+        return (TT_A.iesum > TT_B.iesum);
+    }
+
+    int GetMapPosition (vector<std::vector<int>> TT_map, int ieta, int iphi) {
+        int position = -1;
+        for (int i_pair = 0; i_pair < TT_map.size(); i_pair ++) {
+            if ((TT_map.at(i_pair).at(0) == ieta) && (TT_map.at(i_pair).at(1) == iphi)) {
+                position = i_pair;
+            }
+        }
+        // cout << ieta << " " << iphi << " " << position << endl;
+        return position;
+    }
+
+    bool JetIsOverlapped (vector<std::vector<int>> TT_map, int Seed_ieta, int Seed_iphi) {
+        bool is_overlapped = false;
+        int max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(Seed_ieta))));
+        int min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(Seed_ieta))));
+        int max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(Seed_iphi))));
+        int min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(Seed_iphi))));
+        // cout << Seed_ieta << " " << Seed_iphi << " -  " << min_IEta << "," << max_IEta << "," << min_IPhi << "," << max_IPhi << endl;
+        for (int i_ieta = min_IEta; i_ieta <= max_IEta; i_ieta ++) {
+            if (i_ieta == 0) continue;
+            else if (min_IPhi <= max_IPhi) {
+                for (int i_iphi = min_IPhi; i_iphi <= max_IPhi; i_iphi ++) {
+                    if (GetMapPosition(TT_map, i_ieta, i_iphi) != -1) continue;
+                    else {
+                        is_overlapped = true;
+                        break;
+                    }
+                }
+            }
+            else {
+                for (int i_iphi = max_IPhi; i_iphi <= min_IPhi; i_iphi ++) {
+                    if (GetMapPosition(TT_map, i_ieta, i_iphi) != -1) continue;
+                    else {
+                        is_overlapped = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return is_overlapped;
+    }
+
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> BuildLeadingJets (Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iesum, int IEtaCut) {
+        std::vector <TT_idx_ieta_iphi_iesum> TT_indexes;
+        for (int i_TT = 0; i_TT < TT_iesum.size(); i_TT ++) {
+            if (TT_ieta.at(i_TT) > IEtaCut) continue;
+            TT_indexes.push_back(TT_idx_ieta_iphi_iesum({
+                (int) i_TT, 
+                TT_ieta.at(i_TT),
+                TT_iphi.at(i_TT),
+                TT_iesum.at(i_TT)
+            }));
+        }
+        // sort by iphi (least important) 
+        std::stable_sort(TT_indexes.begin(), TT_indexes.end(), TTSort_iphi);
+        // sort by ieta 
+        std::stable_sort(TT_indexes.begin(), TT_indexes.end(), TTSort_ieta);
+        // sort by iesum (most important) 
+        std::stable_sort(TT_indexes.begin(), TT_indexes.end(), TTSort_iesum);
+        
+        std::vector<std::vector<int>> TT_map;
+        // cout << "Building" << endl;
+        int ind = 0;
+        for (int i = -41; i <= 41; ++i) {
+            if (i == 0) continue;
+            for (int j = 1; j <= 72; ++j) {
+                TT_map.push_back({i, j});
+                // cout << ind << " " << i << " " << j << endl;
+                ind = ind + 1;
+            }
+        }
+        
+        ROOT::RVec<float> Jets;
+        for (auto &TT : TT_indexes) {
+            
+            int Seed_ieta = TT.ieta;
+            int Seed_iphi = TT.iphi;
+            if (JetIsOverlapped(TT_map, Seed_ieta, Seed_iphi) == true) continue;
+                          
+            int max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(Seed_ieta))));
+            int min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(Seed_ieta))));
+            int max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(Seed_iphi))));
+            int min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(Seed_iphi)))); 
+
+            float CD_energy = 0;
+            
+            for (int i_TT = 0; i_TT < TT_ieta.size(); i_TT ++) {
+                if (min_IPhi <= max_IPhi) {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) && 
+                        ((TT_iphi.at(i_TT) <= max_IPhi) && (TT_iphi.at(i_TT) >= min_IPhi))) {
+                        CD_energy += TT_iesum.at(i_TT);
+                    }
+                } 
+                else {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) &&
+                        ((TT_iphi.at(i_TT) >= max_IPhi) || (TT_iphi.at(i_TT) <= min_IPhi))) {
+                        CD_energy += TT_iesum.at(i_TT);
+                    }                        
+                }
+            }
+            
+            Jets.push_back(CD_energy);
+            
+            // erase towers contained in the CD
+            for (int i_ieta = min_IEta; i_ieta <= max_IEta; i_ieta ++) {
+                if (i_ieta == 0) continue;
+                else if (min_IPhi <= max_IPhi) {
+                    for (int i_iphi = min_IPhi; i_iphi <= max_IPhi; i_iphi ++) {
+                        TT_map.erase(TT_map.begin() + GetMapPosition(TT_map, i_ieta, i_iphi));
+                    }
+                }
+                else {
+                    for (int i_iphi = max_IPhi; i_iphi <= min_IPhi; i_iphi ++) {
+                        TT_map.erase(TT_map.begin() + GetMapPosition(TT_map, i_ieta, i_iphi));
+                    }
+                }
+            }
+        }
+        
+        // sort jets and take the first two
+        std::stable_sort(Jets.begin(), Jets.end(), greater<float>());
+        
+        return {Jets.at(0), Jets.at(1)};
+    }
+""")

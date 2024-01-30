@@ -48,7 +48,9 @@ for i in options.indir.split(','):
         os.system('cp '+dir+f'scale_ptBins_{label}_jet.* '+eosdir+'/Resolution')
         os.system('cp '+dir+f'rate_Obj_{label}_jet.* '+eosdir)
         os.system('cp '+dir+f'rate_ObjEr2p5_{label}_jet.* '+eosdir)
-        os.system('cp '+dir+f'turnon* '+eosdir)
+        os.system('cp '+dir+f'turnon_fixedObj*40* '+eosdir)
+        os.system('cp '+dir+f'turnon_fixedObj*60* '+eosdir)
+        os.system('cp '+dir+f'turnon_fixedObj*80* '+eosdir)
 
         os.system('cp '+dir+f'response_*pt*_{label}_jet.* '+eosdir+'/ptBins')
         os.system('cp '+dir+f'response_*eta*_{label}_jet.* '+eosdir+'/etaBins')
