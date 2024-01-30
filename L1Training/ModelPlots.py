@@ -44,6 +44,7 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers):
     #plt.title('Calibration vs Eta')
     mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
     savefile = odir + '/Calib_vs_Eta_'+v_sample
+    plt.ylim(-0.2,5.2)
     plt.savefig(savefile+'.png')
     plt.savefig(savefile+'.pdf')
     print(savefile)

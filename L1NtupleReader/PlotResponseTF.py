@@ -416,145 +416,125 @@ if __name__ == "__main__" :
     parser.add_option("--indir",        dest="indir",       help="Input folder with trained model",     default=None)
     parser.add_option("--tag",          dest="tag",         help="tag of the training folder",          default="")
     parser.add_option("--v",            dest="v",           help="Ntuple type ('ECAL' or 'HCAL')",      default='ECAL')
-    parser.add_option("--filesLim",     dest="filesLim",    help="Maximum number of npz files to use",  default=None)
     parser.add_option("--eventLim",     dest="eventLim",    help="Maximum number of events to use",     default=None)
     parser.add_option("--addtag",       dest="addtag",      help="Add tag for different trainings",     default="")
-    parser.add_option("--ietacut",      dest="ietacut",     help="Apply ieta cut",                      default=None)
-    parser.add_option("--ljetPtcut",    dest="ljetPtcut",   help="Apply lowerjetPt cut [GeV]",          default=None)
-    parser.add_option("--ujetPtcut",    dest="ujetPtcut",   help="Apply upperjetPt cut [GeV]",          default=None)
     parser.add_option("--HoEcut",       dest="HoEcut",      help="Apply HoE cut at 0.95",               default=None)
     parser.add_option("--PlotRate",     dest="PlotRate",    help="Plots for rate proxy sample",         default=False,   action='store_true')
     (options, args) = parser.parse_args()
     print(options)
 
     indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
-    odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/plots' + options.addtag + '/PerformancePlots_Uncalib'
+    odir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag + '/InputPlots' + options.addtag
     os.system('mkdir -p '+ odir)
     print('\n ### Reading TF records from: ' + indir + '/trainTFRecords/record_*.tfrecord')
-    if options.filesLim:
-        InTestRecords = glob.glob(indir+'/trainTFRecords/record_*.tfrecord')[:int(options.filesLim)]
-    else:
-        InTestRecords = glob.glob(indir+'/trainTFRecords/record_*.tfrecord')
+    InTestRecords = glob.glob(indir+'/trainTFRecords/record_*.tfrecord')
+
     dataset = tf.data.TFRecordDataset(InTestRecords)
     batch_size = len(list(dataset))
     parsed_dataset = dataset.map(parse_function)
     data = parsed_dataset.batch(batch_size).as_numpy_iterator().next()
     print('\n ### N events: ' + str(len(list(dataset))))
 
-    if options.eventLim:
-        print('\n ### Reading {} events'.format(options.eventLim))
-        n_events = int(options.eventLim)
-        Towers = data[0][:int(options.eventLim)]
-        Jets = data[1][:int(options.eventLim)]
-    else:
-        n_events = len(list(dataset))
-        Towers = data[0]
-        Jets = data[1]
+    n_events = len(list(dataset))
+    X = data[0]
+    Y = data[1]
 
-    print('\n ### Load Dataframes')
+    iEta = np.argmax(X[:,:,2:], axis=2).reshape(-1)
+    iEta = iEta[iEta != 0]
+    L1Energy = np.sum(X[:,:,1], axis=1)
+    JetEnergy = Y
 
-    # Extract the iem and hcalET columns from Towers
-    if options.v == 'ECAL':
-        iem = Towers[:, :, 1].reshape(-1)
-        hcalET = Towers[:, :, 0].reshape(-1)
-    elif options.v == 'HCAL':
-        iem = Towers[:, :, 0].reshape(-1)
-        hcalET = Towers[:, :, 1].reshape(-1)
-    # Extract the ieta column from Towers using argmax
-    ieta = np.argmax(Towers[:, :, 2:], axis=2).reshape(-1) + 1
-    # Create arrays for the id and jetPt columns
-    id_arr = np.repeat(np.arange(len(Towers)), Towers.shape[1])
-    jetPt_arr = np.repeat(Jets, Towers.shape[1])
+    bins_res = np.linspace(0,3,200)
+    plt.hist(L1Energy/JetEnergy, bins=bins_res, histtype='step', stacked=True, linewidth=2, color='black')
+    plt.xlabel(r'Response')
+    plt.ylabel('Entries')
+    plt.grid(linestyle='dotted')
+    plt.legend(fontsize=15, loc='upper left')
+    mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
+    savefile = odir + '/Response.png'
+    plt.savefig(savefile)
+    plt.close()
 
-    # Combine the arrays into a dictionary and create the dataframe
-    df_Towers = pd.DataFrame({'id': id_arr, 'jetPt': jetPt_arr, 'iem': iem, 'hcalET': hcalET, 'ieta': ieta})
+    bins_ieta = np.arange(iEta.min(), iEta.max()+1)
+    plt.hist(iEta, bins=bins_ieta, histtype='step', stacked=True, linewidth=2, color='black')
+    plt.xlabel(r'i$\eta$')
+    plt.ylabel('Entries')
+    plt.grid(linestyle='dotted')
+    plt.legend(fontsize=15, loc='upper left')
+    plt.yscale('log')
+    mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
+    savefile = odir + '/iEta.png'
+    plt.savefig(savefile)
+    plt.close()
 
-    if options.ljetPtcut:
-        df_Towers = df_Towers[df_Towers['jetPt'] > float(options.ljetPtcut)*2]
-    if options.ujetPtcut:
-        df_Towers = df_Towers[df_Towers['jetPt'] < float(options.ujetPtcut)*2]
+    # plt.figure(figsize=(10,10))
+    # sel_barrel = np.abs(df_jets['jetEta']) < 1.305
+    # text_1 = leg_uncalib+r' barrel : $\mu={:.3f}, res={:.3f}$'.format(df_jets[sel_barrel]['unc_res'].mean(), df_jets[sel_barrel]['unc_res'].std()/df_jets[sel_barrel]['unc_res'].mean())
+    # plt.hist(iEta, bins=bins_res, label=text_1, histtype='step', stacked=True, linewidth=2, color=cmap(0))
+    # sel_endcap = np.abs(df_jets['jetEta']) >= 1.305
+    # text_1 = leg_uncalib+r' endcap : $\mu={:.3f}, res={:.3f}$'.format(df_jets[sel_endcap]['unc_res'].mean(), df_jets[sel_endcap]['unc_res'].std()/df_jets[sel_endcap]['unc_res'].mean())
+    # plt.hist(df_jets[sel_endcap]['unc_res'], bins=bins_res, label=text_1, histtype='step', stacked=True, linewidth=2, color=cmap(1))
+    # text_1 = leg_uncalib+r': $\mu={:.3f}, res={:.3f}$'.format(df_jets['unc_res'].mean(), df_jets['unc_res'].std()/df_jets['unc_res'].mean())
+    # counts, bins, _ = plt.hist(df_jets['unc_res'], bins=bins_res, label=text_1, histtype='step', stacked=True, linewidth=2, color=cmap(2))
+    # plt.xlabel('Response')
+    # plt.ylabel('a.u.')
+    # plt.ylim(0, 1.3*np.max(counts))
+    # plt.xlim(0,3)
+    # plt.grid(linestyle='dotted')
+    # plt.legend(fontsize=15, loc='upper left')
+    # mplhep.cms.label(data=False, rlabel='(13.6 TeV)', fontsize=20)
+    # # plt.title('Jets Resolution {}'.format(v_sample))
+    # savefile = odir + '/Res_{}.png'.format(v_sample)
+    # plt.savefig(savefile)
+    # print(savefile)
+    # plt.close()
 
-    # compute sum of the raw energy 
-    df_jets = pd.DataFrame()
-    df_jets['SumIem']     = df_Towers.groupby('id').iem.sum()
-    df_jets['SumIhad']    = df_Towers.groupby('id').hcalET.sum()
-    df_jets['unCalib']    = df_Towers.groupby('id').iem.sum() + df_Towers.groupby('id').hcalET.sum()
-    df_jets['jetPt']      = df_Towers.groupby('id').jetPt.median()
-    df_jets['jetIEta']    = df_Towers.groupby('id').ieta.first()
-    df_jets['jetEta']     = df_jets.apply(lambda row: (TowersEta[row['jetIEta']][0] + TowersEta[row['jetIEta']][1])/2, axis=1)
+    # if options.PlotRate:
 
-    if options.ietacut:
-        df_jets = df_jets[(df_jets['jetIEta'] < float(options.ietacut)) & (df_jets['jetIEta'] > -1*float(options.ietacut))]
+    #     print('\n ### Reading TF records for Rate Plots from: ' + indir + '/rateTFRecords/record_*.tfrecord')
+    #     InTestRecords = glob.glob(indir+'/rateTFRecords/record_*.tfrecord')[:options.filesLim]
+    #     dataset = tf.data.TFRecordDataset(InTestRecords)
+    #     batch_size = len(list(dataset))
+    #     parsed_dataset = dataset.map(parse_function)
+    #     data = parsed_dataset.batch(batch_size).as_numpy_iterator().next()
+    #     print('\n ### N events: ' + str(len(list(dataset))))
 
-    if options.HoEcut:
-        df_jets['HoE'] = df_Towers.groupby('id').hcalET.sum() / (df_Towers.groupby('id').iem.sum() + df_Towers.groupby('id').hcalET.sum())
-        df_jets = df_jets[df_jets['HoE'] >= 0.95]
+    #     if options.eventLim:
+    #         print('\n ### Reading {} events'.format(options.eventLim))
+    #         n_events = int(options.eventLim)
+    #         Towers = data[0][:int(options.eventLim)]
+    #     else:
+    #         n_events = len(list(dataset))
+    #         Towers = data[0]
 
-    # compute resolution
-    df_jets['unc_res'] = df_jets.apply(lambda row: row['unCalib']/row['jetPt'], axis=1)
-    df_jets['unc_res_iem'] = df_jets.apply(lambda row: row['SumIem']/row['jetPt'], axis=1)
-    df_jets['unc_res_ihad'] = df_jets.apply(lambda row: row['SumIhad']/row['jetPt'], axis=1)
+    #     print('\n ### Load Rate Dataframes')
 
-    print('\n ### Saving plots in: ' + odir)
+    #     # Extract the iem and hcalET columns from Towers
+    #     if options.v == 'ECAL':
+    #         iem = Towers[:, :, 1].reshape(-1)
+    #         hcalET = Towers[:, :, 0].reshape(-1)
+    #     elif options.v == 'HCAL':
+    #         iem = Towers[:, :, 0].reshape(-1)
+    #         hcalET = Towers[:, :, 1].reshape(-1)
+    #     # Extract the ieta column from Towers using argmax
+    #     ieta = np.argmax(Towers[:, :, 2:], axis=2).reshape(-1) + 1
+    #     # Create arrays for the id and jetPt columns
+    #     id_arr = np.repeat(np.arange(len(Towers)), Towers.shape[1])
+    #     iesum = (iem + hcalET)/2
 
-    # plot the eta and pt distributions
-    PlotEtaIesum(df_Towers, odir, options.v, "Signal")
-    PlotDistribution(df_jets, odir, options.v, 'jetPt')
-    PlotDistribution(df_jets, odir, options.v, 'jetIEta')
+    #     # Combine the arrays into a dictionary and create the dataframe
+    #     df_Towers = pd.DataFrame({'id': id_arr, 'iem': iem, 'hcalET': hcalET, 'iesum': iesum, 'ieta': ieta})
+    #     df_Towers.groupby('id').apply(lambda x: x.sort_values('iesum', ascending=False))
 
-    # plot the response
-    PlotResolutionInclusive(df_jets, odir, options.v)
-    PlotResolutionPtBins(df_jets, odir, options.v, 'pt')
-    PlotResolutionPtBins(df_jets, odir, options.v, 'eta')
+    #     # compute sum of the raw energy
+    #     df_jets = pd.DataFrame()
+    #     if options.v == 'HCAL':
+    #         df_jets['jetPtRate']  = df_Towers.groupby('id').iesum.sum()
+    #     if options.v == 'ECAL':
+    #         df_jets['jetPtRate']  = df_Towers.groupby('id').iem.sum()
+    #     df_jets['jetIEta']    = df_Towers.groupby('id').ieta.first()
+    #     df_jets['jetSeed']    = df_Towers.groupby('id').iesum.max()
 
-    del df_jets, df_Towers
+    #     PlotEtaIesum(df_Towers, odir, options.v, "Rate")
 
-    if options.PlotRate:
-
-        print('\n ### Reading TF records for Rate Plots from: ' + indir + '/rateTFRecords/record_*.tfrecord')
-        InTestRecords = glob.glob(indir+'/rateTFRecords/record_*.tfrecord')[:options.filesLim]
-        dataset = tf.data.TFRecordDataset(InTestRecords)
-        batch_size = len(list(dataset))
-        parsed_dataset = dataset.map(parse_function)
-        data = parsed_dataset.batch(batch_size).as_numpy_iterator().next()
-        print('\n ### N events: ' + str(len(list(dataset))))
-
-        if options.eventLim:
-            print('\n ### Reading {} events'.format(options.eventLim))
-            n_events = int(options.eventLim)
-            Towers = data[0][:int(options.eventLim)]
-        else:
-            n_events = len(list(dataset))
-            Towers = data[0]
-
-        print('\n ### Load Rate Dataframes')
-
-        # Extract the iem and hcalET columns from Towers
-        if options.v == 'ECAL':
-            iem = Towers[:, :, 1].reshape(-1)
-            hcalET = Towers[:, :, 0].reshape(-1)
-        elif options.v == 'HCAL':
-            iem = Towers[:, :, 0].reshape(-1)
-            hcalET = Towers[:, :, 1].reshape(-1)
-        # Extract the ieta column from Towers using argmax
-        ieta = np.argmax(Towers[:, :, 2:], axis=2).reshape(-1) + 1
-        # Create arrays for the id and jetPt columns
-        id_arr = np.repeat(np.arange(len(Towers)), Towers.shape[1])
-        iesum = (iem + hcalET)/2
-
-        # Combine the arrays into a dictionary and create the dataframe
-        df_Towers = pd.DataFrame({'id': id_arr, 'iem': iem, 'hcalET': hcalET, 'iesum': iesum, 'ieta': ieta})
-        df_Towers.groupby('id').apply(lambda x: x.sort_values('iesum', ascending=False))
-
-        # compute sum of the raw energy
-        df_jets = pd.DataFrame()
-        if options.v == 'HCAL':
-            df_jets['jetPtRate']  = df_Towers.groupby('id').iesum.sum()
-        if options.v == 'ECAL':
-            df_jets['jetPtRate']  = df_Towers.groupby('id').iem.sum()
-        df_jets['jetIEta']    = df_Towers.groupby('id').ieta.first()
-        df_jets['jetSeed']    = df_Towers.groupby('id').iesum.max()
-
-        PlotEtaIesum(df_Towers, odir, options.v, "Rate")
-
-        PlotRate(df_jets, odir, options.v)
+    #     PlotRate(df_jets, odir, options.v)

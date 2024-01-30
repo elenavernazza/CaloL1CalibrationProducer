@@ -110,26 +110,45 @@ if not options.plot_only:
     # Define overall hcalET information, ihad for ieta < 29 and iet for ieta > 29
     df = df.Define("TT_ihad", "SumHCAL (TT_ihc, TT_iet, TT_ieta)")
 
-    lead_pt_name = f"lead_CD_iesum"
-    subl_pt_name = f"subl_CD_iesum"
-
     if options.HCALcalib or options.ECALcalib:
+
         from RDF_Calibration import *
         caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/" + options.caloParam
         save_folder = outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs'
 
         ROOT.load_HCAL_SFs(caloParams_file, save_folder)
         ROOT.load_HF_SFs(caloParams_file, save_folder)
-        df = df.Define("TT_ihad_calib", "CalibrateIhad(TT_ieta, TT_ihad, {})".format(str(options.HCALcalib).lower()))
+        df = df.Redefine("TT_ihad", "CalibrateIhad(TT_ieta, TT_ihad, {})".format(str(options.HCALcalib).lower()))
         
         ROOT.load_ECAL_SFs(caloParams_file, save_folder)
-        df = df.Define("TT_iem_calib", "CalibrateIem(TT_ieta, TT_iem, {})".format(str(options.ECALcalib).lower()))
+        df = df.Redefine("TT_iem", "CalibrateIem(TT_ieta, TT_iem, {})".format(str(options.ECALcalib).lower()))
 
-        lead_pt_name = f"lead_CD_iesum_calib"
-        subl_pt_name = f"subl_CD_iesum_calib"
+    df = df.Define("TT_iesum", "GetSum (TT_iem, TT_ihad)")
+
+    df = df.Define("lead_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 5).at(0)")
+    df = df.Define("subl_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 5).at(1)")
+
+    df = df.Define("lead_L1_jet", "LeadingJets(L1_pt, L1_eta, L1_phi, 5).at(0)")
+    df = df.Define("subl_L1_jet", "LeadingJets(L1_pt, L1_eta, L1_phi, 5).at(1)")
+
+    print(" ### Define histograms")
+    
+    histo1 = df.Histo1D("lead_jet")
+    histo2 = df.Histo1D("lead_L1_jet")
+    # histo2 = df.Histo2D(("Ratio2", "", 50, 0, 2, 50, 0, 500), "Ratio", "good_L1_pt")
+
+    f = ROOT.TFile("./test.root","RECREATE")
+    histo1.Write(); 
+    histo2.Write(); 
+    f.Close()
+
+    sys.exit()
 
     ##################################################################
     ##################################################################
+
+    lead_pt_name = "lead_CD_iesum"
+    subl_pt_name = "subl_CD_iesum"
 
     for region in ['Inclusive', 'er2p5', 'er1p305']:
         

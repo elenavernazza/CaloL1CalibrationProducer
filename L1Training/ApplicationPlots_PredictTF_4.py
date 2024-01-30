@@ -158,7 +158,7 @@ if __name__ == "__main__" :
     ietas = np.argmax(Towers[:, :, 2:], axis=2) + 1
     ieta = ietas[:, 0]
 
-    unCalib  = np.sum(Towers[:, :, 0], axis=1) + np.sum(Towers[:, :, 1], axis=1) / 2. # GeV
+    unCalib  = (np.sum(Towers[:, :, 0], axis=1) + np.sum(Towers[:, :, 1], axis=1)) / 2. # GeV
     newCalib = (TTP_output + OtherET).reshape(-1) / 2. # GeV
     TargetPt = Jets / 2. # GeV
 

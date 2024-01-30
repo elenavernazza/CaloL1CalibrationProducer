@@ -183,6 +183,11 @@ source RunInstructions/Training_Input4_B.sh
 cd L1Plotting
 python3 RunPerformance.py --addtag _A --indir 1
 source RunInstructions/Performance_Input1_A.sh
+
+python3 RunPerformance.py --addtag _B --indir 2,3,4
+source RunInstructions/Performance_Input2_B.sh
+source RunInstructions/Performance_Input3_B.sh
+source RunInstructions/Performance_Input4_B.sh
 '''
 
 

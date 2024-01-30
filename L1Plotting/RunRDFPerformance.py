@@ -8,8 +8,8 @@ import os,sys
 
 from optparse import OptionParser
 parser = OptionParser()
-parser.add_option("--indir",            dest="indir",                                                                  default='1,2,3,4'                    )
-parser.add_option("--addtag",       dest="addtag",      default=''      )
+parser.add_option("--indir",        dest="indir",       default='1,2,3,4')
+parser.add_option("--addtag",       dest="addtag",      default=''        )
 (options, args) = parser.parse_args()
 
 run = True

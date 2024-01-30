@@ -25,6 +25,7 @@ parser.add_option("--model_py",         dest="model_py",         help="Python sc
 parser.add_option("--regr_w",           dest="regr_w",           help="Multiplicative parameter for regression",       default=500,     type=float          )
 parser.add_option("--weig_w",           dest="weig_w",           help="Multiplicative parameter for regularization",   default=1,       type=float          )
 parser.add_option("--rate_w",           dest="rate_w",           help="Multiplicative parameter for rate",             default=1,       type=float          )
+parser.add_option("--satu_w",           dest="satu_w",           help="Multiplicative parameter for saturation",       default=10,    type=float          )
 (options, args) = parser.parse_args()
 
 if not options.model_py:
@@ -54,7 +55,7 @@ for i in options.indir.split(','):
     cmd.append('python3 ' + NNModel + ' --indir ' + indir + ' \\')
     cmd.append(' --v HCAL --tag DataReco' + ' --addtag ' + options.addtag + ' --epochs ' + options.epochs + ' \\')
     cmd.append(' --MaxLR ' + options.MaxLR + ' --batch_size ' + options.batch_size + ' --ThrRate ' + options.ThrRate + ' \\')
-    cmd.append(' --regr_w ' + str(options.regr_w) + ' --weig_w ' + str(options.weig_w) + ' --rate_w ' + str(options.rate_w) + '\n')
+    cmd.append(' --regr_w ' + str(options.regr_w) + ' --weig_w ' + str(options.weig_w) + ' --rate_w ' + str(options.rate_w) + ' --satu_w ' + str(options.satu_w) + '\n')
 
     cmd.append('python3 CalibrationFactor.py --indir ' + indir + ' --v HCAL --tag DataReco --reg HCAL --energystep 2 --addtag ' + options.addtag + '\n')
     cmd.append('python3 CalibrationFactor.py --indir ' + indir + ' --v HCAL --tag DataReco --reg HF --energystep 2 --addtag ' + options.addtag + '\n')
