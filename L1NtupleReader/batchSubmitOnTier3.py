@@ -42,6 +42,7 @@ parser.add_option("--queue",              dest="queue",              default='lo
 parser.add_option("--chunk_size",         dest="chunk_size",         default=5000,  type=int)
 parser.add_option("--uJetPtCut",          dest="uJetPtCut",          default=False)
 parser.add_option("--lJetPtCut",          dest="lJetPtCut",          default=False)
+parser.add_option("--lRawPtCut",          dest="lRawPtCut",          default=False)
 parser.add_option("--etacut",             dest="etacut",             default=False)
 parser.add_option("--etacutmin",          dest="etacutmin",          default=False)
 parser.add_option("--applyCut_3_6_9",     dest="applyCut_3_6_9",     default=False)
@@ -52,8 +53,8 @@ parser.add_option("--TTNumberCut",        dest="TTNumberCut",        default=Fal
 parser.add_option("--TTNumberCutInverse", dest="TTNumberCutInverse", default=False)
 parser.add_option("--flatPtDist",         dest="flatPtDist",         default=False)
 parser.add_option("--flatEtaDist",        dest="flatEtaDist",        default=False)
-parser.add_option("--calibECALOnTheFly",  dest="calibECALOnTheFly",  default=False, help="oldCalib or currCalib; not specified == noCalib")
-parser.add_option("--calibHCALOnTheFly",  dest="calibHCALOnTheFly",  default=False, help="oldCalib or currCalib; not specified == noCalib")
+parser.add_option("--calibrateECAL",      dest="calibrateECAL",      default=False, help="oldCalib or currCalib; not specified == noCalib")
+parser.add_option("--calibrateHCAL",      dest="calibrateHCAL",      default=False, help="oldCalib or currCalib; not specified == noCalib")
 parser.add_option("--trainPtVers",        dest="trainPtVers",        default=False)
 parser.add_option("--applyOnTheFly",      dest="applyOnTheFly",      default=False)
 parser.add_option("--ClusterFilter",      dest="ClusterFilter",      default=False, action='store_true')
@@ -128,6 +129,8 @@ for file in InFiles:
         cmsRun = cmsRun + " --uJetPtCut "+options.uJetPtCut
     if options.lJetPtCut != False:
         cmsRun = cmsRun + " --lJetPtCut "+options.lJetPtCut
+    if options.lRawPtCut != False:
+        cmsRun = cmsRun + " --lRawPtCut "+options.lRawPtCut
     if options.etacut != False:
         cmsRun = cmsRun + " --etacut "+options.etacut
     if options.etacutmin != False:
@@ -146,10 +149,10 @@ for file in InFiles:
         cmsRun = cmsRun + " --TTNumberCutInverse "+options.TTNumberCutInverse
     if options.trainPtVers != False:
         cmsRun = cmsRun + " --trainPtVers "+options.trainPtVers
-    if options.calibECALOnTheFly != False:
-        cmsRun = cmsRun + " --calibrateECAL "+options.calibECALOnTheFly
-    if options.calibHCALOnTheFly != False:
-        cmsRun = cmsRun + " --calibrateHCAL "+options.calibHCALOnTheFly
+    if options.calibrateECAL != False:
+        cmsRun = cmsRun + " --calibrateECAL "+options.calibrateECAL
+    if options.calibrateHCAL != False:
+        cmsRun = cmsRun + " --calibrateHCAL "+options.calibrateHCAL
     if options.flatPtDist != False:
         cmsRun = cmsRun + " --flattenPtDistribution "+options.flatPtDist
     if options.flatEtaDist != False:

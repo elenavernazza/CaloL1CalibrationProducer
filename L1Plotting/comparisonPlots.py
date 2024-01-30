@@ -15,7 +15,7 @@ warnings.simplefilter(action='ignore')
 
 def GetArraysFromHisto(histo):
     X = [] ; Y = [] ; X_err = [] ; Y_err = []
-    for ibin in range(0,histo.GetNbinsX()):
+    for ibin in range(1,histo.GetNbinsX()):
         X.append(histo.GetBinLowEdge(ibin+1) + histo.GetBinWidth(ibin+1)/2.)
         Y.append(histo.GetBinContent(ibin+1))
         X_err.append(histo.GetBinWidth(ibin+1)/2.)
@@ -71,7 +71,7 @@ parser = OptionParser()
 parser.add_option("--indir",       dest="indir",                            default=None)
 parser.add_option("--tag",         dest="tag",                              default='')
 parser.add_option("--ref",         dest="ref",                              default='')
-parser.add_option("--label",       dest="label",                            default=None)
+parser.add_option("--label",       dest="label",                            default='')
 parser.add_option("--target",      dest="target",                           default=None)
 parser.add_option("--reco",        dest="reco",        action='store_true', default=False)
 parser.add_option("--gen",         dest="gen",         action='store_true', default=False)
@@ -158,9 +158,10 @@ x_label_turnon = r'$E_{T}^{%s, %s}$' % (part_name, targ_name)
 ############################################################################################
 ############################################################################################
 
-file_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root', 'r')
-file_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root', 'r')
-file_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root', 'r')
+if options.doResponse == True or options.doResolution == True:
+    file_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root', 'r')
+    file_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root', 'r')
+    file_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root', 'r')
 
 if options.doResponse == True:
 
@@ -169,7 +170,8 @@ if options.doResponse == True:
     print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root'))
     print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root'))
 
-    for histo_name in ["pt_response_ptInclusive", "pt_response_ptInclusive_CD"]:
+    # for histo_name in ["pt_response_ptInclusive", "pt_response_ptInclusive_CD"]:
+    for histo_name in ["pt_response_ptInclusive"]:
 
         if histo_name == "pt_response_ptInclusive": name = ''
         if histo_name == "pt_response_ptInclusive_CD": name = '_CD'
@@ -346,9 +348,10 @@ if options.doResolution == True:
 
                 X_r_uncalib, X_s_uncalib = [], []
 
-file_unCalib.Close() 
-file_oldCalib.Close() 
-file_newCalib.Close() 
+if options.doResponse == True or options.doResolution == True:
+    file_unCalib.Close() 
+    file_oldCalib.Close() 
+    file_newCalib.Close() 
 
 ############################################################################################
 ############################################################################################
@@ -456,3 +459,58 @@ if options.doRate == True:
                     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+'_'+target+'.png')
                     print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+'_'+target+'.png')
                     plt.close()
+
+                # print("\n *** COMPARING INTEGRAL OF TURN ONS")
+
+                # integrals_unCalib = []
+                # integrals_oldCalib = []
+                # integrals_newCalib = []
+                # thr_range = np.arange(30,80+1)
+
+                # for thr in thr_range:
+
+                #     rateOldCalibAtThr = rate_oldCalib.GetBinContent(int(thr)+1)
+
+                #     thrNewCalib = 0
+                #     for i in range(1,240):
+                #         if rate_newCalib.GetBinContent(i) < rateOldCalibAtThr:
+                #             thrNewCalib = rate_newCalib.GetBinLowEdge(i-1)
+                #             break
+
+                #     thrUnCalib = 0
+                #     for i in range(1,240):
+                #         if rate_unCalib.GetBinContent(i) < rateOldCalibAtThr:
+                #             thrUnCalib = rate_unCalib.GetBinLowEdge(i-1)
+                #             break
+                    
+                #     if thrUnCalib == 0 or thrNewCalib == 0: continue
+
+                #     print(" *** Thresholds", thr, thrNewCalib, thrUnCalib)
+
+                #     turnon_unCalib  = file_turnon_unCalib.Get("divide_passing"+er_label+'_'+str(int(thrUnCalib))+"_by_total"+er_label)
+                #     turnon_oldCalib = file_turnon_oldCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
+                #     turnon_newCalib = file_turnon_newCalib.Get("divide_passing"+er_label+'_'+str(int(thrNewCalib))+"_by_total"+er_label)
+
+                #     def GetIntegralEfficiency(graph):
+                #         bin_start = 0
+                #         for ibin in range(0,graph.GetN()):
+                #             if graph.GetPointY(ibin) > 0.5: 
+                #                 bin_start = ibin
+                #                 break
+                #         return graph.Integral(bin_start,graph.GetN())
+                    
+                #     integrals_unCalib.append(GetIntegralEfficiency(turnon_unCalib))
+                #     integrals_oldCalib.append(GetIntegralEfficiency(turnon_oldCalib))
+                #     integrals_newCalib.append(GetIntegralEfficiency(turnon_newCalib))
+
+                # fig, ax = plt.subplots(figsize=(10,10))
+                # ax.errorbar(thr_range, integrals_unCalib, xerr=1, yerr=1, label=NoCalibLabel, lw=2, marker='o', color='black', zorder=0)
+                # ax.errorbar(thr_range, integrals_oldCalib, xerr=1, yerr=1, label=OldCalibLabel, lw=2, marker='o', color='red', zorder=1)
+                # ax.errorbar(thr_range, integrals_newCalib, xerr=1, yerr=1, label=NewCalibLabel, lw=2, marker='o', color='green', zorder=2)
+                # y_min = 0.9*min(np.min(integrals_unCalib), np.min(integrals_newCalib))
+                # y_max = 1.1*max(np.max(integrals_unCalib), np.max(integrals_newCalib))
+                # SetStyle(ax, 'Threshold [GeV]', 'Efficiency integral', (thr_range[0],thr_range[-1]), (y_min,y_max))
+                # plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/turnon_all_fixed'+name+'Rate'+er_name+'_'+label+'_'+target+'.pdf')
+                # plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon_all_fixed'+name+'Rate'+er_name+'_'+label+'_'+target+'.png')
+                # print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon_all_fixed'+name+'Rate'+er_name+'_'+label+'_'+target+'.png')
+                # plt.close()

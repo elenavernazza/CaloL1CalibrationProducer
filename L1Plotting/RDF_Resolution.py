@@ -1,34 +1,26 @@
-from array import array
 import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(000000)
-import sys, os, matplotlib
+import sys, os, sys
 import numpy as np
-from tqdm import tqdm
-
+from array import array
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import mplhep
 plt.style.use(mplhep.style.CMS)
-
-sys.path.insert(0,'../Utils')
-from TowerGeometry import *
+from RDF_Functions import *
 
 import warnings
 warnings.filterwarnings(action='ignore', category=UserWarning)
 
-def NextPhiTower(iphi):
-    if iphi == 72: return 1
-    else:          return iphi + 1
-def PrevPhiTower(iphi):
-    if iphi == 1: return 72
-    else:         return iphi - 1
-def NextEtaTower(ieta):
-    if ieta == -1: return 1
-    else:          return ieta + 1
-def PrevEtaTower(ieta):
-    if ieta == 1: return -1
-    else:         return ieta - 1
+def GetArraysFromHisto(histo):
+    X = [] ; Y = [] ; X_err = [] ; Y_err = []
+    for ibin in range(0,histo.GetNbinsX()):
+        X.append(histo.GetBinLowEdge(ibin+1) + histo.GetBinWidth(ibin+1)/2.)
+        Y.append(histo.GetBinContent(ibin+1))
+        X_err.append(histo.GetBinWidth(ibin+1)/2.)
+        Y_err.append(histo.GetBinError(ibin+1))
+    return X,Y,X_err,Y_err
 
 #######################################################################
 ######################### SCRIPT BODY #################################
@@ -39,7 +31,7 @@ parser = OptionParser()
 parser.add_option("--indir",     dest="indir",    default=None)
 parser.add_option("--tag",       dest="tag",      default='')
 parser.add_option("--outdir",    dest="outdir",   default=None)
-parser.add_option("--label",     dest="label",    default=None)
+parser.add_option("--label",     dest="label",    default='')
 parser.add_option("--nEvts",     dest="nEvts",    type=int, default=-1)
 parser.add_option("--target",    dest="target",   default=None)
 parser.add_option("--reco",      dest="reco",     action='store_true', default=False)
@@ -55,6 +47,10 @@ parser.add_option("--do_EoTot",  dest="do_EoTot", action='store_true', default=F
 parser.add_option("--plot_only", dest="plot_only",action='store_true', default=False)
 parser.add_option("--no_plot",   dest="no_plot",  action='store_true', default=False)
 parser.add_option("--norm",      dest="norm",     action='store_true', default=False)
+parser.add_option("--HCALcalib", dest="HCALcalib",action='store_true', default=False)
+parser.add_option("--ECALcalib", dest="ECALcalib",action='store_true', default=False)
+parser.add_option("--caloParam", dest="caloParam",type=str,   default='')
+parser.add_option("--no_CD",     dest="no_CD",   action='store_true', default=False)
 (options, args) = parser.parse_args()
 
 cmap = plt.get_cmap('Set1')
@@ -83,8 +79,15 @@ if options.target == 'met':
 HoTotBins = [0, 0.4, 0.8, 0.95, 1.0]
 EoTotBins = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
 x_lim_response = (0,3)
+res_bins = 240
+
+thresholds = np.arange(8,150+1)
+thresholds2plot = [10, 20, 35, 50, 100, 150]
 
 if not options.plot_only:
+
+    print(" ### INFO: Start loading data")
+
     # define targetTree
     if options.reco:
         if options.target == 'jet': targetTree = ROOT.TChain("l1JetRecoTree/JetRecoTree")
@@ -92,259 +95,312 @@ if not options.plot_only:
         if options.target == 'met': targetTree = ROOT.TChain("l1JetRecoTree/JetRecoTree")
     if options.gen:
         targetTree = ROOT.TChain("l1GeneratorTree/L1GenTree")
-    # define level1Tree
-    if options.unpacked: level1Tree = ROOT.TChain("l1UpgradeTree/L1UpgradeTree")
-    else:                level1Tree = ROOT.TChain("l1UpgradeEmuTree/L1UpgradeTree")
-    # define towersTree
-    towersTree = ROOT.TChain("l1CaloTowerEmuTree/L1CaloTowerTree")
-
-    # read input files
     targetTree.Add(indir+"/Ntuple*.root")
-    level1Tree.Add(indir+"/Ntuple*.root")
-    towersTree.Add(indir+"/Ntuple*.root")
 
-    nEntries = targetTree.GetEntries()
-    print(" ### INFO: Total entries ",nEntries)
+    # define level1Tree
+    if options.unpacked: level1TreeName = "l1UpgradeTree/L1UpgradeTree"
+    else:                level1TreeName = "l1UpgradeEmuTree/L1UpgradeTree"
+    level1Tree = ROOT.TChain(level1TreeName)
+    level1Tree.Add(indir+"/Ntuple*.root")
+    targetTree.AddFriend(level1Tree, level1TreeName)
+
+    # define towersTree
+    towersTreeName = "l1CaloTowerEmuTree/L1CaloTowerTree"
+    towersTree = ROOT.TChain(towersTreeName)
+    towersTree.Add(indir+"/Ntuple*.root")
+    targetTree.AddFriend(towersTree, towersTreeName)
+
+    df = ROOT.RDataFrame(targetTree)
+
+    print(" ### INFO: End loading data")
+
+    nEntries = df.Count().GetValue()
+    print(" ### INFO: Total entries", nEntries)
 
     # run on entries specified by user, or only on entries available if that is exceeded
     nevents = options.nEvts
     if (nevents > nEntries) or (nevents==-1): nevents = nEntries
-    print(" ### INFO: Reading",nevents)
+    df = df.Range(nevents)
 
-    # PT RESPONSE - INCLUSIVE HISTOGRAMS
-    res_bins = 240
-    pt_response_ptInclusive = ROOT.TH1F("pt_response_ptInclusive","pt_response_ptInclusive",res_bins,0,3)
-    pt_barrel_resp_ptInclusive = ROOT.TH1F("pt_barrel_resp_ptInclusive","pt_barrel_resp_ptInclusive",res_bins,0,3)
-    pt_endcap_resp_ptInclusive = ROOT.TH1F("pt_endcap_resp_ptInclusive","pt_endcap_resp_ptInclusive",res_bins,0,3)
-    pt_response_ptInclusive_CD = ROOT.TH1F("pt_response_ptInclusive_CD","pt_response_ptInclusive_CD",res_bins,0,3)
-    pt_barrel_resp_ptInclusive_CD = ROOT.TH1F("pt_barrel_resp_ptInclusive_CD","pt_barrel_resp_ptInclusive_CD",res_bins,0,3)
-    pt_endcap_resp_ptInclusive_CD = ROOT.TH1F("pt_endcap_resp_ptInclusive_CD","pt_endcap_resp_ptInclusive_CD",res_bins,0,3)
+    print(" ### INFO: Reading", nevents, "events")
+    df = df.Range(nevents)
+
+    ##################################################################
+    ##################################################################
+
+    if options.target == 'jet':
+
+        # online
+        df = df.Define("L1_n",      "L1Upgrade.nJets")
+        df = df.Define("L1_eta",    "L1Upgrade.jetEta")
+        df = df.Define("L1_phi",    "L1Upgrade.jetPhi")
+        if options.raw: df = df.Define("L1_pt",     "L1Upgrade.jetRawEt / 2")
+        else:           df = df.Define("L1_pt",     "L1Upgrade.jetEt")
+
+        # offline
+        if options.PuppiJet:
+            df = df.Define("Offline_n",     "Jet.puppi_nJets")
+            df = df.Define("Offline_pt",    "Jet.puppi_etCorr")
+            df = df.Define("Offline_eta",   "Jet.puppi_eta")
+            df = df.Define("Offline_phi",   "Jet.puppi_phi")
+        else:
+            df = df.Define("Offline_n",     "Jet.nJets")
+            df = df.Define("Offline_pt",    "Jet.etCorr")
+            df = df.Define("Offline_eta",   "Jet.eta")
+            df = df.Define("Offline_phi",   "Jet.phi")
+
+    ##################################################################
+    ##################################################################
+            
+    if options.target == 'ele':
+        
+        # online
+        df = df.Define("L1_n",      "L1Upgrade.nEGs")
+        df = df.Define("L1_eta",    "L1Upgrade.egEta")
+        df = df.Define("L1_phi",    "L1Upgrade.egPhi")
+        if options.raw: df = df.Define("L1_pt",     "L1Upgrade.egRawEt / 2")
+        else:           df = df.Define("L1_pt",     "L1Upgrade.egEt")
+
+        # offline
+        df = df.Define("Offline_n",     "Electron.nElectrons")
+        df = df.Define("Offline_pt",    "Electron.et")
+        df = df.Define("Offline_eta",   "Electron.eta")
+        df = df.Define("Offline_phi",   "Electron.phi")
+
+    ##################################################################
+    ##################################################################
+        
+    if options.target == 'met':
+
+        # online
+        df = df.Define("L1_n",      "L1Upgrade.nSums")
+        df = df.Define("L1_eta",    0)
+        df = df.Define("L1_phi",    0)
+        df = df.Define("L1_pt",     "L1Upgrade.sumIEt / 2").Filter("L1Upgrade.sumType == 8")
+        
+        # offline
+        df = df.Define("Offline_n",     1)
+        df = df.Define("Offline_eta",   0)
+        df = df.Define("Offline_phi",   0)
+        if options.PuppiJet:
+            df = df.Define("Offline_pt", "Sums.puppi_metNoMu")
+        else:
+            df = df.Define("Offline_pt", "Sums.pfMetNoMu")
+            
+    ##################################################################
+    ########################### APPLY CUTS ###########################
+
+    # skip jets that cannot be reconstructed by L1 (limit is 5.191)
+    cut_pt = -1; cut_eta = 5.0; cut_phi = -1
+            
+    if options.jetPtcut: 
+        cut_pt = float(options.jetPtcut)
+
+    if options.etacut:
+        cut_eta = float(options.etacut)
+
+    # [FIXME] Yet to be implemented
+    if options.target == 'ele' and options.LooseEle:
+        sys.exit(" ERROR: This is not implemented yet")
+    #     df = df.Define("isLooseElectron", "Electron.isLooseElectron")
+
+    print(df.Count().GetValue())
+
+    df = df.Define("Offline_pt_cut", 
+            "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(0)".format(cut_pt, cut_eta, cut_phi))
+    df = df.Define("Offline_eta_cut", 
+            "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(1)".format(cut_pt, cut_eta, cut_phi))
+    df = df.Define("Offline_phi_cut", 
+            "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(2)".format(cut_pt, cut_eta, cut_phi))
+    
+    print(df.Count().GetValue())
+
+    ##################################################################    
+    ########################### MATCHING #############################
+
+    df = df.Define("good_L1_id", "Matching(L1_pt, L1_eta, L1_phi, Offline_pt_cut, Offline_eta_cut, Offline_phi_cut).at(0)")
+    df = df.Define("good_Of_id", "Matching(L1_pt, L1_eta, L1_phi, Offline_pt_cut, Offline_eta_cut, Offline_phi_cut).at(1)")
+
+    df = df.Filter("(good_L1_id.size() > 0) && (good_Of_id.size() > 0)")
+
+    df = df.Define("good_L1_pt",    "SelectGood (L1_pt, good_L1_id)")
+    df = df.Define("good_L1_eta",   "SelectGood (L1_eta, good_L1_id)")
+    df = df.Define("good_L1_phi",   "SelectGood (L1_phi, good_L1_id)")
+    df = df.Define("good_Of_pt",    "SelectGood (Offline_pt_cut, good_Of_id)")
+    df = df.Define("good_Of_eta",   "SelectGood (Offline_eta_cut, good_Of_id)")
+    df = df.Define("good_Of_phi",   "SelectGood (Offline_phi_cut, good_Of_id)")
+
+    print(df.Count().GetValue())
+
+    # Define response for matched jets
+    df = df.Define("Response", "GetRatio (good_L1_pt, good_Of_pt)")
+    # DEBUG df = df.Redefine("Response", "vector<float>(Response.begin(), Response.end())")
+    # DEBUG df.Snapshot("Events", "./test.root", {"good_L1_pt", "good_Of_pt", "Response"})
+
+    ##################################################################    
+    ######################### CHUNKY DONUT ###########################
+
+    df = df.Define("TT_ieta", "L1CaloTower.ieta")
+    df = df.Define("TT_iphi", "L1CaloTower.iphi")
+    df = df.Define("TT_iem",  "L1CaloTower.iem")
+    df = df.Define("TT_ihc",  "L1CaloTower.ihad")
+    df = df.Define("TT_iet",  "L1CaloTower.iet")
+    # Define overall hcalET information, ihad for ieta < 29 and iet for ieta > 29
+    df = df.Define("TT_ihad", "SumHCAL (TT_ihc, TT_iet, TT_ieta)")
+
+    df = df.Define("good_L1_ieta", "FindIeta(good_L1_eta)")
+    df = df.Define("good_L1_iphi", "FindIphi(good_L1_phi)")
+
+    df = df.Define("CD_iem",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(0)")
+    df = df.Define("CD_ihad", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(1)")
+    df = df.Define("CD_iet",  "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(2)")
+
+    df = df.Define("CD_iesum", "GetSum (CD_iem, CD_ihad)")
+
+    df = df.Define("HoTot", "GetRatio (CD_ihad, CD_iet)")
+    df = df.Define("EoTot", "GetRatio (CD_iem, CD_iet)")
+
+    # Define response for chunky donuts
+    df = df.Define("Response_CD", "GetRatio (CD_iesum, good_Of_pt)")
+
+    if options.no_CD: response_name = 'Response'
+    else: response_name = 'Response_CD'
+
+    if options.HCALcalib or options.ECALcalib:
+        response_name = "Response_CD_calib"
+        from RDF_Calibration import *
+        caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/" + options.caloParam
+        save_folder = outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs'
+
+        ROOT.load_HCAL_SFs(caloParams_file, save_folder)
+        ROOT.load_HF_SFs(caloParams_file, save_folder)
+        df = df.Define("TT_ihad_calib", "CalibrateIhad(TT_ieta, TT_ihad, {})".format(str(options.HCALcalib).lower()))
+        
+        ROOT.load_ECAL_SFs(caloParams_file, save_folder)
+        df = df.Define("TT_iem_calib", "CalibrateIem(TT_ieta, TT_iem, {})".format(str(options.ECALcalib).lower()))
+        
+        df = df.Define("CD_iem_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(0)")
+        df = df.Define("CD_ihad_calib", "ChunkyDonutEnergy (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
+        df = df.Define("CD_iesum_calib", "GetSum (CD_iem_calib, CD_ihad_calib)")
+        df = df.Define("Response_CD_calib", "GetRatio (CD_iesum_calib, good_L1_pt)")
+    
+    # else:
+    #     # [FIXME] understand why sometimes they are different
+    #     df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
+
+    df_b = df.Redefine("good_Of_pt", "SelectBarrel (good_Of_pt, good_Of_eta)")
+    df_b = df_b.Redefine("good_Of_eta", "SelectBarrel (good_Of_eta, good_Of_eta)")
+    df_b = df_b.Redefine(response_name, "SelectBarrel ({}, good_Of_eta)".format(response_name))
+    df_e = df.Redefine("good_Of_pt", "SelectEndcap (good_Of_pt, good_Of_eta)")
+    df_e = df_e.Redefine("good_Of_eta", "SelectEndcap (good_Of_eta, good_Of_eta)")
+    df_e = df_e.Redefine(response_name, "SelectEndcap ({}, good_Of_eta)".format(response_name))
+    
+    ##################################################################    
+    ########################### DEBUGGING ############################
+
+    # print("Test iem 1,1 =",ROOT.TestCalibrateIem(1,1))
+    # print("Test ihad 1,1 =",ROOT.TestCalibrateIhad(1,1))
+
+    # df = df.Define("Ratio", "GetRatio (CD_iesum, CD_iet)")
+    # df = df.Define("Ratio", "GetRatio (CD_iesum, good_L1_pt)")
+
+    # histo1 = df.Histo1D("Ratio")
+    # histo2 = df.Histo2D(("Ratio2", "", 50, 0, 2, 50, 0, 500), "Ratio", "good_L1_pt")
+    # histo3 = df.Histo2D(("Ratio3", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_eta")
+    # histo4 = df.Histo2D(("Ratio4", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_phi")
+    # histo5 = df.Histo2D(("Ieta", "", 42, 0, 41, 50, -5, 5), "good_L1_ieta", "good_L1_eta")
+    # histo6 = df.Histo2D(("Iphi", "", 73, 0, 72, 50, -5, 5), "good_L1_iphi", "good_L1_phi")
+
+    # f = ROOT.TFile("./test.root","RECREATE")
+    # histo1.Write(); histo2.Write(); histo3.Write(); histo4.Write(); histo5.Write(); histo6.Write()
+    # f.Close()
+
+    #################################################################    
+    ########################## HISTOGRAMS ###########################
+
+    print("\n ### INFO: Define energy histograms")
+
+    # INCLUSIVE HISTOGRAMS
+    nbins = 100; min = 0; max = 500
+    offline_pt = df.Histo1D(("good_Of_pt", "good_Of_pt", nbins, min, max), "good_Of_pt")
+    online_pt = df.Histo1D(("good_L1_pt", "good_L1_pt", nbins, min, max), "good_L1_pt")
+    CD_iet = df.Histo1D(("CD_iet", "CD_iet", nbins, min, max), "CD_iet")     
+    CD_iesum = df.Histo1D(("CD_iesum", "CD_iesum", nbins, min, max), "CD_iesum")
+    if options.HCALcalib or options.ECALcalib:
+        CD_iet_calib = df.Histo1D(("CD_iesum_calib", "CD_iesum_calib", nbins, min, max), "CD_iesum_calib")
+
+    print(" ### INFO: Define response histograms")
+
+    # INCLUSIVE HISTOGRAMS
+    pt_response_ptInclusive = df.Histo1D(("pt_response_ptInclusive", 
+        "pt_response_ptInclusive", res_bins, 0, 3), response_name)
+    pt_barrel_resp_ptInclusive = df_b.Histo1D(("pt_barrel_resp_ptInclusive",
+        "pt_barrel_resp_ptInclusive", res_bins, 0, 3), response_name)
+    pt_endcap_resp_ptInclusive = df_e.Histo1D(("pt_endcap_resp_ptInclusive",
+        "pt_endcap_resp_ptInclusive", res_bins, 0, 3), response_name) 
 
     # PT RESPONSE - PT BINS HISTOGRAMS
     response_ptBins = []
     barrel_response_ptBins = []
     endcap_response_ptBins = []
     for i in range(len(ptBins)-1):
-        response_ptBins.append(ROOT.TH1F("pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
-        barrel_response_ptBins.append(ROOT.TH1F("pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
-        endcap_response_ptBins.append(ROOT.TH1F("pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
+
+        df_PtBin = df.Redefine(response_name, "SelectBin ({}, good_Of_pt, {}, {})".format(response_name, ptBins[i], ptBins[i+1]))
+        name = "pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
+        response_ptBins.append(df_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
+
+        df_barrel_PtBin = df_b.Redefine(response_name, "SelectBin ({}, good_Of_pt, {}, {})".format(response_name, ptBins[i], ptBins[i+1]))
+        name = "pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
+        barrel_response_ptBins.append(df_barrel_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
+
+        df_endcap_PtBin = df_e.Redefine(response_name, "SelectBin ({}, good_Of_pt, {}, {})".format(response_name, ptBins[i], ptBins[i+1]))
+        name = "pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
+        endcap_response_ptBins.append(df_endcap_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
     # PT RESPONSE -  ETA BINS HISTIGRAMS
     absEta_response_ptBins = []
     minusEta_response_ptBins = []
     plusEta_response_ptBins = []
     for i in range(len(etaBins)-1):
-        absEta_response_ptBins.append(ROOT.TH1F("pt_resp_AbsEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),"pt_resp_AbsEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),res_bins,0,3))
-        minusEta_response_ptBins.append(ROOT.TH1F("pt_resp_MinusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),"pt_resp_MinusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),res_bins,0,3))
-        plusEta_response_ptBins.append(ROOT.TH1F("pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),"pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1]),res_bins,0,3))
+
+        df_EtaBin = df.Redefine(response_name, "SelectBinAbs ({}, good_Of_eta, {}, {})".format(response_name, etaBins[i], etaBins[i+1]))
+        name = "pt_resp_AbsEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
+        absEta_response_ptBins.append(df_EtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
+
+        df_MinusEtaBin = df.Redefine(response_name, "SelectBin ({}, good_Of_eta, {}, {})".format(response_name, -1.*etaBins[i+1], -1.*etaBins[i]))
+        name = "pt_resp_MinusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
+        minusEta_response_ptBins.append(df_MinusEtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
+
+        df_PlusEtaBin = df.Redefine(response_name, "SelectBin ({}, good_Of_eta, {}, {})".format(response_name, etaBins[i], etaBins[i+1]))
+        name = "pt_resp_PlusEtaBin"+str(etaBins[i])+"to"+str(etaBins[i+1])
+        plusEta_response_ptBins.append(df_PlusEtaBin.Histo1D((name, name, res_bins, 0, 3), response_name))
+
 
     # PT RESPONSE -  H/TOT BINS HISTIGRAMS
     if options.do_HoTot:
         response_HoTotBins = []
         for i in range(len(HoTotBins)-1):
-            response_HoTotBins.append(ROOT.TH1F("pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1]),"pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1]),res_bins,0,3))
+            df_HoTotBin = df.Redefine(response_name, "SelectBin ({}, HoTot, {}, {})".format(response_name, HoTotBins[i], HoTotBins[i+1]))
+            name = "pt_resp_HoTotBin"+str(HoTotBins[i])+"to"+str(HoTotBins[i+1])
+            response_HoTotBins.append(df_HoTotBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
     # PT RESPONSE -  E/TOT BINS HISTIGRAMS
     if options.do_EoTot:
         response_EoTotBins = []
         for i in range(len(EoTotBins)-1):
-            response_EoTotBins.append(ROOT.TH1F("pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),"pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),res_bins,0,3))
+            df_EoTotBin = df.Redefine(response_name, "SelectBin ({}, EoTot, {}, {})".format(response_name, HoTotBins[i], HoTotBins[i+1]))
+            name = "pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1])
+            response_EoTotBins.append(df_EoTotBin.Histo1D((name, name, res_bins, 0, 3), response_name))
 
-    print(" ### INFO: Start looping on events")
-    for i in tqdm(range(0, nevents)):
-
-        entry2 = level1Tree.GetEntry(i)
-        entry3 = targetTree.GetEntry(i)
-        entry4 = towersTree.GetEntry(i)
-
-        L1_nObjs = 0
-        if options.target == 'jet':
-            L1_nObjs = level1Tree.L1Upgrade.nJets
-            if options.PuppiJet:
-                target_nObjs = targetTree.Jet.puppi_nJets
-            else:
-                target_nObjs = targetTree.Jet.nJets
-        if options.target == 'ele':
-            L1_nObjs = level1Tree.L1Upgrade.nEGs
-            target_nObjs = targetTree.Electron.nElectrons
-        if options.target == 'met':
-            L1_nObjs = level1Tree.L1Upgrade.nSums #only one MET per event
-            # L1_nObjs = 1
-            target_nObjs = 1 #only one MET per event
-
-
-        # loop on target jets
-        for itargJet in range(0,target_nObjs):
-
-            if options.target == 'jet':
-                targetObj = ROOT.TLorentzVector()
-                if options.PuppiJet:
-                    targetObj.SetPtEtaPhiM(targetTree.Jet.puppi_etCorr[itargJet], targetTree.Jet.puppi_eta[itargJet], targetTree.Jet.puppi_phi[itargJet], 0)
-                else:
-                    targetObj.SetPtEtaPhiM(targetTree.Jet.etCorr[itargJet], targetTree.Jet.eta[itargJet], targetTree.Jet.phi[itargJet], 0)
-
-            elif options.target == 'ele':
-                targetObj = ROOT.TLorentzVector()
-                targetObj.SetPtEtaPhiM(targetTree.Electron.et[itargJet], targetTree.Electron.eta[itargJet], targetTree.Electron.phi[itargJet], 0)
-
-            elif options.target == 'met':
-                targetObj = ROOT.TLorentzVector()
-                if options.PuppiJet:
-                    targetObj.SetPtEtaPhiM(targetTree.Sums.puppi_metNoMu, 0, targetTree.Sums.puppi_metNoMuPhi, 0)
-                else:
-                    targetObj.SetPtEtaPhiM(targetTree.Sums.pfMetNoMu, 0, targetTree.Sums.pfMetNoMuPhi, 0)
-
-            # skip jets that cannot be reconstructed by L1 (limit is 5.191)
-            if targetObj.Eta() > 5.0: continue
-            
-            ################# APPLY CUTS #################
-            if options.jetPtcut: 
-                if targetObj.Pt() < float(options.jetPtcut): continue
-            if options.etacut: 
-                if np.abs(targetObj.Eta()) > float(options.etacut): continue
-            if options.target == 'ele' and options.LooseEle:
-                if targetTree.Electron.isLooseElectron[itargJet] == 0: continue
-            #############################################
-
-            # loop on L1 jets to find match
-            matched = False
-            highestL1Pt = -99.
-            myGood_iL1Obj = 0
-            myGoodLevel1Obj = ROOT.TLorentzVector()
-            # print("Event ", i)
-            # print([level1Tree.L1Upgrade.sumType[iL1Obj] for iL1Obj in range(0, L1_nObjs)])
-            for iL1Obj in range(0, L1_nObjs):
-                level1Obj = ROOT.TLorentzVector()
-                if options.target == 'jet': 
-                    if options.raw:
-                        # new method of plotting results by just looking at the raw output from the Layer-1
-                        level1Obj.SetPtEtaPhiM(level1Tree.L1Upgrade.jetRawEt[iL1Obj]/2, level1Tree.L1Upgrade.jetEta[iL1Obj], level1Tree.L1Upgrade.jetPhi[iL1Obj], 0)
-                    else:
-                        level1Obj.SetPtEtaPhiM(level1Tree.L1Upgrade.jetEt[iL1Obj], level1Tree.L1Upgrade.jetEta[iL1Obj], level1Tree.L1Upgrade.jetPhi[iL1Obj], 0)
-                elif options.target == 'ele': 
-                    if options.raw:
-                        # new method of plotting results by just looking at the raw output from the Layer-1
-                        level1Obj.SetPtEtaPhiM(level1Tree.L1Upgrade.egRawEt[iL1Obj]/2, level1Tree.L1Upgrade.egEta[iL1Obj], level1Tree.L1Upgrade.egPhi[iL1Obj], 0)
-                    else:
-                        level1Obj.SetPtEtaPhiM(level1Tree.L1Upgrade.egEt[iL1Obj], level1Tree.L1Upgrade.egEta[iL1Obj], level1Tree.L1Upgrade.egPhi[iL1Obj], 0)
-                elif options.target == 'met':
-                    if level1Tree.L1Upgrade.sumType[iL1Obj] == 8:
-                        # level1Obj.SetPtEtaPhiM(level1Tree.L1Upgrade.sumEt[iL1Obj], 0, 0, 0)
-                        level1Obj.SetPtEtaPhiM(level1Tree.L1Upgrade.sumIEt[iL1Obj]/2, 0, 0, 0)
-                        matched = True
-                        myGoodLevel1Obj = level1Obj
-                        break
-                
-                #check matching
-                if targetObj.DeltaR(level1Obj)<0.5:
-                    matched = True
-                    #keep only L1 match with highest pT
-                    if level1Obj.Pt() > highestL1Pt:
-                        myGoodLevel1Obj = level1Obj
-                        myGood_iL1Obj = iL1Obj
-                        highestL1Pt = level1Obj.Pt()
+    ##################################################################    
+    ########################### RESOLUTION ###########################
         
-            # print(targetObj.Pt(), level1Obj.Pt())
-
-            if matched:
-
-                L1Pt = myGoodLevel1Obj.Pt()
-                # print(L1Pt, targetObj.Pt())
-
-                iem_sum = 0
-                ihad_sum = 0
-                if options.do_HoTot or options.do_EoTot:
-                    # find Chunky Donut center
-                    jetIEta = FindIeta(targetObj.Eta())
-                    jetIPhi = FindIphi(targetObj.Phi())
-                    jetIEta_L1 = FindIeta(myGoodLevel1Obj.Eta())
-                    jetIPhi_L1 = FindIphi(myGoodLevel1Obj.Phi())
-                    
-                    max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(jetIEta))))
-                    min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(jetIEta))))
-                    max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(jetIPhi))))
-                    min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(jetIPhi))))
-
-                    nTowers = towersTree.L1CaloTower.nTower
-                    if min_IPhi <= max_IPhi:
-                        for iTower in range(0, nTowers):
-                            ieta = towersTree.L1CaloTower.ieta[iTower]
-                            iphi = towersTree.L1CaloTower.iphi[iTower]
-                            if ((ieta <= max_IEta) & (ieta >= min_IEta) & (iphi <= max_IPhi) & (iphi >= min_IPhi)):
-                                iem_sum += towersTree.L1CaloTower.iem[iTower]
-                                ihad_sum += towersTree.L1CaloTower.ihad[iTower]
-                    else: # when iphi > 72
-                        for iTower in range(0, nTowers):
-                            ieta = towersTree.L1CaloTower.ieta[iTower]
-                            iphi = towersTree.L1CaloTower.iphi[iTower]
-                            if ((ieta <= max_IEta) & (ieta >= min_IEta) & ((iphi >= min_IPhi) | (iphi <= max_IPhi))):
-                                iem_sum += towersTree.L1CaloTower.iem[iTower]
-                                ihad_sum += towersTree.L1CaloTower.ihad[iTower]
-                    # print(ihad_sum, iem_sum)
-                    if ihad_sum+iem_sum != 0:
-                        HoTot = ihad_sum/(ihad_sum+iem_sum)
-                        EoTot = iem_sum/(ihad_sum+iem_sum)
-                    else:
-                        HoTot = 0
-                        EoTot = 0
-
-                    # print("Res = {:2f}".format(L1Pt/targetObj.Pt()))
-
-                    ##########################################################################################
-
-                    if options.do_HoTot:
-                        for i in range(len(HoTotBins)-1):
-                            if HoTot > HoTotBins[i] and HoTot <= HoTotBins[i+1]:
-                                response_HoTotBins[i].Fill(L1Pt/targetObj.Pt())
-                    if options.do_EoTot:
-                        for i in range(len(EoTotBins)-1):
-                            if EoTot > EoTotBins[i] and EoTot <= EoTotBins[i+1]:
-                                response_EoTotBins[i].Fill(L1Pt/targetObj.Pt())
-                    
-                    ##########################################################################################
-
-                # fill histograms
-
-                pt_response_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                pt_response_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-
-                if abs(targetObj.Eta()) < 1.305:
-                    pt_barrel_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                    pt_barrel_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-                elif abs(targetObj.Eta()) < 5.191 and abs(targetObj.Eta()) > 1.479:
-                    pt_endcap_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                    pt_endcap_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-
-                for i in range(len(ptBins)-1):
-                    if targetObj.Pt() > ptBins[i] and targetObj.Pt() <= ptBins[i+1]:
-                        response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-                        
-                        if abs(targetObj.Eta()) < 1.305:
-                            barrel_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-                        elif abs(targetObj.Eta()) < 5.191 and abs(targetObj.Eta()) > 1.479:
-                            endcap_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-                for i in range(len(etaBins)-1):
-                    if abs(targetObj.Eta()) > etaBins[i] and abs(targetObj.Eta()) < etaBins[i+1]:
-                        absEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-                    if targetObj.Eta() > etaBins[i] and targetObj.Eta() < etaBins[i+1]:
-                        plusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-                    elif targetObj.Eta() < -etaBins[i] and targetObj.Eta() > -etaBins[i+1]:
-                        minusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-
-    ############################################################################################
-    ############################################################################################
-    ############################################################################################
-
     print(" ### INFO: Compute resolution and scale")
 
     # make resolution plots
     pt_resol_fctPt = ROOT.TH1F("pt_resol_fctPt","pt_resol_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_resol_barrel_fctPt = ROOT.TH1F("pt_resol_barrel_fctPt","pt_resol_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_resol_endcap_fctPt = ROOT.TH1F("pt_resol_endcap_fctPt","pt_resol_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
-    pt_resol_fctAbsEta = ROOT.TH1F("pt_resol_fctAbsEta","pt_resol_fctAbsEta",len(etaBins)-1, array('f',etaBins))
     pt_resol_fctEta = ROOT.TH1F("pt_resol_fctEta","pt_resol_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
 
     pt_scale_fctPt = ROOT.TH1F("pt_scale_fctPt","pt_scale_fctPt",len(ptBins)-1, array('f',ptBins))
@@ -440,54 +496,118 @@ if not options.plot_only:
                 pt_resol_fctEoTot.SetBinError(i+1, response_EoTotBins[i].GetRMSError()/response_EoTotBins[i].GetMean())
             else:
                 pt_resol_fctEoTot.SetBinContent(i+1, 0)
-                pt_resol_fctEoTot.SetBinError(i+1, 0)
+                pt_resol_fctEoTot.SetBinError(i+1, 0)   
 
-    ############################################################################################
-    ############################################################################################
-    ############################################################################################
+    ##################################################################    
+    ##################################################################    
+    ################################################################## 
 
-    print(" ### INFO: Saving to root format")
+    print(" ### INFO: Saving resolution to root format")
     fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root','RECREATE')
-    pt_scale_fctPt.Write()
-    pt_scale_fctEta.Write()
-    if options.do_HoTot:
-        pt_scale_fctHoTot.Write()
-        pt_scale_max_fctHoTot.Write()
-        pt_resol_fctHoTot.Write()
-    if options.do_EoTot:
-        pt_scale_fctEoTot.Write()
-        pt_scale_max_fctEoTot.Write()
-        pt_resol_fctEoTot.Write()
-    pt_scale_max_fctPt.Write()
-    pt_scale_max_fctEta.Write()
-    pt_resol_fctPt.Write()
-    pt_resol_barrel_fctPt.Write()
-    pt_resol_endcap_fctPt.Write()
-    pt_resol_fctAbsEta.Write()
-    pt_resol_fctEta.Write()
+    offline_pt.Write()
+    online_pt.Write()
+    CD_iet.Write()
+    CD_iesum.Write()
+    if options.HCALcalib or options.ECALcalib:
+        CD_iet_calib.Write()
     pt_response_ptInclusive.Write()
     pt_barrel_resp_ptInclusive.Write()
     pt_endcap_resp_ptInclusive.Write()
-    pt_response_ptInclusive_CD.Write()
-    pt_barrel_resp_ptInclusive_CD.Write()
-    pt_endcap_resp_ptInclusive_CD.Write()
-    for i in range(len(response_ptBins)):
+    for i in range(len(ptBins)-1):
         response_ptBins[i].Write()
         barrel_response_ptBins[i].Write()
         endcap_response_ptBins[i].Write()
-    for i in range(len(minusEta_response_ptBins)):
+    for i in range(len(etaBins)-1):
         absEta_response_ptBins[i].Write()
         minusEta_response_ptBins[i].Write()
         plusEta_response_ptBins[i].Write()
-    if options.do_HoTot:
-        for i in range(len(response_HoTotBins)):
-            response_HoTotBins[i].Write()
-    if options.do_EoTot:
-        for i in range(len(response_EoTotBins)):
-            response_EoTotBins[i].Write()
+    
+    fileout.Close()
+
+    ##################################################################    
+    ########################### TURN ON CURVES #######################
+
+    print("\n ### INFO: Computing turn ons for thresholds [{}, ... {}]".format(thresholds[0], thresholds[-1]))
+    bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100, 120, 150, 180, 250]
+
+    CD_iesum_name = "CD_iesum"
+    if options.HCALcalib or options.ECALcalib:
+        CD_iesum_name = "CD_iesum_calib"
+    if options.no_CD: CD_iesum_name = 'good_L1_pt'
+
+    total = df.Histo1D(("total", "total", len(bins)-1, array('f',bins)), "good_Of_pt")
+
+    df_er2p5 = df.Redefine("good_Of_eta", "SelectBinAbs (good_Of_eta, good_Of_eta, 0, 2.5)")
+    df_er2p5 = df_er2p5.Redefine("good_Of_pt", "SelectBinAbs (good_Of_pt, good_Of_eta, 0, 2.5)")
+    df_er2p5 = df_er2p5.Redefine(CD_iesum_name, "SelectBinAbs ({}, good_Of_eta, 0, 2.5)".format(CD_iesum_name))
+    total_er2p5 = df_er2p5.Histo1D(("total_Er2p5", "total_Er2p5", len(bins)-1, array('f',bins)), "good_Of_pt")
+
+    df_er1p305 = df.Redefine("good_Of_eta", "SelectBinAbs (good_Of_eta, good_Of_eta, 0, 1.305)")
+    df_er1p305 = df_er1p305.Redefine("good_Of_pt", "SelectBinAbs (good_Of_pt, good_Of_eta, 0, 1.305)")
+    df_er1p305 = df_er1p305.Redefine(CD_iesum_name, "SelectBinAbs ({}, good_Of_eta, 0, 1.305)".format(CD_iesum_name))
+    total_er1p305 = df_er1p305.Histo1D(("total_Er1p305", "total_Er1p305", len(bins)-1, array('f',bins)), "good_Of_pt")
+
+    passing = []
+    for i, threshold in enumerate(thresholds):
+        df_cut = df.Redefine("good_Of_pt", "PassThreshold (good_Of_pt, {}, {})".format(CD_iesum_name, threshold))
+        name = "passing_"+str(int(threshold))
+        passing.append(df_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
+
+    passing_er2p5 = []
+    for i, threshold in enumerate(thresholds):
+        df_er2p5_cut = df_er2p5.Redefine("good_Of_pt", "PassThreshold (good_Of_pt, {}, {})".format(CD_iesum_name, threshold))
+        name = "passing_Er2p5_"+str(int(threshold))
+        passing_er2p5.append(df_er2p5_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
+
+    passing_er1p305 = []
+    for i, threshold in enumerate(thresholds):
+        df_er1p305_cut = df_er1p305.Redefine("good_Of_pt", "PassThreshold (good_Of_pt, {}, {})".format(CD_iesum_name, threshold))
+        name = "passing_Er1p305_"+str(int(threshold))
+        passing_er1p305.append(df_er1p305_cut.Histo1D((name, name, len(bins)-1, array('f',bins)), "good_Of_pt"))
+
+    print(" ### INFO: Saving turn on to root format")
+    fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_histos_'+label+'_'+options.target+'.root','RECREATE')
+    total.Write()
+    total_er2p5.Write()
+    total_er1p305.Write()
+    for i, thr in enumerate(thresholds): 
+        passing[i].Write()
+        passing_er2p5[i].Write()
+        passing_er1p305[i].Write()
+    fileout.Close()
+
+    filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_histos_'+label+'_'+options.target+'.root')
+    total = filein.Get('total')
+    total_er2p5 = filein.Get('total_Er2p5')
+    total_er1p305 = filein.Get('total_Er1p305')
+    passing = []
+    turnons = []
+    passing_er2p5 = []
+    turnons_er2p5 = []
+    passing_er1p305 = []
+    turnons_er1p305 = []
+    for i, thr in enumerate(thresholds): 
+        passing.append(filein.Get("passing_"+str(int(thr))))
+        turnons.append(ROOT.TGraphAsymmErrors(passing[i], total, "cp"))
+        passing_er2p5.append(filein.Get("passing_Er2p5_"+str(int(thr))))
+        turnons_er2p5.append(ROOT.TGraphAsymmErrors(passing_er2p5[i], total_er2p5, "cp"))
+        passing_er1p305.append(filein.Get("passing_Er1p305_"+str(int(thr))))
+        turnons_er1p305.append(ROOT.TGraphAsymmErrors(passing_er1p305[i], total_er1p305, "cp"))
+    filein.Close()
+
+    fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+options.target+'.root','RECREATE')
+    for i, thr in enumerate(thresholds): 
+        turnons[i].Write()
+        turnons_er2p5[i].Write()
+        turnons_er1p305[i].Write()
+    fileout.Close()
 
     if options.no_plot:
         sys.exit()
+
+    ############################################################################################
+    ############################################################################################
+    ############################################################################################
 
 else:
     print(" ### INFO: Read existing root files")
@@ -507,14 +627,10 @@ else:
     pt_resol_fctPt = filein.Get('pt_resol_fctPt')
     pt_resol_barrel_fctPt = filein.Get('pt_resol_barrel_fctPt')
     pt_resol_endcap_fctPt = filein.Get('pt_resol_endcap_fctPt')
-    pt_resol_fctAbsEta = filein.Get('pt_resol_fctAbsEta')
     pt_resol_fctEta = filein.Get('pt_resol_fctEta')
     pt_response_ptInclusive = filein.Get('pt_response_ptInclusive')
     pt_barrel_resp_ptInclusive = filein.Get('pt_barrel_resp_ptInclusive')
     pt_endcap_resp_ptInclusive = filein.Get('pt_endcap_resp_ptInclusive')
-    pt_response_ptInclusive_CD = filein.Get('pt_response_ptInclusive_CD')
-    pt_barrel_resp_ptInclusive_CD = filein.Get('pt_barrel_resp_ptInclusive_CD')
-    pt_endcap_resp_ptInclusive_CD = filein.Get('pt_endcap_resp_ptInclusive_CD')
     response_ptBins = []
     barrel_response_ptBins = []
     endcap_response_ptBins = []
@@ -568,6 +684,7 @@ if options.norm:
 
 else:
     y_label_response = 'Entries'
+
 ############################################################################################
 ############################################################################################
 ############################################################################################
@@ -604,15 +721,6 @@ y_label_resolution  = 'Energy resolution'
 y_label_scale       = 'Energy scale (Mean)'
 y_label_scale_max   = 'Energy scale (Maximum)'
 y_lim_scale = (0.5,1.5)
-
-def GetArraysFromHisto(histo):
-    X = [] ; Y = [] ; X_err = [] ; Y_err = []
-    for ibin in range(0,histo.GetNbinsX()):
-        X.append(histo.GetBinLowEdge(ibin+1) + histo.GetBinWidth(ibin+1)/2.)
-        Y.append(histo.GetBinContent(ibin+1))
-        X_err.append(histo.GetBinWidth(ibin+1)/2.)
-        Y_err.append(histo.GetBinError(ibin+1))
-    return X,Y,X_err,Y_err
 
 def SetStyle(ax, x_label, y_label, x_lim, y_lim, leg_title=''):
     leg = plt.legend(loc = 'upper right', fontsize=20, title=leg_title, title_fontsize=18)
@@ -653,24 +761,6 @@ Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/response_ptInclusive_'+label+'_'+options.target+'.png')
-plt.close()
-
-############################################################################################
-## response inclusive CD
-
-fig, ax = plt.subplots(figsize=(10,10))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
-Ymax = max(Y)
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_endcap_resp_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
-Ymax = max(Ymax, max(Y))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(2))
-Ymax = max(Ymax, max(Y))
-SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_CD_'+label+'_'+options.target+'.pdf')
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/response_ptInclusive_CD_'+label+'_'+options.target+'.png')
 plt.close()
 
 ############################################################################################
@@ -899,3 +989,89 @@ if options.do_EoTot:
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/scale_max_EoTotBins_'+label+'_'+options.target+'.pdf')
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/scale_max_EoTotBins_'+label+'_'+options.target+'.png')
     plt.close()
+
+############################################################################################
+############################################################################################
+############################################################################################
+
+############################################################################################
+print(" ### INFO: Produce plots turn ons")
+############################################################################################
+
+filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+options.target+'.root')
+turnons = []
+turnons_er2p5 = []
+turnons_er1p305 = []
+for i, thr in enumerate(thresholds): 
+    turnons.append(filein.Get(f'divide_passing_{thr}_by_total'))
+    turnons_er2p5.append(filein.Get(f'divide_passing_Er2p5_{thr}_by_total_Er2p5'))
+    turnons_er1p305.append(filein.Get(f'divide_passing_Er1p305_{thr}_by_total_Er1p305'))
+filein.Close()
+
+if options.reco:
+    if options.target == 'jet': x_label = '$E_{T}^{jet, offline}$ [GeV]'
+    if options.target == 'ele': x_label = '$E_{T}^{e, offline}$ [GeV]'
+    if options.target == 'met': x_label = '$MET_{\mu corrected}^{offline}$ [GeV]'
+if options.gen:
+    x_label = '$E_{T}^{jet, gen}$ [GeV]'
+
+def SetStyle(ax, x_label):
+    for xtick in ax.xaxis.get_major_ticks():
+        xtick.set_pad(10)
+    leg = plt.legend(loc = 'lower right', fontsize=20)
+    leg._legend_box.align = "left"
+    plt.xlabel(x_label)
+    plt.ylabel('Efficiency')
+    plt.xlim(0, 220)
+    plt.ylim(0, 1.05)
+    plt.grid()
+    if options.reco: mplhep.cms.label(data=False, rlabel='(13.6 TeV)')
+    else:            mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
+
+thresholds = list(thresholds)
+# cmap = matplotlib.cm.get_cmap('tab20c')
+fig, ax = plt.subplots(figsize=(10,10))
+for i, thr in enumerate(thresholds2plot):
+    X = [] ; Y = [] ; Y_low = [] ; Y_high = []
+    turnon = turnons[thresholds.index(thr)]
+    for ibin in range(0,turnon.GetN()):
+        X.append(turnon.GetPointX(ibin))
+        Y.append(turnon.GetPointY(ibin))
+        Y_low.append(turnon.GetErrorYlow(ibin))
+        Y_high.append(turnon.GetErrorYhigh(ibin))
+    ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label="$p_{T}^{L1} > $"+str(thr)+" GeV", lw=2, marker='o', color=cmap(i))
+SetStyle(ax, x_label)
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/turnOns_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/turnOns_'+label+'_'+options.target+'.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10,10))
+for i, thr in enumerate(thresholds2plot):
+    X = [] ; Y = [] ; Y_low = [] ; Y_high = []
+    turnon = turnons_er2p5[thresholds.index(thr)]
+    for ibin in range(0,turnon.GetN()):
+        X.append(turnon.GetPointX(ibin))
+        Y.append(turnon.GetPointY(ibin))
+        Y_low.append(turnon.GetErrorYlow(ibin))
+        Y_high.append(turnon.GetErrorYhigh(ibin))
+    ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label="$p_{T}^{L1} > $"+str(thr)+" GeV", lw=2, marker='o', color=cmap(i))
+SetStyle(ax, x_label)
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/turnOns_Er2p5_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/turnOns_Er2p5_'+label+'_'+options.target+'.png')
+plt.close()
+
+fig, ax = plt.subplots(figsize=(10,10))
+for i, thr in enumerate(thresholds2plot):
+    X = [] ; Y = [] ; Y_low = [] ; Y_high = []
+    turnon = turnons_er1p305[thresholds.index(thr)]
+    for ibin in range(0,turnon.GetN()):
+        X.append(turnon.GetPointX(ibin))
+        Y.append(turnon.GetPointY(ibin))
+        Y_low.append(turnon.GetErrorYlow(ibin))
+        Y_high.append(turnon.GetErrorYhigh(ibin))
+    ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label="$p_{T}^{L1} > $"+str(thr)+" GeV", lw=2, marker='o', color=cmap(i))
+SetStyle(ax, x_label)
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/turnOns_Er1p305_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/turnOns_Er1p305_'+label+'_'+options.target+'.png')
+plt.close()
+

@@ -52,7 +52,7 @@ parser.add_option("--er",        dest="er",       default='2.5') #eta restrictio
 parser.add_option("--plot_only", dest="plot_only",action='store_true', default=False)
 (options, args) = parser.parse_args()
 
-cmap = matplotlib.colormaps.get_cmap('Set1')
+cmap = plt.get_cmap('Set1')
 
 # get/create folders
 indir = "/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/"+options.indir

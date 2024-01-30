@@ -409,7 +409,7 @@ def padDataFrameWithZeros( dfFlatEJT ):
         
     return padded
 
-def mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, uJetPtcut, lJetPtcut, iEtacut, iEtacutMin, applyCut_3_6_9, Ecalcut, \
+def mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, uJetPtcut, lJetPtcut, lRawPtCut, iEtacut, iEtacutMin, applyCut_3_6_9, Ecalcut, \
                 Hcalcut, HoTotcut, TTNumberCut, TTNumberCutInverse, trainPtVers, whichECALcalib, whichHCALcalib, \
                 flattenPtDistribution, flattenEtaDistribution, applyOnTheFly, ClusterFilter, applyZS, LooseEle, matching, sizeHF):
     
@@ -545,6 +545,9 @@ def mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, uJetPtcu
     dfFlatEJT.drop(dfFlatEJT[dfFlatEJT['iem']>255].index, inplace=True)
     dfFlatEJT.drop(dfFlatEJT[dfFlatEJT['ihad']>255].index, inplace=True)
     dfFlatEJT.drop(dfFlatEJT[dfFlatEJT['iet']>255].index, inplace=True)
+
+    # apply cut on RawPt directly coming from the recorded L1 energy
+    if lRawPtCut: dfFlatEJT.drop(dfFlatEJT[(dfFlatEJT['iem'] + dfFlatEJT['hcalET']) > float(lRawPtCut*2)].index, inplace=True)
 
     ## DEBUG
     print('starting bigORtowers')
@@ -792,6 +795,7 @@ if __name__ == "__main__" :
     parser.add_option("--trainPtVers", dest="trainPtVers", default=False)
     parser.add_option("--uJetPtCut",   dest="uJetPtCut",   default=False)
     parser.add_option("--lJetPtCut",   dest="lJetPtCut",   default=False)
+    parser.add_option("--lRawPtCut",   dest="lRawPtCut",   default=False)
     parser.add_option("--etacut",      dest="etacut",      default=False)
     parser.add_option("--etacutmin",   dest="etacutmin",   default=False)
     parser.add_option("--applyCut_3_6_9",     dest="applyCut_3_6_9",     default=False)
@@ -1006,7 +1010,7 @@ if __name__ == "__main__" :
 
         j += 1
 
-        mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, options.uJetPtCut, options.lJetPtCut, options.etacut, options.etacutmin, options.applyCut_3_6_9, \
+        mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, options.uJetPtCut, options.lJetPtCut, options.lRawPtCut, options.etacut, options.etacutmin, options.applyCut_3_6_9, \
                     options.ecalcut, options.hcalcut, options.HoTotcut, options.TTNumberCut, options.TTNumberCutInverse, options.trainPtVers, \
                     options.calibrateECAL, options.calibrateHCAL, options.flattenPtDistribution, options.flattenEtaDistribution, options.applyOnTheFly, \
                     options.ClusterFilter, options.applyZS, options.LooseEle, options.matching, options.sizeHF)

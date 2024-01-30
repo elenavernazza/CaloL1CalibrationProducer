@@ -12,7 +12,7 @@ import sys
 import os
 
 sys.path.insert(0,'..')
-from L1Calibrator.NNModelTraining_FullyCustom_GPUdistributed_batchedRate import Fgrad
+from L1Training.NNModel_RegAndRate import Fgrad
 
 # split list l in sublists of length n each
 def splitInBlocks (l, n):
@@ -113,9 +113,9 @@ if __name__ == "__main__" :
     parser.add_option("--odir",                   dest="odir",                   default=None,                         help="Output tag of the output folder")
     parser.add_option("--v",                      dest="v",                      default=None,                         help="Ntuple type (ECAL, HCAL, or HF)")
     parser.add_option("--rate_only",              dest="rate_only",              default=0,       type=int,            help="Make only rate datasets to reach this stats value")
+    parser.add_option("--fix_stats",              dest="fix_stats",              default=0,       type=int,            help="Fix the total amount of jets to be used")
     parser.add_option("--filesLim",               dest="filesLim",               default=1000000, type=int,            help="Maximum number of npz files to use")
     parser.add_option("--filesPerRecord",         dest="filesPerRecord",         default=500,     type=int,            help="Maximum number of npz files per TFRecord")
-    parser.add_option("--filesRatePerRecord",     dest="filesRatePerRecord",     default=500,     type=int,            help="Maximum number of npz files per TFRecord")
     parser.add_option("--validation_split",       dest="validation_split",       default=0.20,    type=float,          help="Fraction of events to be used for testing")
     parser.add_option("--flattenEtaDistribution", dest="flattenEtaDistribution", default=False,   action='store_true', help="Flatten eta distribution")
     parser.add_option("--ECALcalib4rate",         dest="ECALcalib4rate",         default=None,                         help="Model for ECAL calibration in HCAL rate proxy dataset ('/data_CMS/cms/motta/CaloL1calibraton/'+options.ECALcalib4rate+'/model_ECAL/TTP')")
@@ -135,12 +135,13 @@ if __name__ == "__main__" :
 
     if not options.rate_only:
         # read inputs and split them in blocks
-        InFilesTrain = glob.glob(filedir+'/'+options.batchdir+'/tensors/towers_*.npz')[:options.filesLim]
+        InFilesTrain = glob.glob(filedir+'/'+options.batchdir+'/tensors/towers_*.npz')
         InFilesTrainBlocks = splitInBlocks(InFilesTrain, options.filesPerRecord)
 
     if not options.noRate:
-        InFilesRate = glob.glob(options.ratedir+'/tensors/towers_*.npz')[:options.filesLim]
-        InFilesRateBlocks = splitInBlocks(InFilesRate, options.filesRatePerRecord)
+        if not os.path.isdir(options.ratedir): sys.exit(" ### ERROR: Rate directory not existing")
+        InFilesRate = glob.glob(options.ratedir+'/tensors/towers_*.npz')
+        InFilesRateBlocks = splitInBlocks(InFilesRate, options.filesPerRecord)
 
     with tf.device('/CPU:0'):
         if not options.rate_only:
@@ -151,126 +152,96 @@ if __name__ == "__main__" :
             print('\nUsing', len(InFilesTrain), 'files batched in', len(InFilesTrainBlocks), 'blocks\n')
 
             train_total_dimension = 0
+            test_total_dimension = 0
+
+            stats = 0
 
             # for each block create a TFRecordDataset
             for blockIdx, block in enumerate(InFilesTrainBlocks):
+
+                if options.fix_stats != 0:
+                    if stats >= options.fix_stats:
+                        break
+
                 print('--------------------------------------')
                 print('reading block', blockIdx)
                 XsToConcatenate = []
                 YsToConcatenate = []
 
                 for fileIdx, file in enumerate(block):
+
+                    if options.fix_stats != 0:
+                        if stats >= options.fix_stats:
+                            break
+
                     if not fileIdx%10: print('    reading batch', fileIdx)
                     try:
+                        # filex: n_ev * 81 * 43 [iem, ihad, iesum, one hot encoding]
                         filex = np.load(file, allow_pickle=True)['arr_0']
+                        # filex: n_ev * 4 [jetPt, jetEta, jetPhi, targetPt]
                         filey = np.load(file.replace('towers_', 'jets_'), allow_pickle=True)['arr_0']
 
                     except FileNotFoundError:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' not found --> skipping')
                         continue
-
                     except pickle.UnpicklingError:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' unpickling error --> skipping')
                         continue
-
                     except zipfile.BadZipFile:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' unzipping error --> skipping')
                         continue
-
                     except OSError:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' Failed to interpret file as a pickle --> skipping')
                         continue
-
                     if filex.shape[1:] != (81,43) or filey.shape[1:] != (4,):
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' corrupted --> skipping')
                         continue
 
+                    # Apply cuts
+                    def CheckResponse(filex, filey):
+                        L1Energy = np.sum(filex[:,:,2], axis=1)
+                        JetEnergy = filey[:,3]
+                        Response = L1Energy / JetEnergy
+                        sel = (Response < 3) & (Response > 0.3)
+                        return filex[sel], filey[sel]
+
+                    def ApplyPtCuts(filex, filey, ljetPtcut = None, ujetPtcut = None):
+                        JetEnergy = filey[:,0]
+                        if ljetPtcut:
+                            sel = JetEnergy > float(ljetPtcut)
+                            filex = filex[sel]
+                            filey = filey[sel]
+                        if ujetPtcut:
+                            sel = JetEnergy < float(ljetPtcut)
+                            filex = filex[sel]
+                            filey = filey[sel]
+                        return filex, filey
+
+                    if options.selectResp: filex, filey = CheckResponse(filex, filey)
+                    if options.ljetPtcut or options.ujetPtcut: filex, filey = ApplyPtCuts(filex, filey, options.ljetPtcut, options.ujetPtcut)
+
+                    if options.fix_stats != 0:
+                        if stats + len(filey) >= int(options.fix_stats):
+                            # only add number of events missing to reach the fixed stats
+                            stop = options.fix_stats - stats
+                            filex = filex[:stop]
+                            filey = filey[:stop]
+
                     XsToConcatenate.append(filex)
                     YsToConcatenate.append(filey)
+
+                    stats += len(filey)
 
                 X = np.concatenate(XsToConcatenate)
                 Y = np.concatenate(YsToConcatenate)
                 del XsToConcatenate, YsToConcatenate
 
-                # store eta of the targets to compute sample weights
-                Ynrg = Y[:,0]
-                Yeta = Y[:,1]
-
                 # pre-process to have correct shape and entires
                 X, Y = convert_train_samples(X, Y, options.v)
 
-                if options.selectResp:
-                    # clean from the events that are completely outside of a 'regular' resposne
-                    uncalibResp = Y / np.sum(X[:,:,1], axis=1)
-                    selection = (uncalibResp < 3) & (uncalibResp > 0.3)
-                    if options.ljetPtcut:
-                        selection = selection & (Y > float(options.ljetPtcut))
-                    if options.ujetPtcut:
-                        selection = selection & (Y < float(options.ujetPtcut))
-                    X = X[selection]
-                    Y = Y[selection]
-                    # apply the same selection aslo to the energy and eta vectors for weight computation
-                    Ynrg = Ynrg[selection]
-                    Yeta = Yeta[selection]
-                    del uncalibResp, selection
-
-                # start implementing sample weights
-                if False:
-                    # compute weights to balance pT distribution
-                    dfweights = pd.DataFrame(columns=['E'])
-                    dfweights['E']  = Ynrg
-                    total_jets = len(Ynrg)
-
-                    # compress in ieta and pt binning
-                    iEbins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 2000] ; labelsE = np.arange(1, len(iEbins), 1)
-                    dfweights['compressedIE'] = pd.cut(dfweights['E'], bins=iEbins, labels=labelsE)
-                    del dfweights['E']
-
-                    # compute weights
-                    dfweights['weight'] = total_jets / dfweights.groupby(['compressedIE'])['compressedIE'].transform('count')
-
-                    import matplotlib.pyplot as plt
-                    plt.hist(dfweights['weight'])#, bins=np.linspace(-5.191,5.191,200))
-                    plt.yscale('log')
-                    plt.savefig('./test.pdf')
-                    plt.close()
-
-                    import matplotlib.pyplot as plt
-                    plt.hist(Ynrg, bins=iEbins)#, bins=np.linspace(-5.191,5.191,200))
-                    # plt.yscale('log')
-                    plt.xlim(0,250)
-                    plt.savefig('./test0.pdf')
-                    plt.close()
-
-                    import matplotlib.pyplot as plt
-                    plt.hist(Ynrg, weights=dfweights['weight'], bins=iEbins)#, bins=np.linspace(-5.191,5.191,200))
-                    # plt.yscale('log')
-                    plt.xlim(0,250)
-                    plt.savefig('./test1.pdf')
-                    plt.close()
-
-                    import matplotlib.pyplot as plt
-                    plt.hist(Yeta, weights=dfweights['weight'], bins=np.linspace(-3,3,60))#, bins=np.linspace(-5.191,5.191,200))
-                    # plt.yscale('log')
-                    plt.savefig('./test2.pdf')
-                    plt.close()
-                    # sys.exit()
-
-                # # select the region for the objects
-                # if options.v == 'ECAL': regSel = Y[:,1] < 2.9
-                # if options.v == 'HCAL': regSel = Y[:,1] < 2.9
-                # if options.v == 'HF':   regSel = Y[:,1] > 3.1
-                # X = X[regSel]
-                # Y = Y[regSel]
-
                 ## DEBUG
-                print('    block dimensions', len(X))
-                print('    block dimensions', len(Y))
+                # print('    block dimensions', len(X))
+                # print('    block dimensions', len(Y))
 
                 # split train and testing
                 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=options.validation_split, random_state=7)
@@ -278,6 +249,7 @@ if __name__ == "__main__" :
 
                 # update total dimension
                 train_total_dimension += len(y_train)
+                test_total_dimension += len(y_test)
 
                 # make tensorflow datasets
                 Xtrain = tf.convert_to_tensor(x_train, dtype=tf.float32)
@@ -308,7 +280,14 @@ if __name__ == "__main__" :
                 test_writer.write(serialized_test_dataset)
                 del serialized_test_dataset
 
-            print('training sample total domension =', train_total_dimension)
+            print('')
+            print(' ### INFO: Total statistics =', stats)
+            print(' ### INFO: Training sample total domension =', train_total_dimension)
+            print(' ### INFO: Testint sample total domension =', test_total_dimension)
+
+        ################################################################################
+        ################################################################################
+        ################################################################################
 
         if not options.noRate:
             print('********************************************')
@@ -320,43 +299,51 @@ if __name__ == "__main__" :
             if options.rate_only: train_total_dimension = options.rate_only
             rate_dimensions = []
 
+            stats = 0
+
             # for each block create a TFRecordDataset
             for blockIdx, block in enumerate(InFilesRateBlocks):
+
+                if stats >= train_total_dimension:
+                    break
+
                 print('--------------------------------------')
                 print('reading block', blockIdx)
                 ZsToConcatenate = []
 
                 for fileIdx, file in enumerate(block):
+
+                    if stats >= train_total_dimension:
+                        break
+
                     if not fileIdx%10: print('    reading batch', fileIdx)
                     try:
                         filex = np.load(file, allow_pickle=True)['arr_0']
 
                     except FileNotFoundError:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' not found --> skipping')
                         continue
-
                     except pickle.UnpicklingError:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' unpickling error --> skipping')
                         continue
-
                     except zipfile.BadZipFile:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' unzipping error --> skipping')
                         continue
-
                     except OSError:
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' Failed to interpret file as a pickle --> skipping')
                         continue
-
                     if filex.shape[1:] != (81,43):
-                        # DEBUG
                         print('** INFO: file idx '+str(fileIdx)+' corrupted --> skipping')
                         continue
 
+                    if stats + len(filex) >= train_total_dimension:
+                        # only add number of events missing to reach the fixed stats
+                        stop = train_total_dimension - stats
+                        filex = filex[:stop]
+
                     ZsToConcatenate.append(filex)
+
+                    stats += len(filex)
 
                 Z = np.concatenate(ZsToConcatenate)
                 del ZsToConcatenate
@@ -377,7 +364,7 @@ if __name__ == "__main__" :
 
                 ## DEBUG
                 rate_dimensions.append(len(Z))
-                print('    block dimensions', len(Z))
+                # print('    block dimensions', len(Z))
 
                 # make tensorflow datasets
                 Z = tf.convert_to_tensor(Z, dtype=tf.float32)
@@ -396,26 +383,26 @@ if __name__ == "__main__" :
                 del serialized_rate_dataset
 
                 # directly break as soon as the dimension is met
-                print("Sum at this point is: ", np.sum(rate_dimensions))
-                if np.sum(rate_dimensions) > train_total_dimension: break
+                # print(' ### INFO: Total statistics =', stats)
 
             rate_total_dimension = np.sum(rate_dimensions)
-
+            
             # generally the rate datasets are smaller than the raining datasets therefore we need to 
             # copy the rate TFRecords to have their final dimenion equal to the train sample
             repeatIdx = 0
             records = glob.glob(training_folder+'/rateTFRecords/record_*.tfrecord')
             print('--------------------------------------------')
-            while rate_total_dimension < train_total_dimension:
+            while stats < train_total_dimension:
                 repeatIdx += 1
                 print('Copying rate datasets '+str(repeatIdx)+'th time')
                 for record, recordDim in zip(records, rate_dimensions):
                     recordCopy = record.replace('.tfrecord', '_'+str(repeatIdx)+'.tfrecord')
                     os.system('cp '+record+' '+recordCopy)
 
-                    rate_total_dimension += recordDim
+                    stats += recordDim
                     # directly break as soon as the dimension is met
-                    if rate_total_dimension > train_total_dimension: break
+                    if stats > train_total_dimension: break
 
-            print('rate sample total domension =', rate_total_dimension)
+            print('')
+            print(' ### INFO: Rate sample total domension =', stats)
 
