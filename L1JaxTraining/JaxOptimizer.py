@@ -6,13 +6,13 @@ import numpy as np
 from optparse import OptionParser
 from jax import grad, jacobian
 import matplotlib.pyplot as plt
-import glob
+import glob, os, json
 
 #######################################################################
 ######################### SCRIPT BODY #################################
 #######################################################################
 
-# python3 JaxOptimizer.py --jetsLim 1000
+# python3 JaxOptimizer.py --filesLim 1 --odir test
 
 if __name__ == "__main__" :
 
@@ -29,6 +29,8 @@ if __name__ == "__main__" :
     #######################################################################
 
     indir = '/data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors'
+    odir = options.odir
+    os.system('mkdir -p '+ odir)
 
     list_towers_files = glob.glob(indir + "/towers_*_0.npz")
     list_jets_files = glob.glob(indir + "/jets_*_0.npz")
@@ -36,15 +38,18 @@ if __name__ == "__main__" :
     towers = jnp.load(list_towers_files[0], allow_pickle=True)['arr_0']
     jets = jnp.load(list_jets_files[0], allow_pickle=True)['arr_0']
 
+    list_towers = []
+    list_jets = []
     training_stat = 0
+
     # Limiting the number of files
     if options.filesLim:
         for ifile in range(0, options.filesLim):
             print("Reading file {}".format(ifile))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
-            towers = jnp.concatenate([towers,x])
-            jets = jnp.concatenate([jets,y])  
+            list_towers.append(x)
+            list_jets.append(y)
             training_stat += len(y)
 
     # Limiting the number of jets
@@ -56,12 +61,12 @@ if __name__ == "__main__" :
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
             if training_stat + len(y) > options.jetsLim:
                 stop = options.jetsLim - training_stat
-                towers = jnp.concatenate([towers,x[:stop]])
-                jets = jnp.concatenate([jets,y[:stop]])
+                list_towers.append(x[:stop])
+                list_jets.append(y[:stop])
                 break
             else:
-                towers = jnp.concatenate([towers,x])
-                jets = jnp.concatenate([jets,y])
+                list_towers.append(x)
+                list_jets.append(y)
                 training_stat += len(y)
     
     # No limitation
@@ -70,9 +75,12 @@ if __name__ == "__main__" :
             print("Reading file {}".format(ifile))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
-            towers = jnp.concatenate([towers,x])
-            jets = jnp.concatenate([jets,y])       
+            list_towers.append(x)
+            list_jets.append(y)
             training_stat += len(y)
+
+    towers = jnp.concatenate(list_towers)
+    jets = jnp.concatenate(list_jets)
 
     print(" ### INFO: Training on {} jets".format(len(jets)))
 
@@ -86,7 +94,7 @@ if __name__ == "__main__" :
     SFs = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     SFs_flat = jnp.array([1. for i in range(0,len(eta_binning)*len(et_binning))])
 
-    print(" ### INFO: Eta binning =    ", eta_binning)
+    print(" ### INFO: Eta binning = ", eta_binning)
     print(" ### INFO: Energy binning = ", et_binning)
 
     ietas = jnp.argmax(towers[:, :, 3: ], axis=2) + 1
@@ -134,41 +142,35 @@ if __name__ == "__main__" :
     ## TRAINING
     #######################################################################
 
-    nb_epochs = 1
+    nb_epochs = 5
+    bs = 2
     lvals = []
     dvals = []
-    lr = 0.1
+    lr = 0.0001
+
+    TrainingInfo = {}
+    TrainingInfo["NJets"] = len(jets)
+    TrainingInfo["NEpochs"] = nb_epochs
+    TrainingInfo["BS"] = bs
+    TrainingInfo["LR"] = lr
+
+    LossHistory = {}
 
     print(" ### INFO: Start training with LR = {}, EPOCHS = {}".format(lr, nb_epochs))
 
     for ep in range(nb_epochs):
         print("Epoch", ep)
-        for i in range(0, len(ihad)):
+        for i in np.arange(0, len(ihad), bs):
+            # correct when using bs != 1
             if i == len(ihad) - 1: break
             if i%100 == 0: print("Looped over {} jets".format(i))
             # calculate the loss
-            jac = jacobian(LossFunction, argnums=5)(ietas_index[i:i+1], ihad_index[i:i+1], ihad[i:i+1], iem[i:i+1], jets[i:i+1], SFs_flat)[0]
+            jac = jacobian(LossFunction, argnums=5)(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)[0]
             # apply derivative
             SFs_flat = SFs_flat - lr*jac
+            # save loss history
+            LossHistory[ep] = float(np.mean(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)))
             # fill 2D histogram with number of jets for each et-eta bin
-            #jac = jacobian(LossFunction)(xi, SFs_flat)
-            #for ieta in range(0,len(SFs)):
-            #    for iet in range(0,len(SFs[ieta])):
-            #        a=SFs[ieta][iet]
-            #        l=LossFunction(xi,SFs)
-            #        #lvals.append(l)
-            #        #print("l=%.20f"%(l))
-            #        #calculate the partial derivative
-            #        #d=grad_loss(l, (xi, a))
-            #        d = grad(l)(xi, SFs)
-            #        print("d=%.20f"%(d))
-            #        #dvals.append(d)
-            #        #upgrade the parameter
-            #        SFs[ieta][iet]=a-lr*d
-            #        aguess.append(a)
-            #        #print("a=%.20f"%(a))
-    #for i in range(0,len(SFs_flat)):
-    #    print(SFs_flat[i])
 
     SFs = SFs_flat.reshape(len(et_binning),len(eta_binning))
 
@@ -188,7 +190,13 @@ if __name__ == "__main__" :
     for i in et_binning: head_text = head_text + ' ,{}'.format(int(i/2))
     head_text = head_text + "]\n"
 
-    SFOutFile = options.odir + '/ScaleFactors_{}.csv'.format(options.v)
+    SFOutFile = odir + '/ScaleFactors_{}.csv'.format(options.v)
     np.savetxt(SFOutFile, SFs, delimiter=",", newline=',\n', header=head_text, fmt=','.join(['%1.4f']*len(eta_binning)))
     print('\nScale Factors saved to: {}'.format(SFOutFile))
     # jnp.save(options.odir + 'test', SFs)
+
+    TrainingInfo["TrainLoss"] = LossHistory
+    json_path = odir + '/training.json'
+    json_data = json.dumps(TrainingInfo, indent=2)
+    with open(json_path, "w") as json_file:
+        json_file.write(json_data)
