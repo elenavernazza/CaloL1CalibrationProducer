@@ -21,6 +21,9 @@ if __name__ == "__main__" :
     parser.add_option("--v",                      dest="v",                      default="HCAL",                       help="Calibration target (ECAL, HCAL)")
     parser.add_option("--jetsLim",                dest="jetsLim",                default=None,       type=int,         help="Fix the total amount of jets to be used")
     parser.add_option("--filesLim",               dest="filesLim",               default=None,       type=int,         help="Maximum number of npz files to use")
+    parser.add_option("--bs",                     dest="bs",                     default=1,          type=int,         help="Batch size")
+    parser.add_option("--lr",                     dest="lr",                     default=0.001,      type=float,       help="Learning rate")
+    parser.add_option("--ep",                     dest="ep",                     default=5,          type=int,         help="Number of epochs")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -45,7 +48,7 @@ if __name__ == "__main__" :
     # Limiting the number of files
     if options.filesLim:
         for ifile in range(0, options.filesLim):
-            print("Reading file {}".format(ifile))
+            # print("Reading file {}".format(ifile))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
             list_towers.append(x)
@@ -56,7 +59,7 @@ if __name__ == "__main__" :
     elif options.jetsLim:
         training_stat = 0
         for ifile in range(0, len(list_towers_files)):
-            print("Reading file {}".format(ifile))
+            # print("Reading file {}".format(ifile))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
             if training_stat + len(y) > options.jetsLim:
@@ -142,11 +145,11 @@ if __name__ == "__main__" :
     ## TRAINING
     #######################################################################
 
-    nb_epochs = 5
-    bs = 2
+    nb_epochs = options.ep
+    bs = options.bs
     lvals = []
     dvals = []
-    lr = 0.0001
+    lr = options.lr
 
     TrainingInfo = {}
     TrainingInfo["NJets"] = len(jets)
@@ -161,18 +164,20 @@ if __name__ == "__main__" :
     for ep in range(nb_epochs):
         print("Epoch", ep)
         for i in np.arange(0, len(ihad), bs):
-            # correct when using bs != 1
             if i == len(ihad) - 1: break
-            if i%100 == 0: print("Looped over {} jets".format(i))
             # calculate the loss
             jac = jacobian(LossFunction, argnums=5)(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)[0]
             # apply derivative
             SFs_flat = SFs_flat - lr*jac
-            # save loss history
-            LossHistory[ep] = float(np.mean(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)))
-            # fill 2D histogram with number of jets for each et-eta bin
+            # print loss for each batch
+            loss_value = float(np.mean(LossFunction(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)))
+            if i%100 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
+        # save loss history
+        LossHistory[ep] = float(np.mean(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)))
+        # fill 2D histogram with number of jets for each et-eta bin
 
-    SFs = SFs_flat.reshape(len(et_binning),len(eta_binning))
+    SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
+    SFs_inv = np.transpose(SFs)
 
     min_energy = np.min(et_binning)
     max_energy = np.max(et_binning)
@@ -191,7 +196,7 @@ if __name__ == "__main__" :
     head_text = head_text + "]\n"
 
     SFOutFile = odir + '/ScaleFactors_{}.csv'.format(options.v)
-    np.savetxt(SFOutFile, SFs, delimiter=",", newline=',\n', header=head_text, fmt=','.join(['%1.4f']*len(eta_binning)))
+    np.savetxt(SFOutFile, SFs_inv, delimiter=",", newline=',\n', header=head_text, fmt=','.join(['%1.4f']*len(eta_binning)))
     print('\nScale Factors saved to: {}'.format(SFOutFile))
     # jnp.save(options.odir + 'test', SFs)
 
