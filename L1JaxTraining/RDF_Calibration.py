@@ -83,7 +83,7 @@ ROOT.gInterpreter.Declare("""
         vector<double> layer1ScaleETBins_HF = read_ETBins (filename, ETstring_HF);
         vector<vector<float>> layer1ScaleFactors_HF = read_SFs (filename, SFstring_HF);
                           
-        int rows = layer1ScaleFactors_HCAL[0].size();
+        int rows = layer1ScaleFactors_HCAL[0].size(); // eta
         int cols = layer1ScaleFactors_HCAL.size();
         const Double_t *ybins = layer1ScaleETBins_HCAL.data();
         
