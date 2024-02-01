@@ -204,7 +204,7 @@ if not options.plot_only:
     df = df.Define("good_Of_eta",   "SelectGood (Offline_eta, good_Of_id)")
     df = df.Define("good_Of_phi",   "SelectGood (Offline_phi, good_Of_id)")
 
-    print("### INFO: Number of good events = ", df.Count().GetValue())
+    print(" ### INFO: Number of good events = ", df.Count().GetValue())
 
     # Define response for matched jets
     df = df.Define("Response", "GetRatio (good_L1_pt, good_Of_pt)")

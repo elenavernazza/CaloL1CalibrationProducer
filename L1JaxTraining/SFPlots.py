@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-import mplhep, json
+import mplhep, json, glob
 plt.style.use(mplhep.style.CMS)
 
 min_ = -0.2
@@ -18,7 +18,10 @@ def export_legend(legend, filename="legend.png", expand=[-5,-5,5,5]):
     bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
     fig.savefig(filename, dpi="figure", bbox_inches=bbox)
 
-def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers):
+def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers, i_epoch = None):
+
+    if i_epoch != None: epoch = '_{}'.format(i_epoch)
+    else: epoch = ''
 
     plt.figure(figsize=(12,10))
     colors = plt.cm.viridis_r(np.linspace(0,1,len(bins)))
@@ -28,7 +31,7 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers):
     plt.ylabel('{} Calibration Constant'.format(v_sample), fontsize=20)
     plt.grid(linestyle='dotted')
     mplhep.cms.label(data=True, rlabel='(13.6 TeV)', fontsize=20)
-    savefile = odir + '/Calib_vs_Eta_'+v_sample
+    savefile = odir + '/Calib_vs_Eta_'+v_sample+epoch
     plt.ylim(min_,max_)
     plt.savefig(savefile+'.png')
     plt.savefig(savefile+'.pdf')
@@ -41,7 +44,7 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers):
     
 def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, i_epoch = None):
 
-    if i_epoch: epoch = '_{}'.format(i_epoch)
+    if i_epoch != None: epoch = '_{}'.format(i_epoch)
     else: epoch = ''
 
     fig, ax = plt.subplots(1, 1, figsize=(14,12))
@@ -130,3 +133,21 @@ if __name__ == "__main__" :
     plt.savefig(savefile+'.png')
     plt.savefig(savefile+'.pdf')
     print(savefile)
+
+    # SFsHistory = glob.glob(indir + '/History/ScaleFactors_*')
+    # for i, SF_filename in enumerate(SFsHistory):
+    #     print(i, SF_filename)
+    #     if options.v == "ECAL": cols = 28
+    #     if options.v == "HCAL": cols = 40
+    #     ScaleFactors = np.loadtxt(open(SF_filename, "rb"), delimiter=',', usecols=range(0,cols))
+    #     eta_binning = np.arange(1,cols+1)
+
+    #     # Definition of energy bin edges from the header
+    #     with open(SF_filename) as f:
+    #         header = f.readline().rstrip()
+    #     header = header.split("[")[1].split("]")[0]
+    #     et_binning = header.split(',')[:-1]
+    #     et_binning = [float(i) for i in et_binning]
+    
+    #     PlotSF(ScaleFactors, et_binning, odir+'/History', options.v, eta_binning, i_epoch=i)
+    #     PlotSF2D(ScaleFactors, odir+'/History', et_binning, eta_binning, options.v, i_epoch=i)

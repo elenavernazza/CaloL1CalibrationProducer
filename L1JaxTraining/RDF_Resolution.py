@@ -210,16 +210,12 @@ if not options.plot_only:
         sys.exit(" ERROR: This is not implemented yet")
     #     df = df.Define("isLooseElectron", "Electron.isLooseElectron")
 
-    print(df.Count().GetValue())
-
     df = df.Define("Offline_pt_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(0)".format(cut_pt, cut_eta, cut_phi))
     df = df.Define("Offline_eta_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(1)".format(cut_pt, cut_eta, cut_phi))
     df = df.Define("Offline_phi_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(2)".format(cut_pt, cut_eta, cut_phi))
-    
-    print(df.Count().GetValue())
 
     ##################################################################    
     ########################### MATCHING #############################
@@ -236,7 +232,7 @@ if not options.plot_only:
     df = df.Define("good_Of_eta",   "SelectGood (Offline_eta_cut, good_Of_id)")
     df = df.Define("good_Of_phi",   "SelectGood (Offline_phi_cut, good_Of_id)")
 
-    print(df.Count().GetValue())
+    print(" ### INFO: Number of good events = ", df.Count().GetValue())
 
     # Define response for matched jets
     df = df.Define("Response", "GetRatio (good_L1_pt, good_Of_pt)")

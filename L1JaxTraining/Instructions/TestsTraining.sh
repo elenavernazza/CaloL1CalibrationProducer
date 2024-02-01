@@ -49,20 +49,20 @@ python3 comparisonPlots.py --indir $folder --target jet --reco \
 # RE-EMULATION 
 #################################################################################
 
-tag="GT130XdataRun3Promptv3_CaloParams2023"
-tag+=$number
-tag+="_data_reco_json"
-python3 submitOnTier3.py --inFileList JetMET__Run2022G-PromptReco-v1__Run362617__AOD \
- --outTag $tag \
- --nJobs 31 --queue short --maxEvts 5000 --inJson Cert_Collisions2022_355100_362760_Golden \
- --globalTag 130X_dataRun3_Prompt_v3 --data --recoFromAOD \
- --caloParams $caloname 
+# tag="GT130XdataRun3Promptv3_CaloParams2023"
+# tag+=$number
+# tag+="_data_reco_json"
+# python3 submitOnTier3.py --inFileList JetMET__Run2022G-PromptReco-v1__Run362617__AOD \
+#  --outTag $tag \
+#  --nJobs 31 --queue short --maxEvts 5000 --inJson Cert_Collisions2022_355100_362760_Golden \
+#  --globalTag 130X_dataRun3_Prompt_v3 --data --recoFromAOD \
+#  --caloParams $caloname 
 
-python3 submitOnTier3.py --inFileList EphemeralZeroBias0__Run2022G-v1__Run362617__RAW \
- --outTag $tag \
- --nJobs 31 --queue short --maxEvts 5000 \
- --globalTag 130X_dataRun3_Prompt_v3 --data \
- --caloParams $caloname 
+# python3 submitOnTier3.py --inFileList EphemeralZeroBias0__Run2022G-v1__Run362617__RAW \
+#  --outTag $tag \
+#  --nJobs 31 --queue short --maxEvts 5000 \
+#  --globalTag 130X_dataRun3_Prompt_v3 --data \
+#  --caloParams $caloname 
 
 #################################################################################
 # REFERENCE 

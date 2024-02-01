@@ -100,7 +100,7 @@ if __name__ == "__main__" :
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.mask:
-        mask_energy = 10
+        mask_energy = 8
         mask = jnp.where(jnp.array(et_binning) <= mask_energy, 0, mask)
         mask = mask.ravel()
         print("Masking applied to et < {}".format(mask_energy))
@@ -166,26 +166,8 @@ if __name__ == "__main__" :
     TrainingInfo["LR"] = lr
 
     LossHistory = {}
-
-    print(" ### INFO: Start training with LR = {}, EPOCHS = {}".format(lr, nb_epochs))
-
-    for ep in range(nb_epochs):
-        print("\n *** Starting Epoch", ep)
-        for i in np.arange(0, len(ihad), bs):
-            if i == len(ihad) - 1: break
-            # calculate the loss
-            jac = jacobian(LossFunction, argnums=5)(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)[0]
-            # apply derivative
-            SFs_flat = SFs_flat - lr*jac*mask
-            # print loss for each batch
-            loss_value = float(np.mean(LossFunction(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)))
-            if i%1000 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
-        # save loss history
-        LossHistory[ep] = float(np.mean(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)))
-        # fill 2D histogram with number of jets for each et-eta bin
-
-    SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
-    SFs_inv = np.transpose(SFs)
+    history_dir = odir + '/History'
+    os.system("mkdir -p {}".format(history_dir))
 
     min_energy = np.min(et_binning)
     max_energy = np.max(et_binning)
@@ -202,6 +184,30 @@ if __name__ == "__main__" :
     head_text = head_text + 'energy bins GeV (int) = [0'
     for i in et_binning: head_text = head_text + ' ,{}'.format(int(i/2))
     head_text = head_text + "]\n"
+
+    print(" ### INFO: Start training with LR = {}, EPOCHS = {}".format(lr, nb_epochs))
+
+    for ep in range(nb_epochs):
+        print("\n *** Starting Epoch", ep)
+        for i in np.arange(0, len(ihad), bs):
+            if i == len(ihad) - 1: break
+            # calculate the loss
+            jac = jacobian(LossFunction, argnums=5)(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)[0]
+            # apply derivative
+            SFs_flat = SFs_flat - lr*jac*mask
+            # print loss for each batch
+            loss_value = float(np.mean(LossFunction(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)))
+            if i%1000 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
+        # save loss history
+        LossHistory[ep] = float(np.mean(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)))
+        SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
+        SFs_inv = np.transpose(SFs)
+        SFOutFile = history_dir+'/ScaleFactors_{}_{}.csv'.format(options.v, ep)
+        np.savetxt(SFOutFile, SFs_inv, delimiter=",", newline=',\n', header=head_text, fmt=','.join(['%1.4f']*len(eta_binning)))
+        # fill 2D histogram with number of jets for each et-eta bin
+
+    SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
+    SFs_inv = np.transpose(SFs)
 
     SFOutFile = odir + '/ScaleFactors_{}.csv'.format(options.v)
     np.savetxt(SFOutFile, SFs_inv, delimiter=",", newline=',\n', header=head_text, fmt=','.join(['%1.4f']*len(eta_binning)))
