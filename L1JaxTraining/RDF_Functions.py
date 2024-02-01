@@ -338,7 +338,7 @@ ROOT.gInterpreter.Declare("""
 
 ROOT.gInterpreter.Declare("""
     using Vfloat = const ROOT::RVec<float>&;
-    ROOT::RVec<int> LeadingJets(Vfloat L1_pt, Vfloat L1_eta, Vfloat L1_phi, float etacut) {
+    ROOT::RVec<float> LeadingJets(Vfloat L1_pt, Vfloat L1_eta, Vfloat L1_phi, float etacut) {
         float leading_L1_pt = -1;
         float subleading_L1_pt = -1;
         int leading_L1_id = -1;
@@ -358,7 +358,8 @@ ROOT.gInterpreter.Declare("""
                 subleading_L1_pt = L1_pt.at(i_L1);
             }
         }
-        return {leading_L1_id, subleading_L1_id};
+        cout << "L1 " << leading_L1_pt << " " << L1_pt.size() << endl;
+        return {leading_L1_pt, subleading_L1_pt};
 
     }
 """)
@@ -504,6 +505,7 @@ ROOT.gInterpreter.Declare("""
         // sort jets and take the first two
         std::stable_sort(Jets.begin(), Jets.end(), greater<float>());
         
+        cout << "CD " << Jets.at(0) << endl;
         return {Jets.at(0), Jets.at(1)};
     }
 """)

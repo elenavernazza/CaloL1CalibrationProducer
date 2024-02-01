@@ -153,5 +153,5 @@ with open(new_file, 'w') as file:
 
 cmd = 'cp '+new_file+' ../../L1Trigger/L1TCalorimeter/python/'
 print('cp '+new_file+' ../../L1Trigger/L1TCalorimeter/python/')
-# os.system(cmd)
+os.system(cmd)
 print('### INFO: DONE!')

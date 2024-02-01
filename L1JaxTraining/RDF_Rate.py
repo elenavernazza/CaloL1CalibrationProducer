@@ -13,6 +13,12 @@ from RDF_Functions import *
 import warnings
 warnings.filterwarnings(action='ignore', category=UserWarning)
 
+'''
+python3 RDF_Rate.py \
+ --indir EphemeralZeroBias0__Run2022G-v1__Run362617__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data  \
+ --outdir 0/NtuplesVunc --target jet --raw --nEvts 100 --no_plot
+'''
+
 #######################################################################
 ######################### SCRIPT BODY #################################
 #######################################################################
@@ -22,7 +28,7 @@ parser = OptionParser()
 parser.add_option("--indir",     dest="indir",    default=None)
 parser.add_option("--tag",       dest="tag",      default='')
 parser.add_option("--outdir",    dest="outdir",   default=None)
-parser.add_option("--label",     dest="label",    default=None)
+parser.add_option("--label",     dest="label",    default='')
 parser.add_option("--nEvts",     dest="nEvts",    type=int, default=-1)
 parser.add_option("--target",    dest="target",   default=None)
 parser.add_option("--raw",       dest="raw",      action='store_true', default=False)
@@ -33,6 +39,7 @@ parser.add_option("--HCALcalib", dest="HCALcalib",action='store_true', default=F
 parser.add_option("--ECALcalib", dest="ECALcalib",action='store_true', default=False)
 parser.add_option("--caloParam", dest="caloParam",type=str,   default='')
 (options, args) = parser.parse_args()
+print(options)
 
 cmap = plt.get_cmap('Set1')
 
@@ -125,11 +132,11 @@ if not options.plot_only:
 
     df = df.Define("TT_iesum", "GetSum (TT_iem, TT_ihad)")
 
-    df = df.Define("lead_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 5).at(0)")
-    df = df.Define("subl_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 5).at(1)")
+    df = df.Define("lead_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 2.5).at(0)")
+    # df = df.Define("subl_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 2.5).at(1)")
 
-    df = df.Define("lead_L1_jet", "LeadingJets(L1_pt, L1_eta, L1_phi, 5).at(0)")
-    df = df.Define("subl_L1_jet", "LeadingJets(L1_pt, L1_eta, L1_phi, 5).at(1)")
+    df = df.Define("lead_L1_jet", "LeadingJets (L1_pt, L1_eta, L1_phi, 2.5).at(0)")
+    # df = df.Define("subl_L1_jet", "LeadingJets (L1_pt, L1_eta, L1_phi, 2.5).at(1)")
 
     print(" ### Define histograms")
     

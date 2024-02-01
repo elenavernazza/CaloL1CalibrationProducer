@@ -24,6 +24,7 @@ if __name__ == "__main__" :
     parser.add_option("--bs",                     dest="bs",                     default=1,          type=int,         help="Batch size")
     parser.add_option("--lr",                     dest="lr",                     default=0.001,      type=float,       help="Learning rate")
     parser.add_option("--ep",                     dest="ep",                     default=5,          type=int,         help="Number of epochs")
+    parser.add_option("--mask",                   dest="mask",                   default=False,   action='store_true', help="Mask low energy SFs")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -97,6 +98,13 @@ if __name__ == "__main__" :
     SFs = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     SFs_flat = jnp.array([1. for i in range(0,len(eta_binning)*len(et_binning))])
 
+    mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
+    if options.mask:
+        mask_energy = 10
+        mask = jnp.where(jnp.array(et_binning) <= mask_energy, 0, mask)
+        mask = mask.ravel()
+        print("Masking applied to et < {}".format(mask_energy))
+
     print(" ### INFO: Eta binning = ", eta_binning)
     print(" ### INFO: Energy binning = ", et_binning)
 
@@ -162,16 +170,16 @@ if __name__ == "__main__" :
     print(" ### INFO: Start training with LR = {}, EPOCHS = {}".format(lr, nb_epochs))
 
     for ep in range(nb_epochs):
-        print("Epoch", ep)
+        print("\n *** Starting Epoch", ep)
         for i in np.arange(0, len(ihad), bs):
             if i == len(ihad) - 1: break
             # calculate the loss
             jac = jacobian(LossFunction, argnums=5)(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)[0]
             # apply derivative
-            SFs_flat = SFs_flat - lr*jac
+            SFs_flat = SFs_flat - lr*jac*mask
             # print loss for each batch
             loss_value = float(np.mean(LossFunction(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)))
-            if i%100 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
+            if i%1000 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
         # save loss history
         LossHistory[ep] = float(np.mean(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)))
         # fill 2D histogram with number of jets for each et-eta bin
