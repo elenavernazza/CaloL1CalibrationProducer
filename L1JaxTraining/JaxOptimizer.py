@@ -96,14 +96,19 @@ if __name__ == "__main__" :
     # et_binning  = [i for i in range(1,101)]
     et_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
     SFs = jnp.ones(shape=(len(eta_binning),len(et_binning)))
-    SFs_flat = jnp.array([1. for i in range(0,len(eta_binning)*len(et_binning))])
+    # Apply ZS to ieta <= 15 and iet == 1
+    eta_binning = jnp.array(eta_binning)
+    et_binning = jnp.array(et_binning)
+    SFs = jnp.where((eta_binning[:, None] <= 15) & (et_binning[None, :] == 1), 0, SFs)
+    SFs_flat = SFs.ravel()
+    print(" ### INFO: Zero Suppression applied to ieta <= 15, et == 1")
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.mask:
         mask_energy = 8
         mask = jnp.where(jnp.array(et_binning) <= mask_energy, 0, mask)
         mask = mask.ravel()
-        print("Masking applied to et < {}".format(mask_energy))
+        print(" ### INFO: Masking applied to et < {}".format(mask_energy))
 
     print(" ### INFO: Eta binning = ", eta_binning)
     print(" ### INFO: Energy binning = ", et_binning)
@@ -139,12 +144,13 @@ if __name__ == "__main__" :
         l1_jet_em_energies = jnp.sum(iem[:], axis=1)
 
         DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - jet_energies)
+        DIFF_2 = jnp.square(DIFF)
         #print("sum ihad+iem:",(l1_jet_energies + l1_jet_em_energies))
         #print("jet energy:",jet_energies)
         MAPE = jnp.divide(DIFF, jet_energies)
         STD = jnp.std(MAPE)
         #print(STD)
-        return MAPE
+        return DIFF
 
     # test = LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)
     # print(test)
@@ -160,6 +166,7 @@ if __name__ == "__main__" :
     lr = options.lr
 
     TrainingInfo = {}
+    TrainingInfo["LossType"] = "DIFF"
     TrainingInfo["NJets"] = len(jets)
     TrainingInfo["NEpochs"] = nb_epochs
     TrainingInfo["BS"] = bs
