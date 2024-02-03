@@ -211,7 +211,7 @@ if __name__ == "__main__" :
         DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - jet_energies)
         # DIFF_2 = jnp.square(DIFF)
         MAPE = jnp.divide(DIFF, jet_energies)
-        MAPE_s = jnp.divide(jnp.sum(MAPE), len(ietas_index))
+        MAPE_s = jnp.divide(jnp.sum(MAPE), len(jets))
         return MAPE_s
 
     # test = LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)
