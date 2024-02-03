@@ -183,6 +183,7 @@ if __name__ == "__main__" :
     hist_et_binning = jnp.append(0.1,et_binning)
     hist, xedges, yedges = jnp.histogram2d(ietas_index.ravel(), ihad.ravel(), bins=[hist_eta_binning, hist_et_binning])
     norm_batch_stat = np.where(hist==0, 1, hist/np.sum(hist)*100)
+    norm_batch_stat = norm_batch_stat.ravel()
 
     #######################################################################
     ## DEFINING LOSS FUNCTION
