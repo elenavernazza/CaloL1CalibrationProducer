@@ -44,6 +44,9 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers, i_epoch = None):
     
 def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, i_epoch = None):
 
+    eta_axis = [int(x) for x in eta_binning[eta_binning < 29]] + [int(x+1) for x in eta_binning[eta_binning >= 29]]
+    et_axis = ["0-0"] + ["{}-{}".format(et_binning[i],et_binning[i+1]) for i in range(0,len(et_binning)-1)]
+
     if i_epoch != None: epoch = '_{}'.format(i_epoch)
     else: epoch = ''
 
@@ -51,9 +54,9 @@ def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, i_epoch = None
 
     im = plt.pcolormesh(eta_binning, et_binning, SF_matrix, cmap='viridis', edgecolor='black', vmin=min_, vmax=max_)
     ax.set_xticks(eta_binning)
-    ax.set_xticklabels([int(x) for x in eta_binning], fontsize=11, rotation=90)
+    ax.set_xticklabels(eta_axis, fontsize=11, rotation=90)
     ax.set_yticks(et_binning)
-    ax.set_yticklabels([int(x) for x in et_binning], fontsize=11, rotation=0)
+    ax.set_yticklabels(et_axis, fontsize=11, rotation=0)
 
     colorbar = plt.colorbar(im, label=str(v_sample+' SFs'))
     nticks = 10
@@ -121,10 +124,12 @@ if __name__ == "__main__" :
     json_path = indir + '/training.json'
     with open(json_path, 'r') as json_file: data = json.load(json_file)
     ep = list(data["TrainLoss"].keys())
-    loss = list(data["TrainLoss"].values())
+    train_loss = list(data["TrainLoss"].values())
+    test_loss = list(data["TestLoss"].values())
 
     plt.figure(figsize=(10,10))
-    plt.plot(ep, loss, 'o--', color='red', label="Train Loss")
+    plt.plot(ep, train_loss, 'o--', color='red', label="Train Loss")
+    plt.plot(ep, test_loss, 'o--', color='blue', label="Test Loss")
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.grid(linestyle='dotted')
@@ -133,6 +138,7 @@ if __name__ == "__main__" :
     plt.savefig(savefile+'.png')
     plt.savefig(savefile+'.pdf')
     print(savefile)
+
 
     # SFsHistory = glob.glob(indir + '/History/ScaleFactors_*')
     # for i, SF_filename in enumerate(SFsHistory):
