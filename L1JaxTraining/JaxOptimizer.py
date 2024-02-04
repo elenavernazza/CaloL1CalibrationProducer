@@ -25,6 +25,7 @@ if __name__ == "__main__" :
     parser.add_option("--lr",                     dest="lr",                     default=0.001,      type=float,       help="Learning rate")
     parser.add_option("--ep",                     dest="ep",                     default=5,          type=int,         help="Number of epochs")
     parser.add_option("--mask",                   dest="mask",                   default=False,   action='store_true', help="Mask low energy SFs")
+    parser.add_option("--test",                   dest="test",                   default=0.1,        type=float,       help="Testing fraction")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -50,7 +51,7 @@ if __name__ == "__main__" :
     list_test_jets = []
     testing_stat = 0
 
-    testing_fraction = 0.1
+    testing_fraction = options.test
     end_file = 0
     print(" ### INFO: Loading files: testing fraction = {:.1f}%".format(testing_fraction*100))
 
@@ -138,14 +139,32 @@ if __name__ == "__main__" :
     print(" ### INFO: Testing on {} jets".format(len(test_jets)))
 
     #######################################################################
+    ## CUT ON UNCALIB RESPONSE
+    #######################################################################    
+
+    L1Energy = np.sum(towers[:,:,2], axis=1)
+    JetEnergy = jets[:,3]
+    Response = L1Energy / JetEnergy
+    sel = (Response < 3) & (Response > 0.3)
+    towers = towers[sel]
+    jets = jets[sel]
+
+    L1Energy = np.sum(test_towers[:,:,2], axis=1)
+    JetEnergy = test_jets[:,3]
+    Response = L1Energy / JetEnergy
+    sel = (Response < 3) & (Response > 0.3)
+    test_towers = test_towers[sel]
+    test_jets = test_jets[sel]
+
+    #######################################################################
     ## INITIALIZING SCALE FACTORS
     #######################################################################
 
     eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
     # et_binning  = [i for i in range(1,101)]
-    et_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
+    en_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
     eta_binning = jnp.array(eta_binning)
-    et_binning = jnp.array(et_binning) + 0.1 # this shift allows to have et = 1 in the first bin
+    et_binning = jnp.array(en_binning) + 0.1 # this shift allows to have et = 1 in the first bin
     print(" ### INFO: Eta binning = ", eta_binning)
     print(" ### INFO: Energy binning = ", et_binning)
 
@@ -188,6 +207,48 @@ if __name__ == "__main__" :
     #######################################################################
     ## DEFINING LOSS FUNCTION
     #######################################################################
+
+    def ComputeResponse (ietas_index, ihad_index, ihad, iem, jets, SFs):
+    
+        l_eta = len(eta_binning)
+        l_et = len(et_binning)
+        SFs = SFs.reshape(l_eta,l_et)
+
+        jet_energies = jets[:,3]
+        l1_jet_energies = jnp.zeros_like(jet_energies)
+
+        ihad_flat = ihad.flatten()
+        ietas_index_flat = ietas_index.flatten()
+        ihad_index_flat = ihad_index.flatten()
+        SF_for_these_towers_flat = SFs[ietas_index_flat, ihad_index_flat]
+        ihad_calib_flat = jnp.multiply(ihad_flat, SF_for_these_towers_flat)
+        ihad_calib = ihad_calib_flat.reshape(len(ihad_index),81)
+        l1_jet_energies = jnp.sum(ihad_calib[:], axis=1)
+        l1_jet_em_energies = jnp.sum(iem[:], axis=1)
+
+        return jnp.divide((l1_jet_energies + l1_jet_em_energies), jet_energies)
+
+    def ComputeMAPE (ietas_index, ihad_index, ihad, iem, jets, SFs):
+    
+        l_eta = len(eta_binning)
+        l_et = len(et_binning)
+        SFs = SFs.reshape(l_eta,l_et)
+
+        jet_energies = jets[:,3]
+        l1_jet_energies = jnp.zeros_like(jet_energies)
+
+        ihad_flat = ihad.flatten()
+        ietas_index_flat = ietas_index.flatten()
+        ihad_index_flat = ihad_index.flatten()
+        SF_for_these_towers_flat = SFs[ietas_index_flat, ihad_index_flat]
+        ihad_calib_flat = jnp.multiply(ihad_flat, SF_for_these_towers_flat)
+        ihad_calib = ihad_calib_flat.reshape(len(ihad_index),81)
+        l1_jet_energies = jnp.sum(ihad_calib[:], axis=1)
+        l1_jet_em_energies = jnp.sum(iem[:], axis=1)
+
+        DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - jet_energies)
+        MAPE = jnp.divide(DIFF, jet_energies)
+        return MAPE
 
     def LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs):
     
@@ -233,26 +294,27 @@ if __name__ == "__main__" :
     TrainingInfo["NEpochs"] = nb_epochs
     TrainingInfo["BS"] = bs
     TrainingInfo["LR"] = lr
+    TrainingInfo["TestingFraction"] = options.test
 
     LossHistory = {}
     TestLossHistory = {}
     history_dir = odir + '/History'
     os.system("mkdir -p {}".format(history_dir))
 
-    min_energy = np.min(et_binning)
-    max_energy = np.max(et_binning)
+    min_energy = np.min(en_binning)
+    max_energy = np.max(en_binning)
     energy_step = 1
 
     head_text = 'energy bins iEt       = [0'
-    for i in et_binning: head_text = head_text + ' ,{}'.format(i)
+    for i in en_binning: head_text = head_text + ' ,{}'.format(i)
     head_text = head_text + "]\n"
 
     head_text = head_text + 'energy bins GeV       = [0'
-    for i in et_binning: head_text = head_text + ' ,{}'.format(i/2)
+    for i in en_binning: head_text = head_text + ' ,{}'.format(i/2)
     head_text = head_text + "]\n"
 
     head_text = head_text + 'energy bins GeV (int) = [0'
-    for i in et_binning: head_text = head_text + ' ,{}'.format(int(i/2))
+    for i in en_binning: head_text = head_text + ' ,{}'.format(int(i/2))
     head_text = head_text + "]\n"
 
     print(" ### INFO: Start training with LR = {}, EPOCHS = {}".format(lr, nb_epochs))
@@ -265,12 +327,17 @@ if __name__ == "__main__" :
             jac = jacobian(LossFunction, argnums=5)(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)
             # apply derivative
             SFs_flat = SFs_flat - lr*jac*mask/norm_batch_stat
+            SFs_flat = jnp.maximum(SFs_flat, 0)
             # print loss for each batch
-            loss_value = float(np.mean(LossFunction(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)))
+            loss_value = float(LossFunction(ietas_index[i:i+bs], ihad_index[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat))
             if i%1000 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
         # save loss history
-        LossHistory[ep] = float(np.mean(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat)))
-        TestLossHistory[ep] = float(np.mean(LossFunction(test_ietas_index, test_ihad_index, test_ihad, test_iem, test_jets, SFs_flat)))
+        np.savez(history_dir+"/TrainLoss_{}".format(ep), ComputeMAPE(ietas_index, ihad_index, ihad, iem, jets, SFs_flat))
+        np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_index, ihad_index, ihad, iem, jets, SFs_flat))
+        LossHistory[ep] = float(LossFunction(ietas_index, ihad_index, ihad, iem, jets, SFs_flat))
+        np.savez(history_dir+"/TestLoss_{}".format(ep), ComputeMAPE(test_ietas_index, test_ihad_index, test_ihad, test_iem, test_jets, SFs_flat))
+        np.savez(history_dir+"/TestResp_{}".format(ep), ComputeResponse(test_ietas_index, test_ihad_index, test_ihad, test_iem, test_jets, SFs_flat))
+        TestLossHistory[ep] = float(LossFunction(test_ietas_index, test_ihad_index, test_ihad, test_iem, test_jets, SFs_flat))
         SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
         SFs_inv = np.transpose(SFs)
         SFOutFile = history_dir+'/ScaleFactors_{}_{}.csv'.format(options.v, ep)
