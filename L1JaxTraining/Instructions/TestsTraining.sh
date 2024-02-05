@@ -27,7 +27,7 @@ cmsenv
 caloname+=".py"
 folder=$number
 folder+="/NtuplesVnew"
-python3 RDF_Resolution.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam $caloname --outdir $folder
 
@@ -41,7 +41,7 @@ python3 RDF_Resolution.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD
 #  --outdir 0/NtuplesVunc
 # cp 0/NtuplesVunc $number
 
-python3 comparisonPlots.py --indir $folder --target jet --reco \
+python3 comparisonPlotsFast.py --indir $folder --target jet --reco \
  --old 0/NtuplesVold --unc 0/NtuplesVunc \
  --do_HoTot --doRate False --doTurnOn False
 
@@ -49,7 +49,7 @@ python3 comparisonPlots.py --indir $folder --target jet --reco \
 # RE-EMULATION 
 #################################################################################
 
-# tag="GT130XdataRun3Promptv3_CaloParams2023"
+# tag="GT130XdataRun3Promptv3_CaloParams2023JAX"
 # tag+=$number
 # tag+="_data_reco_json"
 # python3 submitOnTier3.py --inFileList JetMET__Run2022G-PromptReco-v1__Run362617__AOD \
@@ -64,31 +64,33 @@ python3 comparisonPlots.py --indir $folder --target jet --reco \
 #  --globalTag 130X_dataRun3_Prompt_v3 --data \
 #  --caloParams $caloname 
 
+# exit
+
 #################################################################################
 # REFERENCE 
 #################################################################################
 
-'''
-python3 JaxOptimizer.py --odir 6 --filesLim 20 --lr 0.001 --bs 1 --ep 50 --mask
-python3 SFPlots.py --indir 6
-python3 ProduceCaloParams.py --name caloParams_2023_JAX6_newCalib_cfi --HCAL 6/ScaleFactors_HCAL.csv
+# '''
+# python3 JaxOptimizer.py --odir 6 --filesLim 20 --lr 0.001 --bs 1 --ep 50 --mask
+# python3 SFPlots.py --indir 6
+# python3 ProduceCaloParams.py --name caloParams_2023_JAX6_newCalib_cfi --HCAL 6/ScaleFactors_HCAL.csv
 
-python3 RDF_Resolution.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
- --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \
- --HCALcalib --caloParam caloParams_2023_JAX6_newCalib_cfi.py --outdir 6/NtuplesVnew
-python3 comparisonPlots.py --target jet --reco \
- --old 0/NtuplesVold --unc 0/NtuplesVunc \
- --do_HoTot --doRate False --doTurnOn False --indir 6/NtuplesVnew
+# python3 RDF_Resolution.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \
+#  --HCALcalib --caloParam caloParams_2023_JAX6_newCalib_cfi.py --outdir 6/NtuplesVnew
+# python3 comparisonPlots.py --target jet --reco \
+#  --old 0/NtuplesVold --unc 0/NtuplesVunc \
+#  --do_HoTot --doRate False --doTurnOn False --indir 6/NtuplesVnew
 
 python3 submitOnTier3.py --inFileList JetMET__Run2022G-PromptReco-v1__Run362617__AOD \
- --outTag GT130XdataRun3Promptv3_CaloParams2023JAX6_data_reco_json \
+ --outTag GT130XdataRun3Promptv3_CaloParams2023JAX33_data_reco_json \
  --nJobs 31 --queue short --maxEvts 5000 --inJson Cert_Collisions2022_355100_362760_Golden \
  --globalTag 130X_dataRun3_Prompt_v3 --data --recoFromAOD \
- --caloParams caloParams_2023_JAX6_newCalib_cfi 
+ --caloParams caloParams_2023_JAX33_newCalib_cfi 
 
 python3 submitOnTier3.py --inFileList EphemeralZeroBias0__Run2022G-v1__Run362617__RAW \
- --outTag GT130XdataRun3Promptv3_CaloParams2023JAX6_data \
+ --outTag GT130XdataRun3Promptv3_CaloParams2023JAX33_data \
  --nJobs 31 --queue short --maxEvts 5000 \
  --globalTag 130X_dataRun3_Prompt_v3 --data \
- --caloParams caloParams_2023_JAX6_newCalib_cfi 
-'''
+ --caloParams caloParams_2023_JAX33_newCalib_cfi 
+# '''
