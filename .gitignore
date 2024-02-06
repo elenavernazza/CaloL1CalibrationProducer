@@ -9,3 +9,11 @@ __pycache__
 PerformanceEvaluation/PDFs/
 PerformanceEvaluation/ROOTs/
 PerformanceEvaluation/PNGs/
+caloParams/History/
+L1Training/RunInstructions/
+L1Plotting/RunInstructions/
+L1JaxTraining/Trainings/
+L1JaxTraining/Olivier/
+L1JaxTraining/test/
+caloParams/caloParams_2023_v56*_cfi.py
+caloParams/caloParams_2023_JAX*_newCalib_cfi.py

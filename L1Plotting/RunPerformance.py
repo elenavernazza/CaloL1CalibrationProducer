@@ -62,26 +62,26 @@ for i in options.indir.split(','):
     cmd.append('python3 comparisonPlots.py --indir ' + newcalib_outdir + ' --label Jet_data_reco  --target jet --reco \\')
     cmd.append(' --old ' + oldcalib_outdir + ' \\')
     cmd.append(' --unc ' + uncalib_outdir + ' \\')
-    cmd.append(' --do_HoTot --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 --er 1.305 --doResolution False --doResponse False \n')
+    cmd.append(' --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 --er 1.305 --doResolution False --doResponse False \n')
 
     # resolution plots uncalib
     cmd.append('python3 resolutions.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json/GoodNtuples \\')
-    cmd.append(' --outdir ' + uncalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
+    cmd.append(' --outdir ' + uncalib_outdir + ' --label Jet_data_reco --reco --target jet \\')
     cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \n')
     # resolution plots oldcalib
     cmd.append('python3 resolutions.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_data_reco_json \\')
-    cmd.append(' --outdir ' + oldcalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
+    cmd.append(' --outdir ' + oldcalib_outdir + ' --label Jet_data_reco --reco --target jet \\')
     cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \n')
     # resolution plots newcalib
     cmd.append('python3 resolutions.py --indir JetMET__Run2022G-PromptReco-v1__Run362617__AOD__GT130XdataRun3Promptv3_CaloParams2023v56' + options.addtag + '_Input' + i + '_data_reco_json \\')
-    cmd.append(' --outdir ' + newcalib_outdir + ' --label Jet_data_reco --reco --target jet --do_HoTot \\')
+    cmd.append(' --outdir ' + newcalib_outdir + ' --label Jet_data_reco --reco --target jet \\')
     cmd.append(' --raw --PuppiJet --jetPtcut 30 --etacut 3 --nEvts 100000 --no_plot \n')
 
     # comparison plots
     cmd.append('python3 comparisonPlots.py --indir ' + newcalib_outdir + ' --label Jet_data_reco  --target jet --reco \\')
     cmd.append(' --old ' + oldcalib_outdir + ' \\')
     cmd.append(' --unc ' + uncalib_outdir + ' \\')
-    cmd.append(' --do_HoTot --doRate False --doTurnOn False  \n')
+    cmd.append(' --doRate False --doTurnOn False  \n')
 
     file = open (log_file, 'w')
     for line in cmd:
