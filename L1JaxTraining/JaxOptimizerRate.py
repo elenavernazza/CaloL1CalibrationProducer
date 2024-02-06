@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from sklearn.model_selection import train_test_split
 import jax.numpy as jnp
 from jax.scipy import optimize
 import numpy as np
@@ -97,14 +98,6 @@ if __name__ == "__main__" :
     list_train_jets = []
     training_stat = 0
 
-    list_test_towers = []
-    list_test_jets = []
-    testing_stat = 0
-
-    testing_fraction = options.test
-    end_file = 0
-    print(" ### INFO: Loading files: testing fraction = {:.1f}%".format(testing_fraction*100))
-
     # Limiting the number of files
     if options.filesLim:
         for ifile in range(0, options.filesLim):
@@ -114,20 +107,6 @@ if __name__ == "__main__" :
             list_train_towers.append(x)
             list_train_jets.append(y)
             training_stat += len(y)
-            end_file = ifile
-        testLim = int(testing_fraction*training_stat)
-        for ifile in range(end_file, len(list_towers_files)):
-            x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
-            y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']            
-            if testing_stat + len(y) > testLim:
-                stop = testLim - testing_stat
-                list_test_towers.append(x[:stop])
-                list_test_jets.append(y[:stop])
-                break
-            else:
-                list_test_towers.append(x)
-                list_test_jets.append(y)
-                testing_stat += len(y)
 
     # Limiting the number of jets
     elif options.jetsLim:
@@ -141,51 +120,27 @@ if __name__ == "__main__" :
                 list_train_towers.append(x[:stop])
                 list_train_jets.append(y[:stop])
                 training_stat += stop
-                end_file = ifile
                 break
             else:
                 list_train_towers.append(x)
                 list_train_jets.append(y)
                 training_stat += len(y)
-        testLim = int(testing_fraction*options.jetsLim)
-        for ifile in range(end_file, len(list_towers_files)):
-            x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
-            y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']            
-            if testing_stat + len(y) > testLim:
-                stop = testLim - testing_stat
-                list_test_towers.append(x[:stop])
-                list_test_jets.append(y[:stop])
-                testing_stat += stop
-                break
-            else:
-                list_test_towers.append(x)
-                list_test_jets.append(y)
-                testing_stat += len(y)
 
     # No limitation
     else:
-        for ifile in range(0, int((1-testing_fraction)*len(list_towers_files))):
+        for ifile in range(0, len(list_towers_files)):
             print("Reading training file {}".format(ifile))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
             list_train_towers.append(x)
             list_train_jets.append(y)
             training_stat += len(y)
-        for ifile in range(int((1-testing_fraction)*len(list_towers_files)), len(list_towers_files)):
-            print("Reading testing file {}".format(ifile))
-            x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
-            y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
-            list_test_towers.append(x)
-            list_test_jets.append(y)
-            testing_stat += len(y)
 
-    towers = jnp.concatenate(list_train_towers)
-    jets = jnp.concatenate(list_train_jets)
-    # print(len(towers), len(jets))
+    X = jnp.concatenate(list_train_towers)
+    Y = jnp.concatenate(list_train_jets)
 
-    test_towers = jnp.concatenate(list_test_towers)
-    test_jets = jnp.concatenate(list_test_jets)
-    # print(len(test_towers), len(test_jets))
+    print(" ### INFO: Loading files: testing fraction = {:.1f}%".format(options.test*100))
+    towers, test_towers, jets, test_jets = train_test_split(X, Y, test_size=options.test, random_state=7)
 
     indir_rate = '/data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/EphemeralZeroBias_BarrelEndcap_Pt30To1000/EphemeralZeroBias0__Run2022G-v1__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data/tensors/'
     list_rate_files = glob.glob(indir_rate + "/towers_*.npz")   
@@ -370,10 +325,10 @@ if __name__ == "__main__" :
             loss_value = float(LossFunctionRate(ietas_idx[i:i+bs], ihad_idx[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)[0])
             if i%10 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
         # save loss history
-        np.savez(history_dir+"/TrainLoss_{}".format(ep), ComputeMAPE(ietas_idx, ihad_idx, ihad, iem, jets, SFs.reshape(l_eta,l_et)))
+        # np.savez(history_dir+"/TrainLoss_{}".format(ep), ComputeMAPE(ietas_idx, ihad_idx, ihad, iem, jets, SFs.reshape(l_eta,l_et)))
         # np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat))
         LossHistory[ep] = float(LossFunctionRate(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat)[0])
-        np.savez(history_dir+"/TestLoss_{}".format(ep), ComputeMAPE(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs.reshape(l_eta,l_et)))
+        # np.savez(history_dir+"/TestLoss_{}".format(ep), ComputeMAPE(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs.reshape(l_eta,l_et)))
         # np.savez(history_dir+"/TestResp_{}".format(ep), ComputeResponse(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs_flat))
         TestLossHistory[ep] = float(LossFunctionRate(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs_flat)[0])
         SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))

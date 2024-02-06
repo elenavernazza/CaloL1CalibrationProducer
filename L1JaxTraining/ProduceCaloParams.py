@@ -111,8 +111,8 @@ for line in Old_Lines[end_HCAL:start_HF]:
     New_Lines.append(line)
 
 print('### INFO: Adding HF')
-if options.HCAL:
-    f_HF = options.HCAL
+if options.HF:
+    f_HF = options.HF
     with open(f_HF) as f:
         first_line = True
         for i, line in enumerate(f.readlines()):
