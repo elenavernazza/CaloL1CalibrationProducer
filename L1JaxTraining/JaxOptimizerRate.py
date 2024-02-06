@@ -247,11 +247,13 @@ if __name__ == "__main__" :
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.mask:
         mask_energy = 8 + 0.1
-        mask = jnp.where(jnp.array(et_binning) <= mask_energy, 0, mask)
+        mask = jnp.where(et_binning <= mask_energy, 0, mask)
         print(" ### INFO: Masking applied to et < {}".format(mask_energy))
     mask_eta = 28
     print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
-    mask = jnp.where(jnp.array(eta_binning) > mask_eta, 0, mask)
+    eta_binning_reshaped = jnp.expand_dims(eta_binning, axis=1)
+    eta_binning_reshaped = jnp.tile(eta_binning_reshaped, (1, len(et_binning)))
+    mask = jnp.where(eta_binning_reshaped > mask_eta, 0, mask)
     mask = mask.ravel()
 
     # Samples for training
