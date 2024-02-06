@@ -115,12 +115,12 @@ if __name__ == "__main__" :
             list_train_jets.append(y)
             training_stat += len(y)
             end_file = ifile
-        testLim = testing_fraction*training_stat
+        testLim = int(testing_fraction*training_stat)
         for ifile in range(end_file, len(list_towers_files)):
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']            
             if testing_stat + len(y) > testLim:
-                stop = testLim - training_stat
+                stop = testLim - testing_stat
                 list_test_towers.append(x[:stop])
                 list_test_jets.append(y[:stop])
                 break
@@ -249,6 +249,9 @@ if __name__ == "__main__" :
         mask_energy = 8 + 0.1
         mask = jnp.where(jnp.array(et_binning) <= mask_energy, 0, mask)
         print(" ### INFO: Masking applied to et < {}".format(mask_energy))
+    mask_eta = 28
+    print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
+    mask = jnp.where(jnp.array(eta_binning) > mask_eta, 0, mask)
     mask = mask.ravel()
 
     # Samples for training
