@@ -147,15 +147,19 @@ if __name__ == "__main__" :
 
     list_rate = []
     rate_stat = 0
-    for ifile in range(0, len(list_rate_files)):
+    # for ifile in range(0, len(list_rate_files)):
+    #     x = jnp.load(list_rate_files[ifile], allow_pickle=True)['arr_0']
+    #     if rate_stat + len(x) > training_stat:
+    #         stop = rate_stat - training_stat
+    #         list_rate.append(x[:stop])
+    #         break
+    #     else:
+    #         list_rate.append(x)
+    #         rate_stat += len(x)
+    for ifile in range(0, 50):
         x = jnp.load(list_rate_files[ifile], allow_pickle=True)['arr_0']
-        if rate_stat + len(x) > training_stat:
-            stop = rate_stat - training_stat
-            list_rate.append(x[:stop])
-            break
-        else:
-            list_rate.append(x)
-            rate_stat += len(x)
+        list_rate.append(x)
+        rate_stat += len(x)
     rate = jnp.concatenate(list_rate)
 
     print(" ### INFO: Training on {} jets".format(len(jets)))
@@ -323,7 +327,7 @@ if __name__ == "__main__" :
             SFs_flat = jnp.maximum(SFs_flat, 0)
             # print loss for each batch
             loss_value = float(LossFunctionRate(ietas_idx[i:i+bs], ihad_idx[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)[0])
-            if i%10 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
+            if i%100 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
         # save loss history
         # np.savez(history_dir+"/TrainLoss_{}".format(ep), ComputeMAPE(ietas_idx, ihad_idx, ihad, iem, jets, SFs.reshape(l_eta,l_et)))
         # np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat))
