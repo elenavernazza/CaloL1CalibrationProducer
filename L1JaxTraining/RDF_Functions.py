@@ -149,7 +149,7 @@ ROOT.gInterpreter.Declare("""
 ROOT.gInterpreter.Declare("""  
     using Vfloat = const ROOT::RVec<float>&;
     ROOT::RVec<float> FindIeta(Vfloat eta) {
-                            
+        
         map<const int, std::vector<float>> TowersEta = {
         {1, {0,      0.087}},   {2, {0.087,  0.174}},   {3, {0.174,  0.261}},   {4, {0.261,  0.348}},   {5, {0.348,  0.435}},
         {6, {0.435,  0.522}},   {7, {0.522,  0.609}},   {8, {0.609,  0.696}},   {9, {0.696,  0.783}},   {10, {0.783, 0.870}},
@@ -298,6 +298,59 @@ ROOT.gInterpreter.Declare("""
     }
 """)
 
+ROOT.gInterpreter.Declare("""                        
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<ROOT::RVec<float>> ChunkyDonutEnergyWithSeed (Vfloat L1_ieta, Vfloat L1_iphi, Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iem, Vfloat TT_ihad, Vfloat TT_iet, float seed) {
+
+        ROOT::RVec<float> vec_iem_sum;
+        ROOT::RVec<float> vec_ihad_sum;
+        ROOT::RVec<float> vec_iet_sum;
+        
+        for (int i = 0; i < L1_ieta.size(); ++i) {
+            int max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(L1_ieta.at(i)))));
+            int min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(L1_ieta.at(i)))));
+            int max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(L1_iphi.at(i)))));
+            int min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(L1_iphi.at(i)))));
+            
+            float iem_sum = 0;
+            float ihad_sum = 0;
+            float iet_sum = 0;
+
+            bool seed_found = false;
+            for (int i_TT = 0; i_TT < TT_ieta.size(); i_TT ++) {
+                if (min_IPhi <= max_IPhi) {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) && 
+                        ((TT_iphi.at(i_TT) <= max_IPhi) && (TT_iphi.at(i_TT) >= min_IPhi))) {
+                        iem_sum  += TT_iem.at(i_TT);
+                        ihad_sum += TT_ihad.at(i_TT);
+                        iet_sum  += TT_iet.at(i_TT);
+                        if (TT_iem.at(i_TT) + TT_ihad.at(i_TT) >= seed) { 
+                            seed_found = true;
+                        }
+                    }
+                } 
+                else {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) &&
+                        ((TT_iphi.at(i_TT) >= max_IPhi) || (TT_iphi.at(i_TT) <= min_IPhi))) {
+                        iem_sum  += TT_iem.at(i_TT);
+                        ihad_sum += TT_ihad.at(i_TT);
+                        iet_sum  += TT_iet.at(i_TT); 
+                        if (TT_iem.at(i_TT) + TT_ihad.at(i_TT) >= seed) { 
+                            seed_found = true;
+                        }
+                    }                        
+                }                         
+            }
+            if (seed_found) {
+                vec_iem_sum.push_back(iem_sum/2);
+                vec_ihad_sum.push_back(ihad_sum/2);
+                vec_iet_sum.push_back(iet_sum/2);
+            }
+        }
+        return {vec_iem_sum, vec_ihad_sum, vec_iet_sum};
+    }
+""")
+
 ROOT.gInterpreter.Declare("""
     using Vfloat = const ROOT::RVec<float>&;
     ROOT::RVec<ROOT::RVec<float>> CutOffline(Vfloat Offline_pt, Vfloat Offline_eta, Vfloat Offline_phi, 
@@ -358,7 +411,6 @@ ROOT.gInterpreter.Declare("""
                 subleading_L1_pt = L1_pt.at(i_L1);
             }
         }
-        cout << "L1 " << leading_L1_pt << " " << L1_pt.size() << endl;
         return {leading_L1_pt, subleading_L1_pt};
 
     }

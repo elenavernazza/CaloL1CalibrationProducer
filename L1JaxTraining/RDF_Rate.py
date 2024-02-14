@@ -16,7 +16,7 @@ warnings.filterwarnings(action='ignore', category=UserWarning)
 '''
 python3 RDF_Rate.py \
  --indir EphemeralZeroBias0__Run2022G-v1__Run362617__RAW__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data  \
- --outdir 0/NtuplesVunc --target jet --raw --nEvts 100 --no_plot
+ --outdir Test_0/NtuplesVunc --target jet --raw --nEvts 100 --no_plot
 '''
 
 #######################################################################
@@ -132,30 +132,43 @@ if not options.plot_only:
 
     df = df.Define("TT_iesum", "GetSum (TT_iem, TT_ihad)")
 
-    df = df.Define("lead_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 2.5).at(0)")
+    df = df.Define("L1_ieta", "FindIeta(L1_eta)")
+    df = df.Define("L1_iphi", "FindIphi(L1_phi)")
+
+    df = df.Define("CD_iem",  "ChunkyDonutEnergyWithSeed (L1_ieta, L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet, 8).at(0)")
+    df = df.Define("CD_ihad", "ChunkyDonutEnergyWithSeed (L1_ieta, L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet, 8).at(1)")
+    df = df.Define("CD_iet",  "ChunkyDonutEnergyWithSeed (L1_ieta, L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet, 8).at(2)")
+    df = df.Define("CD_iesum", "GetSum (CD_iem, CD_ihad)")
+
+    # df = df.Define("lead_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 2.5).at(0)")
     # df = df.Define("subl_jet", "BuildLeadingJets (TT_ieta, TT_iphi, TT_iesum, 2.5).at(1)")
 
     df = df.Define("lead_L1_jet", "LeadingJets (L1_pt, L1_eta, L1_phi, 2.5).at(0)")
-    # df = df.Define("subl_L1_jet", "LeadingJets (L1_pt, L1_eta, L1_phi, 2.5).at(1)")
+    df = df.Define("subl_L1_jet", "LeadingJets (L1_pt, L1_eta, L1_phi, 2.5).at(1)")
 
-    print(" ### Define histograms")
+    ##################################################################
+    ##################################################################
+
+    # print(" ### Define histograms")
     
-    histo1 = df.Histo1D("lead_jet")
-    histo2 = df.Histo1D("lead_L1_jet")
-    # histo2 = df.Histo2D(("Ratio2", "", 50, 0, 2, 50, 0, 500), "Ratio", "good_L1_pt")
+    # histo1 = df.Histo1D(("lead_L1_jet", "lead_L1_jet", 50, 0, 500), "lead_L1_jet")
+    # histo2 = df.Histo1D(("subl_L1_jet", "subl_L1_jet", 50, 0, 500), "subl_L1_jet")
+    # histo3 = df.Histo1D(("lead_CD", "lead_CD", 50, 0, 500), "lead_CD")
+    # histo4 = df.Histo1D(("subl_CD", "subl_CD", 50, 0, 500), "subl_CD")
+    # # histo2 = df.Histo2D(("Ratio2", "", 50, 0, 2, 50, 0, 500), "Ratio", "good_L1_pt")
 
-    f = ROOT.TFile("./test.root","RECREATE")
-    histo1.Write(); 
-    histo2.Write(); 
-    f.Close()
-
-    sys.exit()
+    # f = ROOT.TFile("./test.root","RECREATE")
+    # histo1.Write(); 
+    # histo2.Write(); 
+    # histo3.Write(); 
+    # histo4.Write(); 
+    # f.Close()
 
     ##################################################################
     ##################################################################
 
-    lead_pt_name = "lead_CD_iesum"
-    subl_pt_name = "subl_CD_iesum"
+    lead_pt_name = "lead_CD"
+    subl_pt_name = "subl_CD"
 
     for region in ['Inclusive', 'er2p5', 'er1p305']:
         
@@ -163,41 +176,8 @@ if not options.plot_only:
         if region == 'er2p5':     etacut = 2.5;   suf = '_'+region
         if region == 'er1p305':   etacut = 1.305; suf = '_'+region
 
-        df = df.Define(f"lead_L1_id{suf}", "LeadingJets(L1_pt, L1_eta, L1_phi, {}).at(0)".format(etacut))
-        df = df.Define(f"subl_L1_id{suf}", "LeadingJets(L1_pt, L1_eta, L1_phi, {}).at(1)".format(etacut))
-
-        df = df.Filter(f"(lead_L1_id{suf} != -1) && (subl_L1_id{suf} != -1)")
-        df = df.Define(f"lead_L1_pt{suf}",    f"L1_pt.at(lead_L1_id{suf})")
-        df = df.Define(f"lead_L1_eta{suf}",   f"L1_eta.at(lead_L1_id{suf})")
-        df = df.Define(f"lead_L1_phi{suf}",   f"L1_phi.at(lead_L1_id{suf})")
-        df = df.Define(f"subl_L1_pt{suf}",    f"L1_pt.at(subl_L1_id{suf})")
-        df = df.Define(f"subl_L1_eta{suf}",   f"L1_eta.at(subl_L1_id{suf})")
-        df = df.Define(f"subl_L1_phi{suf}",   f"L1_phi.at(subl_L1_id{suf})")
-
-        # ##################################################################    
-        # ######################### CHUNKY DONUT ###########################
-
-        df = df.Define(f"lead_L1_ieta{suf}", f"FindIeta(lead_L1_eta{suf})")
-        df = df.Define(f"lead_L1_iphi{suf}", f"FindIphi(lead_L1_phi{suf})")
-        df = df.Define(f"lead_CD_iem{suf}",  f"ChunkyDonutEnergy (lead_L1_ieta{suf}, lead_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(0)")
-        df = df.Define(f"lead_CD_ihad{suf}", f"ChunkyDonutEnergy (lead_L1_ieta{suf}, lead_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(1)")
-        df = df.Define(f"lead_CD_iesum{suf}", f"lead_CD_iem{suf} + lead_CD_ihad{suf}")
-
-        df = df.Define(f"subl_L1_ieta{suf}", f"FindIeta(subl_L1_eta{suf})")
-        df = df.Define(f"subl_L1_iphi{suf}", f"FindIphi(subl_L1_phi{suf})")
-        df = df.Define(f"subl_CD_iem{suf}",  f"ChunkyDonutEnergy (subl_L1_ieta{suf}, subl_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(0)")
-        df = df.Define(f"subl_CD_ihad{suf}", f"ChunkyDonutEnergy (subl_L1_ieta{suf}, subl_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet).at(1)")
-        df = df.Define(f"subl_CD_iesum{suf}", f"subl_CD_iem{suf} + subl_CD_ihad{suf}")
-
-        if options.HCALcalib or options.ECALcalib:
-            
-            df = df.Define(f"lead_CD_iem_calib{suf}",  f"ChunkyDonutEnergy (lead_L1_ieta{suf}, lead_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(0)")
-            df = df.Define(f"lead_CD_ihad_calib{suf}", f"ChunkyDonutEnergy (lead_L1_ieta{suf}, lead_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
-            df = df.Define(f"lead_CD_iesum_calib{suf}", f"lead_CD_iem_calib{suf} + lead_CD_ihad_calib{suf}")
-
-            df = df.Define(f"subl_CD_iem_calib{suf}",  f"ChunkyDonutEnergy (subl_L1_ieta{suf}, subl_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(0)")
-            df = df.Define(f"subl_CD_ihad_calib{suf}", f"ChunkyDonutEnergy (subl_L1_ieta{suf}, subl_L1_iphi{suf}, TT_ieta, TT_iphi, TT_iem_calib, TT_ihad_calib, TT_iet).at(1)")
-            df = df.Define(f"subl_CD_iesum_calib{suf}", f"subl_CD_iem_calib{suf} + subl_CD_ihad_calib{suf}")
+        df = df.Define(f"lead_CD{suf}", "LeadingJets (CD_iesum, L1_eta, L1_phi, {}).at(0)".format(etacut))
+        df = df.Define(f"subl_CD{suf}", "LeadingJets (CD_iesum, L1_eta, L1_phi, {}).at(1)".format(etacut))
 
     #################################################################    
     ########################## HISTOGRAMS ###########################
