@@ -42,6 +42,8 @@ cmap = matplotlib.cm.get_cmap('Set1')
 indir = "/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/"+options.indir
 outdir = "/data_CMS/cms/motta/CaloL1calibraton/"+options.outdir
 label = options.label
+O2O = "_O2O" if options.offline else ""
+fix_eff = 'pt75eff'
 os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs')
 os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs')
 os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs')
@@ -84,7 +86,8 @@ if not options.plot_only:
     offline = options.offline
     if offline:
         mapping_dict = load_obj(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/online2offline_mapping_'+label+'.pkl')
-        online_thresholds = np.linspace(20,150,131).tolist()
+        # online_thresholds = np.linspace(20,150,131).tolist()
+        online_thresholds = np.linspace(8,150,143).tolist()
 
     print(" ### INFO: Start looping on events")
     for i in tqdm(range(0, nevents)):
@@ -137,7 +140,7 @@ if not options.plot_only:
             
             # single
             if filledProgression0==False:
-                if offline: ptProgression0.Fill(np.interp(level1Obj.Pt(), online_thresholds, mapping_dict[offline]))
+                if offline: ptProgression0.Fill(np.interp(level1Obj.Pt(), online_thresholds, mapping_dict[fix_eff]))
                 else:       ptProgression0.Fill(level1Obj.Pt())
                 filledProgression0 = True
 
@@ -155,7 +158,7 @@ if not options.plot_only:
 
                 # single
                 if filledProgression0er2p5==False:
-                    if offline: ptProgression0er2p5.Fill(np.interp(level1Obj.Pt(), online_thresholds, mapping_dict[offline]))
+                    if offline: ptProgression0er2p5.Fill(np.interp(level1Obj.Pt(), online_thresholds, mapping_dict[fix_eff]))
                     else:       ptProgression0er2p5.Fill(level1Obj.Pt())
                     filledProgression0er2p5 = True
 
@@ -173,7 +176,7 @@ if not options.plot_only:
                 if abs(level1Obj.Eta())<float(options.er):
                     # single
                     if filledProgression0er0p0==False:
-                        if offline: ptProgression0er0p0.Fill(np.interp(level1Obj.Pt(), online_thresholds, mapping_dict[offline]))
+                        if offline: ptProgression0er0p0.Fill(np.interp(level1Obj.Pt(), online_thresholds, mapping_dict[fix_eff]))
                         else:       ptProgression0er0p0.Fill(level1Obj.Pt())
                         filledProgression0er0p0 = True
 
@@ -188,16 +191,16 @@ if not options.plot_only:
                         ptJetsProgression0er0p0[1]=level1Obj.Pt()
 
         if IndexJetsProgression0[0]>=0 and IndexJetsProgression0[1]>=0:
-            if offline: ptDiProgression0.Fill(np.interp(ptJetsProgression0[0], online_thresholds, mapping_dict[offline]), np.interp(ptJetsProgression0[1], online_thresholds, mapping_dict[offline]))
+            if offline: ptDiProgression0.Fill(np.interp(ptJetsProgression0[0], online_thresholds, mapping_dict[fix_eff]), np.interp(ptJetsProgression0[1], online_thresholds, mapping_dict[fix_eff]))
             else:       ptDiProgression0.Fill(ptJetsProgression0[0],ptJetsProgression0[1])
         
         if IndexJetsProgression0er2p5[0]>=0 and IndexJetsProgression0er2p5[1]>=0:
-            if offline: ptDiProgression0er2p5.Fill(np.interp(ptJetsProgression0er2p5[0], online_thresholds, mapping_dict[offline]), np.interp(ptJetsProgression0er2p5[1], online_thresholds, mapping_dict[offline]))
+            if offline: ptDiProgression0er2p5.Fill(np.interp(ptJetsProgression0er2p5[0], online_thresholds, mapping_dict[fix_eff]), np.interp(ptJetsProgression0er2p5[1], online_thresholds, mapping_dict[fix_eff]))
             else:       ptDiProgression0er2p5.Fill(ptJetsProgression0er2p5[0],ptJetsProgression0er2p5[1])
 
         if options.er:
             if IndexJetsProgression0er0p0[0]>=0 and IndexJetsProgression0er0p0[1]>=0:
-                if offline: ptDiProgression0er0p0.Fill(np.interp(ptJetsProgression0er0p0[0], online_thresholds, mapping_dict[offline]), np.interp(ptJetsProgression0er0p0[1], online_thresholds, mapping_dict[offline]))
+                if offline: ptDiProgression0er0p0.Fill(np.interp(ptJetsProgression0er0p0[0], online_thresholds, mapping_dict[fix_eff]), np.interp(ptJetsProgression0er0p0[1], online_thresholds, mapping_dict[fix_eff]))
                 else:       ptDiProgression0er0p0.Fill(ptJetsProgression0er0p0[0],ptJetsProgression0er0p0[1])
 
     for i in range(0,241):
@@ -211,7 +214,7 @@ if not options.plot_only:
 
     print(" ### INFO: Saving to root format")
 
-    fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/rate_graphs_'+label+'_'+options.target+'.root','RECREATE')
+    fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/rate_graphs_'+label+O2O+'_'+options.target+'.root','RECREATE')
     ptProgression0.Write()
     ptDiProgression0.Write()
     rateProgression0.Write()
@@ -231,7 +234,7 @@ if not options.plot_only:
 
 else:
     print(" ### INFO: Read existing root files")
-    filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root')
+    filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+O2O+'_'+options.target+'.root')
     ptProgression0 = filein.Get('ptProgression0')
     ptDiProgression0 = filein.Get('ptDiProgression0')
     rateProgression0 = filein.Get('rateProgression0')
@@ -281,7 +284,7 @@ leg = plt.legend(loc = 'upper right', fontsize=20)
 leg._legend_box.align = "left"
 plt.xlabel(x_label)
 plt.ylabel('Rate [kHz]')
-plt.xlim(0, 120)
+plt.xlim(0, 200)
 plt.ylim(0.1, 1E5)
 # plt.xscale('symlog')
 plt.yscale('log')
@@ -289,8 +292,8 @@ for xtick in ax.xaxis.get_major_ticks():
     xtick.set_pad(10)
 plt.grid()
 mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/rate_'+label+'_'+options.target+'.pdf')
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/rate_'+label+'_'+options.target+'.png')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/rate_'+label+O2O+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/rate_'+label+O2O+'_'+options.target+'.png')
 plt.close()
 
 if options.target == 'jet':
@@ -328,7 +331,7 @@ leg = plt.legend(loc = 'upper right', fontsize=20)
 leg._legend_box.align = "left"
 plt.xlabel(x_label)
 plt.ylabel('Rate [kHz]')
-plt.xlim(0, 120)
+plt.xlim(0, 200)
 # plt.xscale('symlog')
 plt.ylim(0.1, 1E5)
 plt.yscale('log')
@@ -336,8 +339,8 @@ for xtick in ax.xaxis.get_major_ticks():
     xtick.set_pad(10)
 plt.grid()
 mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/rateEr2p5_'+label+'_'+options.target+'.pdf')
-plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/rateEr2p5_'+label+'_'+options.target+'.png')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/rateEr2p5_'+label+O2O+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/rateEr2p5_'+label+O2O+'_'+options.target+'.png')
 plt.close()
 
 if options.er:
@@ -376,7 +379,7 @@ if options.er:
     leg._legend_box.align = "left"
     plt.xlabel(x_label)
     plt.ylabel('Rate [kHz]')
-    plt.xlim(0, 120)
+    plt.xlim(0, 200)
     # plt.xscale('symlog')
     plt.ylim(0.1, 1E5)
     plt.yscale('log')
@@ -384,7 +387,7 @@ if options.er:
         xtick.set_pad(10)
     plt.grid()
     mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
-    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/rateEr'+er_label+'_'+label+'_'+options.target+'.pdf')
-    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/rateEr'+er_label+'_'+label+'_'+options.target+'.png')
+    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/rateEr'+er_label+'_'+label+O2O+'_'+options.target+'.pdf')
+    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/rateEr'+er_label+'_'+label+O2O+'_'+options.target+'.png')
     plt.close()
 

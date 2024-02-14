@@ -85,6 +85,7 @@ parser.add_option("--doRate",      dest="doRate",                           defa
 parser.add_option("--do_HoTot",    dest="do_HoTot",    action='store_true', default=False)
 parser.add_option("--do_EoTot",    dest="do_EoTot",    action='store_true', default=False)
 parser.add_option("--er",          dest="er",                               default=None) #eta restriction
+parser.add_option("--offline",     dest="offline",     action='store_true', default=False)
 (options, args) = parser.parse_args()
 
 # get/create folders
@@ -99,8 +100,9 @@ print(" ### INFO: NewCalib dir = {}".format(indir))
 
 label = options.label
 target = options.target
-os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref)
-os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref)
+O2O = "_O2O" if options.offline else ""
+os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+O2O+'_'+target+options.ref)
+os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+O2O+'_'+target+options.ref)
 
 #defining binning of histogram
 if options.target == 'jet':
@@ -151,7 +153,7 @@ y_label_scale       = 'Energy scale (Mean)'
 y_label_scale_max   = 'Energy scale (Maximum)'
 y_lim_scale = (0.5,1.5)
 
-x_label_rate = r'$E_{T}^{%s, L1}$' % (part_name)
+x_label_rate = r'$E_{T}^{%s, Offline}$' % (part_name) if options.offline else r'$E_{T}^{%s, L1}$' % (part_name)
 x_label_turnon = r'$E_{T}^{%s, %s}$' % (part_name, targ_name)
 
 ############################################################################################
@@ -262,53 +264,53 @@ if options.doResponse == True:
 ############################################################################################
 # for DEBUG
 
-# file_turnon_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
-# file_turnon_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
-# file_turnon_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
+file_turnon_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
+file_turnon_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
+file_turnon_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
 
-# print("\n *** COMPARING TURN ONS")
-# print(" ### INFO: UnCalib file  = {}".format(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
-# print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
-# print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
+print("\n *** COMPARING TURN ONS")
+print(" ### INFO: UnCalib file  = {}".format(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
+print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
+print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
 
-# y_label_turnon = 'Efficiency'
-# x_lim_turnon = (0, 250)
-# y_lim_turnon = (0, 1.05)
+y_label_turnon = 'Efficiency'
+x_lim_turnon = (0, 250)
+y_lim_turnon = (0, 1.05)
 
-# eta_range_list = ['', 'er2p5']
-# if options.er: eta_range_list.append("er"+options.er.replace(".", "p"))
+eta_range_list = ['', 'er2p5']
+if options.er: eta_range_list.append("er"+options.er.replace(".", "p"))
 
-# for rate in ['rateDi', 'rate']:
-#     for eta_range in eta_range_list:
+for rate in ['rateDi', 'rate']:
+    for eta_range in eta_range_list:
 
-#         if rate == 'rateDi':
-#             name = 'DiObj'
-#         if rate == 'rate':
-#             name = 'Obj'
+        if rate == 'rateDi':
+            name = 'DiObj'
+        if rate == 'rate':
+            name = 'Obj'
 
-#         if eta_range == '': 
-#             er_label = ''
-#             er_name = ''
-#         else:
-#             er_name = eta_range.capitalize()
-#             er_label = '_' + er_name
+        if eta_range == '': 
+            er_label = ''
+            er_name = ''
+        else:
+            er_name = eta_range.capitalize()
+            er_label = '_' + er_name
 
-#         for thr in [30,40,50,60,70,80,90,100]:
-#             turnon_unCalib  = file_turnon_unCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
-#             turnon_oldCalib = file_turnon_oldCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
-#             turnon_newCalib = file_turnon_newCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
-#             fig, ax = plt.subplots(figsize=(10,10))
-#             X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_unCalib)
-#             ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NoCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='black', zorder=0)
-#             X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_oldCalib)
-#             ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=OldCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='red', zorder=1)
-#             X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_newCalib)
-#             ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NewCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='green', zorder=2)
-#             SetStyle(ax, x_label_turnon, y_label_turnon, x_lim_turnon, y_lim_turnon, 'Fixed '+name+'ect Rate '+er_name+': '+str(round(thr,2))+' kHz', turnon=True)
-#             plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.pdf')
-#             plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
-#             print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
-#             plt.close()
+        for thr in [30,50,70,100]:
+            turnon_unCalib  = file_turnon_unCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
+            turnon_oldCalib = file_turnon_oldCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
+            turnon_newCalib = file_turnon_newCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
+            fig, ax = plt.subplots(figsize=(10,10))
+            X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_unCalib)
+            ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NoCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='black', zorder=0)
+            X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_oldCalib)
+            ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=OldCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='red', zorder=1)
+            X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_newCalib)
+            ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NewCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='green', zorder=2)
+            SetStyle(ax, x_label_turnon, y_label_turnon, x_lim_turnon, y_lim_turnon, 'Fixed '+name+'ect Rate '+er_name+': '+str(round(thr,2))+' kHz', turnon=True)
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.pdf')
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
+            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
+            plt.close()
 
 ############################################################################################
 ############################################################################################
@@ -413,9 +415,9 @@ if options.doResponse == True or options.doResolution == True:
 
 if options.doRate == True or options.doTurnOn == True:
 
-    file_rate_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+'_'+target+'.root', 'r')
-    file_rate_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+'_'+target+'.root', 'r')
-    file_rate_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/rate_graphs_'+label+'_'+target+'.root', 'r')
+    file_rate_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+O2O+'_'+target+'.root', 'r')
+    file_rate_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+O2O+'_'+target+'.root', 'r')
+    file_rate_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/rate_graphs_'+label+O2O+'_'+target+'.root', 'r')
 
     file_turnon_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
     file_turnon_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
@@ -424,14 +426,14 @@ if options.doRate == True or options.doTurnOn == True:
 if options.doRate == True:
 
     print("\n *** COMPARING RATES")
-    print(" ### INFO: UnCalib file  = {}".format(uncdir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+'_'+target+'.root'))
-    print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+'_'+target+'.root'))
-    print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/rate_graphs_'+label+'_'+target+'.root'))
+    print(" ### INFO: UnCalib file  = {}".format(uncdir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+O2O+'_'+target+'.root'))
+    print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/rate_graphs_'+label+O2O+'_'+target+'.root'))
+    print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/rate_graphs_'+label+O2O+'_'+target+'.root'))
     
     y_label_turnon = 'Efficiency'
     x_lim_turnon = (0, 200) #plt.xlim(0, 60) if int(thr) < 30 else plt.xlim(0, 200)
     y_lim_turnon = (0, 1.05)
-    x_lim_rate = (0, 120)
+    x_lim_rate = (0, 200)
     y_lim_rate = (0.1, 1E5)
 
     eta_range_list = ['', 'er2p5']
@@ -468,9 +470,9 @@ if options.doRate == True:
             ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NewCalibLabel, ls='None', lw=2, marker='o', color='green', zorder=2)
             SetStyle(ax, x_label_rate, y_label_rate, x_lim_rate, y_lim_rate)
             plt.yscale('log')
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+'_'+target+'.pdf')
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+'_'+target+'.png')
-            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+'_'+target+'.png')
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+O2O+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+O2O+'_'+target+'.pdf')
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+O2O+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+O2O+'_'+target+'.png')
+            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+O2O+'_'+target+options.ref+'/rate_'+name+er_name+'_'+label+O2O+'_'+target+'.png')
             plt.close()
 
             if options.doTurnOn == True:
@@ -509,9 +511,9 @@ if options.doRate == True:
                     X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_newCalib)
                     ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NewCalibLabel+R': $p_{T}^{L1}>$'+str(int(thrNewCalib))+' GeV', lw=2, marker='o', color='green', zorder=2)
                     SetStyle(ax, x_label_turnon, y_label_turnon, x_lim_turnon, y_lim_turnon, 'Fixed '+name+'ect Rate '+er_name+': '+str(round(rateOldCalibAtThr,2))+' kHz', turnon=True)
-                    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+'_'+target+'.pdf')
-                    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+'_'+target+'.png')
-                    print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+'_'+target+'.png')
+                    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+O2O+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+O2O+'_'+target+'.pdf')
+                    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+O2O+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+O2O+'_'+target+'.png')
+                    print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+O2O+'_'+target+options.ref+'/turnon_fixed'+name+'Rate'+er_name+'_'+thr+'_'+label+O2O+'_'+target+'.png')
                     plt.close()
 
                 # print("\n *** COMPARING INTEGRAL OF TURN ONS")

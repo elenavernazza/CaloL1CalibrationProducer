@@ -63,7 +63,8 @@ os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs')
 os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs')
 
 # defining binning of histogram
-bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100, 120, 150, 180, 250]
+# bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100, 120, 150, 180, 250]
+bins = np.arange(0,251,5)
 
 # list the ET thresholds to be tested
 thresholds = np.linspace(8,150,143).tolist()
@@ -315,7 +316,7 @@ if not options.plot_only:
     offline_pts = []
     for i in range(len(bins)-1):
         offline_pts.append((bins[i+1]+bins[i])/2)
-    mapping_dict = {'threshold':[], 'pt95eff':[], 'pt90eff':[], 'pt50eff':[]}
+    mapping_dict = {'threshold':[], 'pt95eff':[], 'pt90eff':[], 'pt75eff':[], 'pt50eff':[]}
 
     for i, thr in enumerate(thresholds):
         turnons.append(ROOT.TGraphAsymmErrors(passing[i], total, "cp"))
@@ -335,13 +336,14 @@ if not options.plot_only:
 
         mapping_dict['pt95eff'].append(np.interp(0.95, turnonY, offline_pts)) #,right=-99,left=-98)
         mapping_dict['pt90eff'].append(np.interp(0.90, turnonY, offline_pts)) #,right=-99,left=-98)
+        mapping_dict['pt75eff'].append(np.interp(0.75, turnonY, offline_pts)) #,right=-99,left=-98)
         mapping_dict['pt50eff'].append(np.interp(0.50, turnonY, offline_pts)) #,right=-99,left=-98)
 
     save_obj(mapping_dict, outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/online2offline_mapping_'+label+'.pkl')
 
     turnons_Er2p5 = []
 
-    mapping_dict_Er2p5 = {'threshold':[], 'pt95eff':[], 'pt90eff':[], 'pt50eff':[]}
+    mapping_dict_Er2p5 = {'threshold':[], 'pt95eff':[], 'pt90eff':[], 'pt75eff':[], 'pt50eff':[]}
     for i, thr in enumerate(thresholds):
         turnons_Er2p5.append(ROOT.TGraphAsymmErrors(passing_Er2p5[i], total_Er2p5, "cp"))
 
@@ -360,6 +362,7 @@ if not options.plot_only:
 
         mapping_dict_Er2p5['pt95eff'].append(np.interp(0.95, turnonY_Er2p5, offline_pts)) #,right=-99,left=-98)
         mapping_dict_Er2p5['pt90eff'].append(np.interp(0.90, turnonY_Er2p5, offline_pts)) #,right=-99,left=-98)
+        mapping_dict_Er2p5['pt75eff'].append(np.interp(0.75, turnonY_Er2p5, offline_pts)) #,right=-99,left=-98)
         mapping_dict_Er2p5['pt50eff'].append(np.interp(0.50, turnonY_Er2p5, offline_pts)) #,right=-99,left=-98)
 
     save_obj(mapping_dict, outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/online2offline_mapping_Er2p5'+label+'.pkl')
@@ -368,7 +371,7 @@ if not options.plot_only:
             
         turnons_Er0p0 = []
 
-        mapping_dict_Er0p0 = {'threshold':[], 'pt95eff':[], 'pt90eff':[], 'pt50eff':[]}
+        mapping_dict_Er0p0 = {'threshold':[], 'pt95eff':[], 'pt90eff':[], 'pt75eff':[], 'pt50eff':[]}
         for i, thr in enumerate(thresholds):
             turnons_Er0p0.append(ROOT.TGraphAsymmErrors(passing_Er0p0[i], total_Er0p0, "cp"))
 
@@ -387,6 +390,7 @@ if not options.plot_only:
 
             mapping_dict_Er0p0['pt95eff'].append(np.interp(0.95, turnonY_Er0p0, offline_pts)) #,right=-99,left=-98)
             mapping_dict_Er0p0['pt90eff'].append(np.interp(0.90, turnonY_Er0p0, offline_pts)) #,right=-99,left=-98)
+            mapping_dict_Er0p0['pt75eff'].append(np.interp(0.75, turnonY_Er0p0, offline_pts)) #,right=-99,left=-98)
             mapping_dict_Er0p0['pt50eff'].append(np.interp(0.50, turnonY_Er0p0, offline_pts)) #,right=-99,left=-98)
 
         save_obj(mapping_dict, outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/online2offline_mapping_Er'+er_label+label+'.pkl')
@@ -413,6 +417,7 @@ if not options.plot_only:
     fig, ax = plt.subplots(figsize=(10,10))
     plt.plot(thresholds, mapping_dict['pt95eff'], label='@ 95% efficiency', linewidth=2, color='blue')
     plt.plot(thresholds, mapping_dict['pt90eff'], label='@ 90% efficiency', linewidth=2, color='red')
+    plt.plot(thresholds, mapping_dict['pt75eff'], label='@ 75% efficiency', linewidth=2, color='purple')
     plt.plot(thresholds, mapping_dict['pt50eff'], label='@ 50% efficiency', linewidth=2, color='green')
     SetStyleO2O(ax)
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/online2offline_mapping_'+label+'_'+options.target+'.pdf')
@@ -422,6 +427,7 @@ if not options.plot_only:
     fig, ax = plt.subplots(figsize=(10,10))
     plt.plot(thresholds, mapping_dict_Er2p5['pt95eff'], label='@ 95% efficiency', linewidth=2, color='blue')
     plt.plot(thresholds, mapping_dict_Er2p5['pt90eff'], label='@ 90% efficiency', linewidth=2, color='red')
+    plt.plot(thresholds, mapping_dict_Er2p5['pt75eff'], label='@ 75% efficiency', linewidth=2, color='purple')
     plt.plot(thresholds, mapping_dict_Er2p5['pt50eff'], label='@ 50% efficiency', linewidth=2, color='green')
     SetStyleO2O(ax)
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/online2offline_mapping_Er2p5'+label+'_'+options.target+'.pdf')
@@ -432,6 +438,7 @@ if not options.plot_only:
         fig, ax = plt.subplots(figsize=(10,10))
         plt.plot(thresholds, mapping_dict_Er0p0['pt95eff'], label='@ 95% efficiency', linewidth=2, color='blue')
         plt.plot(thresholds, mapping_dict_Er0p0['pt90eff'], label='@ 90% efficiency', linewidth=2, color='red')
+        plt.plot(thresholds, mapping_dict_Er0p0['pt75eff'], label='@ 75% efficiency', linewidth=2, color='purple')
         plt.plot(thresholds, mapping_dict_Er0p0['pt50eff'], label='@ 50% efficiency', linewidth=2, color='green')
         SetStyleO2O(ax)
         plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/online2offline_mapping_Er'+er_label+label+'_'+options.target+'.pdf')
