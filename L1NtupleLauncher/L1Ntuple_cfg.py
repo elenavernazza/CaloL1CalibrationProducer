@@ -81,10 +81,10 @@ if options.JSONfile:
     process.source.lumisToProcess = LumiList.LumiList(filename = options.JSONfile).getVLuminosityBlockRange()
 
 process.options = cms.untracked.PSet(
-    FailPath = cms.untracked.vstring(),
+    # FailPath = cms.untracked.vstring(), # for 2023
     IgnoreCompletely = cms.untracked.vstring(),
     Rethrow = cms.untracked.vstring(),
-    SkipEvent = cms.untracked.vstring('ProductNotFound'),
+    # SkipEvent = cms.untracked.vstring('ProductNotFound'), # for 2023
     accelerators = cms.untracked.vstring('*'),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),

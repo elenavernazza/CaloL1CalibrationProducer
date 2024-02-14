@@ -1,0 +1,9 @@
+/store/data/Run2023A/JetMET0/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/323/00000/c479ea94-5deb-40ed-90dd-bb1dd601d212.root
+/store/data/Run2023A/JetMET0/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/352/00000/6a93886f-70c0-4606-9ed7-2c42a986400e.root
+/store/data/Run2023A/JetMET0/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/354/00000/540958f0-c2d7-4113-b6ec-60182b8d6b46.root
+/store/data/Run2023A/JetMET0/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/361/00000/4ec793b5-2724-4a0f-a7d9-d45c2c295663.root
+/store/data/Run2023A/JetMET1/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/323/00000/eff16ff5-5173-432f-85aa-3d526c379f7a.root
+/store/data/Run2023A/JetMET1/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/325/00000/da43e17a-a198-4ef9-8702-c96219930666.root
+/store/data/Run2023A/JetMET1/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/352/00000/400a3677-7a72-4cff-81af-76a81d45b37d.root
+/store/data/Run2023A/JetMET1/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/354/00000/14f10482-542c-46dd-af96-8c9ad1f5abd3.root
+/store/data/Run2023A/JetMET1/RAW-RECO/JetHTJetPlusHOFilter-PromptReco-v2/000/366/361/00000/105fda0c-ea8f-4151-a047-afbd309e61c6.root
