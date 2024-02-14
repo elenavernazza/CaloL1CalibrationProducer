@@ -27,6 +27,8 @@ if __name__ == "__main__" :
     parser.add_option("--ep",                     dest="ep",                     default=5,          type=int,         help="Number of epochs")
     parser.add_option("--mask",                   dest="mask",                   default=False,   action='store_true', help="Mask low energy SFs")
     parser.add_option("--test",                   dest="test",                   default=0.1,        type=float,       help="Testing fraction")
+    parser.add_option("--norm",                   dest="norm",                   default=False,   action='store_true', help="Normalize by number of towers in each bin")
+    parser.add_option("--scale",                  dest="scale",                  default=1.,         type=float,       help="Target scale")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -135,11 +137,11 @@ if __name__ == "__main__" :
         mask_energy = 8 + 0.1
         mask = jnp.where(et_binning <= mask_energy, 0, mask)
         print(" ### INFO: Masking applied to et < {}".format(mask_energy))
-    # mask_eta = 28
-    # print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
-    # eta_binning_reshaped = jnp.expand_dims(eta_binning, axis=1)
-    # eta_binning_reshaped = jnp.tile(eta_binning_reshaped, (1, len(et_binning)))
-    # mask = jnp.where(eta_binning_reshaped > mask_eta, 0, mask)
+    mask_eta = 28
+    print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
+    eta_binning_reshaped = jnp.expand_dims(eta_binning, axis=1)
+    eta_binning_reshaped = jnp.tile(eta_binning_reshaped, (1, len(et_binning)))
+    mask = jnp.where(eta_binning_reshaped > mask_eta, 0, mask)
     mask = mask.ravel()
 
     # Samples for training
@@ -158,12 +160,15 @@ if __name__ == "__main__" :
     test_iem = test_towers[:, :, 0]
     test_ihad_idx = np.digitize(test_ihad, et_binning)
 
-    # Normalization by number of towers
-    hist_eta_binning = jnp.append(0,eta_binning)
-    hist_et_binning = jnp.append(0.1,et_binning)
-    hist, xedges, yedges = jnp.histogram2d(ietas_idx.ravel(), ihad.ravel(), bins=[hist_eta_binning, hist_et_binning])
-    norm_batch_stat = np.where(hist==0, 1, hist/np.sum(hist)*100)
-    norm_batch_stat = norm_batch_stat.ravel()
+    if options.norm:
+        # Normalization by number of towers
+        hist_eta_binning = jnp.append(0,eta_binning)
+        hist_et_binning = jnp.append(0.1,et_binning)
+        hist, xedges, yedges = jnp.histogram2d(ietas_idx.ravel(), ihad.ravel(), bins=[hist_eta_binning, hist_et_binning])
+        norm_batch_stat = np.where(hist==0, 1, hist/np.sum(hist)*100)
+        norm_batch_stat = norm_batch_stat.ravel()
+    else:
+        norm_batch_stat = jnp.ones(shape=(len(eta_binning),len(et_binning))).ravel()
 
     #######################################################################
     ## DEFINING LOSS FUNCTION
@@ -189,33 +194,13 @@ if __name__ == "__main__" :
 
         return jnp.divide((l1_jet_energies + l1_jet_em_energies), jet_energies)
 
-    def ComputeMAPE (ietas_idx, ihad_idx, ihad, iem, jets, SFs):
-    
-        l_eta = len(eta_binning)
-        l_et = len(et_binning)
-        SFs = SFs.reshape(l_eta,l_et)
-
-        jet_energies = jets[:,3]
-        l1_jet_energies = jnp.zeros_like(jet_energies)
-
-        ihad_flat = ihad.flatten()
-        ietas_idx_flat = ietas_idx.flatten()
-        ihad_idx_flat = ihad_idx.flatten()
-        SF_for_these_towers_flat = SFs[ietas_idx_flat, ihad_idx_flat]
-        ihad_calib_flat = jnp.multiply(ihad_flat, SF_for_these_towers_flat)
-        ihad_calib = ihad_calib_flat.reshape(len(ihad_idx),81)
-        l1_jet_energies = jnp.sum(ihad_calib[:], axis=1)
-        l1_jet_em_energies = jnp.sum(iem[:], axis=1)
-
-        DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - jet_energies)
-        MAPE = jnp.divide(DIFF, jet_energies)
-        return MAPE
-
     def LossFunction(ietas_idx, ihad_idx, ihad, iem, jets, SFs):
     
         l_eta = len(eta_binning)
         l_et = len(et_binning)
         SFs = SFs.reshape(l_eta,l_et)
+
+        scale = options.scale
 
         jet_energies = jets[:,3]
         l1_jet_energies = jnp.zeros_like(jet_energies)
@@ -230,9 +215,9 @@ if __name__ == "__main__" :
         l1_jet_energies = jnp.sum(ihad_calib[:], axis=1)
         l1_jet_em_energies = jnp.sum(iem[:], axis=1)
 
-        DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - jet_energies)
+        DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
         # DIFF_2 = jnp.square(DIFF)
-        MAPE = jnp.divide(DIFF, jet_energies)
+        MAPE = jnp.divide(DIFF, scale*jet_energies)
         MAPE_s = jnp.divide(jnp.sum(MAPE), len(jets))
         return MAPE_s
 
@@ -251,11 +236,14 @@ if __name__ == "__main__" :
 
     TrainingInfo = {}
     TrainingInfo["LossType"] = "MAPE"
+    TrainingInfo["Target Scale"] = options.scale
     TrainingInfo["NJets"] = len(jets)
     TrainingInfo["NEpochs"] = nb_epochs
     TrainingInfo["BS"] = bs
     TrainingInfo["LR"] = lr
     TrainingInfo["TestingFraction"] = options.test
+    TrainingInfo["Masking"] = options.mask
+    TrainingInfo["Normalization"] = options.norm
 
     LossHistory = {}
     TestLossHistory = {}
@@ -293,10 +281,8 @@ if __name__ == "__main__" :
             loss_value = float(LossFunction(ietas_idx[i:i+bs], ihad_idx[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat))
             if i%1000 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
         # save loss history
-        np.savez(history_dir+"/TrainLoss_{}".format(ep), ComputeMAPE(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat))
         np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat))
         LossHistory[ep] = float(LossFunction(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat))
-        np.savez(history_dir+"/TestLoss_{}".format(ep), ComputeMAPE(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs_flat))
         np.savez(history_dir+"/TestResp_{}".format(ep), ComputeResponse(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs_flat))
         TestLossHistory[ep] = float(LossFunction(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs_flat))
         SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))

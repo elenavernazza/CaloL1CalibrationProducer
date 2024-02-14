@@ -15,5 +15,6 @@ L1Plotting/RunInstructions/
 L1JaxTraining/Trainings/
 L1JaxTraining/Olivier/
 L1JaxTraining/test/
+L1Plotting/TestPlotting/
 caloParams/caloParams_2023_v56*_cfi.py
 caloParams/caloParams_2023_JAX*_newCalib_cfi.py
