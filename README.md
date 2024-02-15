@@ -33,7 +33,8 @@ cd CaloL1CalibrationProducer
 ## 1. Re-emulate data with the latest data taking conditions
 
 The first step is to re-emulate data acquired during 2023 with the latest data taking conditions.
-The data samples can be found on [CMSDAS](https://cmsweb.cern.ch/das/).\\
+The data samples can be found on [CMSDAS](https://cmsweb.cern.ch/das/).
+
 We will use either RAW or RAW-RECO for the re-emulation, the other versions do not contain enough information.
 Since these formats are quite heavy, always check that the files are actually available and not on TAPE.
 
@@ -45,7 +46,9 @@ Three datasets will be considered:
 Once the list of files for the three datasets is finalized, copy the list to a txt file inside the `L1NtupleLauncher/inputFiles` folder.
 
 <details>
-<summary>EGamma</summary>
+<summary>File list</summary>
+
+- EGamma
 
 ```bash
 dasgoclient --query=="file dataset=/EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO.txt
@@ -58,10 +61,7 @@ dasgoclient --query=="file dataset=/EGamma0/Run2023D-ZElectron-PromptReco-v2/RAW
 dasgoclient --query=="file dataset=/EGamma1/Run2023D-ZElectron-PromptReco-v2/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt
 ```
 
-</details>
-
-<details>
-<summary>JetMET</summary>
+- JetMET
 
 ```bash
 dasgoclient --query=="file dataset=/JetMET0/Run2023B-PromptReco-v1/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023B-PromptReco-v1__AOD.txt
@@ -73,12 +73,12 @@ dasgoclient --query=="file dataset=/JetMET1/Run2023C-PromptReco-v4/AOD" >> L1Ntu
 dasgoclient --query=="file dataset=/JetMET0/Run2023D-PromptReco-v2/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt
 dasgoclient --query=="file dataset=/JetMET1/Run2023D-PromptReco-v2/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt
 ```
-</details>
 
-<details>
-<summary>ZeroBias</summary>
+- ZeroBias
 
-`EphemeralZeroBias__Run2023D-v1__RAW` (for testing)
+```bash
+dasgoclient --query=="file dataset=/EphemeralZeroBias0/Run2023D-v1/RAW" >> L1NtupleLauncher/inputFiles/EphemeralZeroBias__Run2023D-v1__RAW.txt
+```
 
 </details>
 
@@ -89,14 +89,37 @@ The latest data taking conditions are defined by:
 - certification json [reference](https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PromptReco/Cert_Collisions2023_366442_370790_Golden.json)
 
 Note: This re-emulation calcels all the old calibration applied, so check that all the SFs are 1 in the caloParams_2023_v0_4_noL1Calib_cfi (except for the Zero Suppression). If not, change them manually.
+
 Copy your certification json to `/L1NtupleLauncher/DataCertificationJsons`.
+
 Copy your caloParams_2023_v0_4_noL1Calib_cfi.py to `src/L1Trigger/L1TCalorimeter/python/`.
 
 ### Re-emulate EGamma
 
 ```bash
 cd L1NtupleLauncher
+voms-proxy-init --rfc --voms cms -valid 192:00
 
+python submitOnTier3.py --inFileList EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 1344 --queue short --maxEvts -1 --data --recoFromSKIM
+
+python submitOnTier3.py --inFileList EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 11105 --queue short --maxEvts -1 --data --recoFromSKIM
+
+python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 1663 --queue short --maxEvts -1 --data --recoFromSKIM
 ```
 
 ### Re-emulate JetMET
@@ -127,8 +150,17 @@ python submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD \
     --nJobs 3560 --queue short --maxEvts -1 --data --recoFromAOD
 ```
 
-### Re-emulate data (ZB) with the current Global Tag
+### Re-emulate data ZeroBias
 
- cmsDriver.py l1Ntuple -s RAW2DIGI --python_filename=data.py -n 100 --no_output --era=Run3 --data --conditions=130X_dataRun3_Prompt_v4 --customise=L1Trigger/Configuration/customiseReEmul.L1TReEmulFromRAW  --customise=L1Trigger/L1TNtuples/customiseL1Ntuple.L1NtupleRAWEMU --customise=L1Trigger/Configuration/customiseSettings.L1TSettingsToCaloParams_2023_v0_4 --filein=/store/data/Run2023D/EphemeralZeroBias0/RAW/v1/000/370/293/00000/0545057e-416f-49e0-8ffb-fdca37061d4e.root 
+```bash
+cd L1NtupleLauncher
+voms-proxy-init --rfc --voms cms -valid 192:00
 
-cmsRun L1Ntuple_cfg.py maxEvents=-1 inputFiles_load=/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/filelist_2111.txt outputFile=Ntuple_2111.root caloParams=caloParams_2023_v0_4_noL1Calib_cfi globalTag=130X_dataRun3_Prompt_v4 reco=1 secondaryInputFiles_load=/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/secondaryFilelist_2111.txt data=1 JSONfile=/grid_mnt/data__data.polcms/cms/vernazza/L1TCalibration/2024_02_14/CMSSW_13_3_0/src/CaloL1CalibrationProducer/L1NtupleLauncher/DataCertificationJsons/Cert_Collisions2023_366442_370790_Golden.json
+python submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 772 --queue short --maxEvts -1 --data
+```
+
