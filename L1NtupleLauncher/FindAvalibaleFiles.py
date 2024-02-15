@@ -31,5 +31,5 @@ if __name__ == "__main__" :
 
     file = open (txt_name, 'w')
     for line in avaliable_sample_list:
-        file.write (line)
+        file.write (line + '\n')
     file.close ()
