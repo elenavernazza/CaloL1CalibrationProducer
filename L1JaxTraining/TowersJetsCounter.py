@@ -6,25 +6,20 @@ import numpy as np
 from optparse import OptionParser
 from jax import grad, jacobian
 import matplotlib.pyplot as plt
-import glob, os, json, matplotlib
+import glob, os, json, matplotlib, sys
 
 #######################################################################
 ######################### SCRIPT BODY #################################
 #######################################################################
 
-# python3 JaxOptimizer.py --filesLim 1 --odir test
-
 if __name__ == "__main__" :
 
     parser = OptionParser()
+    parser.add_option("--indir",                  dest="indir",                  default=""  ,                         help="Input directory with tensors")
     parser.add_option("--odir",                   dest="odir",                   default="./",                         help="Output tag of the output folder")
     parser.add_option("--v",                      dest="v",                      default="HCAL",                       help="Calibration target (ECAL, HCAL)")
     parser.add_option("--jetsLim",                dest="jetsLim",                default=None,       type=int,         help="Fix the total amount of jets to be used")
     parser.add_option("--filesLim",               dest="filesLim",               default=None,       type=int,         help="Maximum number of npz files to use")
-    parser.add_option("--bs",                     dest="bs",                     default=1,          type=int,         help="Batch size")
-    parser.add_option("--lr",                     dest="lr",                     default=0.001,      type=float,       help="Learning rate")
-    parser.add_option("--ep",                     dest="ep",                     default=5,          type=int,         help="Number of epochs")
-    parser.add_option("--mask",                   dest="mask",                   default=False,   action='store_true', help="Mask low energy SFs")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -32,18 +27,17 @@ if __name__ == "__main__" :
     ## READING INPUT
     #######################################################################
 
-    indir = '/data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors'
+    if options.indir == "": sys.exit("Input directory is not specified")
+    indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir
+    print(indir)
     odir = options.odir
     os.system('mkdir -p '+ odir)
 
     list_towers_files = glob.glob(indir + "/towers_*.npz")
     list_jets_files = glob.glob(indir + "/jets_*.npz")
 
-    towers = jnp.load(list_towers_files[0], allow_pickle=True)['arr_0']
-    jets = jnp.load(list_jets_files[0], allow_pickle=True)['arr_0']
-
-    list_towers = []
-    list_jets = []
+    list_train_towers = []
+    list_train_jets = []
     training_stat = 0
 
     # Limiting the number of files
@@ -52,39 +46,41 @@ if __name__ == "__main__" :
             # print("Reading file {}".format(ifile))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
-            list_towers.append(x)
-            list_jets.append(y)
+            list_train_towers.append(x)
+            list_train_jets.append(y)
             training_stat += len(y)
 
     # Limiting the number of jets
     elif options.jetsLim:
         training_stat = 0
         for ifile in range(0, len(list_towers_files)):
-            # print("Reading file {}".format(ifile))
+            # print("Reading file {}, {}".format(ifile, training_stat))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
             if training_stat + len(y) > options.jetsLim:
                 stop = options.jetsLim - training_stat
-                list_towers.append(x[:stop])
-                list_jets.append(y[:stop])
+                list_train_towers.append(x[:stop])
+                list_train_jets.append(y[:stop])
+                training_stat += stop
                 break
             else:
-                list_towers.append(x)
-                list_jets.append(y)
+                list_train_towers.append(x)
+                list_train_jets.append(y)
                 training_stat += len(y)
-    
+
     # No limitation
     else:
         for ifile in range(0, len(list_towers_files)):
-            print("Reading file {}".format(ifile))
+            print("Reading training file {}".format(ifile))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
-            list_towers.append(x)
-            list_jets.append(y)
+            list_train_towers.append(x)
+            list_train_jets.append(y)
             training_stat += len(y)
 
-    towers = jnp.concatenate(list_towers)
-    jets = jnp.concatenate(list_jets)
+    towers = jnp.concatenate(list_train_towers)
+    jets = jnp.concatenate(list_train_jets)
+
 
     print(" ### INFO: Training on {} jets".format(len(jets)))
 
