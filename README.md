@@ -170,10 +170,11 @@ python submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
 ```
 
 Since many files are on TAPE, some jobs will fail due to error opening the file.
-To only select the good files in the next steps, use:
+To only select the good files and eventually resubmit non-finished jobs use:
 
 ```bash
 python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
 ```
 
 You can plot the re-emulated samples using:
@@ -208,6 +209,11 @@ python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTu
 
 ```bash
 cd L1NtupleReader
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70 \
+    --target reco --type jet --chunk_size 5000 \
+    --queue short \
+    --hcalcut 0.70 --lJetPtCut 30 --PuppiJet --matching
 python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
     --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_BarrelEndcap_Pt30_HoTot70 \
     --target reco --type jet --chunk_size 5000 \

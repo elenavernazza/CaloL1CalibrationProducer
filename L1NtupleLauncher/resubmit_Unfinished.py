@@ -1,9 +1,12 @@
 import os, sys, glob
 from tqdm import tqdm
 
+'''
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+'''
+
 indir = sys.argv[1]
-# indir = "/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2022G_Early-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json"
-# indir = "/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/Muon__Run2022G-PromptReco-v1__AOD__GT130XdataRun3Promptv3_CaloParams2023v02_noL1Calib_data_reco_json"
 
 print("\n ### INFO : Reading from {}".format(indir))
 
@@ -36,12 +39,20 @@ print("\n ### INFO : Number of total files = {}".format(len(LogFiles)))
 print(" ### INFO : Number of bad files = {}".format(len(bad_log)))
 print(" ### INFO : Number of empty files = {}".format(len(empty_log)))
 print(" ### INFO : Number of files to resubmit = {}".format(len(resubmit_log)))
-print(" ### INFO : Number of good files = {}".format(len(good_log)))
+print(" ### INFO : Number of good files = {}".format(len(good_log)), good_log)
 print(resubmit_log)
+breakpoint()
 
+do_move = input(f" ### Do you want to move the good files to {indir}/GoodNtuples? [y/n]\n")
+if do_move == "y":
+    for i_good_log in good_log:
+        os.system(f'mv  {indir}/filelist_{i_good_log}.txt {indir}/GoodNtuples')
+        os.system(f'mv  {indir}/secondaryFilelist_{i_good_log}.txt {indir}/GoodNtuples')
+        os.system(f'mv  {indir}/log_{i_good_log}.txt {indir}/GoodNtuples')
+        os.system(f'mv  {indir}/Ntuple_{i_good_log}.root {indir}/GoodNtuples')
 
-print("\n ### INFO : Looping on log files to find the bad ones")
 do_resubmit = input(" ### Do you want to resubmit the unfinished files? [y/n]\n")
+queue = input(" ### Choose queue [short/long]\n")
 
 if do_resubmit == "y":
     #     os.system("voms")
@@ -54,7 +65,7 @@ if do_resubmit == "y":
                 number = LogFile.split("/log_")[1].split(".txt")[0]
                 job = LogFile.split("/log_")[0] + "/job_" + number + ".sh"
                 if do_resubmit == "y":
-                    command = ('/data_CMS/cms/motta/CaloL1calibraton/t3submit -short \'' + job +"\'")
+                    command = ('/data_CMS/cms/motta/CaloL1calibraton/t3submit -' + queue+ ' \'' + job +"\'")
                     print(command)
                     os.system(command)
                 else:

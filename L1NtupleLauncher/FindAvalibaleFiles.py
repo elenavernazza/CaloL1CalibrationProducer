@@ -1,5 +1,10 @@
 import os, sys, glob, tqdm
 
+# cmsenv
+# python3 FindAvalibaleFiles.py --sample /EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO_test
+# python3 FindAvalibaleFiles.py --sample /EGamma1/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO_test
+
+
 if __name__ == "__main__" :
 
     from optparse import OptionParser
@@ -29,7 +34,7 @@ if __name__ == "__main__" :
         if sum_site > 0:
             avaliable_sample_list.append(sample)
 
-    file = open (txt_name, 'w')
+    file = open (txt_name, 'a')
     for line in avaliable_sample_list:
         file.write (line + '\n')
     file.close ()
