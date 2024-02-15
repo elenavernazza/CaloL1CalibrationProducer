@@ -43,15 +43,26 @@ Three datasets will be considered:
 - ZeroBias for the rate simulation
 
 Once the list of files for the three datasets is finalized, copy the list to a txt file inside the `L1NtupleLauncher/inputFiles` folder.
+
 <details>
 <summary>EGamma</summary>
-`L1NtupleLauncher/inputFiles/EGamma__Run2023A-ZElectron-PromptReco-v2__RAW-RECO.txt`\\
-`L1NtupleLauncher/inputFiles/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO.txt`\\
-`L1NtupleLauncher/inputFiles/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO.txt`\\
-`L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt` (for testing) \\
+
+```bash
+dasgoclient --query=="file dataset=/EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO.txt
+dasgoclient --query=="file dataset=/EGamma1/Run2023B-ZElectron-PromptReco-v1/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO.txt
+
+dasgoclient --query=="file dataset=/EGamma0/Run2023C-ZElectron-PromptReco-v4/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO.txt
+dasgoclient --query=="file dataset=/EGamma1/Run2023C-ZElectron-PromptReco-v4/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO.txt
+
+dasgoclient --query=="file dataset=/EGamma0/Run2023D-ZElectron-PromptReco-v2/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt
+dasgoclient --query=="file dataset=/EGamma1/Run2023D-ZElectron-PromptReco-v2/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt
+```
+
 </details>
+
 <details>
 <summary>JetMET</summary>
+
 ```bash
 dasgoclient --query=="file dataset=/JetMET0/Run2023B-PromptReco-v1/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023B-PromptReco-v1__AOD.txt
 dasgoclient --query=="file dataset=/JetMET1/Run2023B-PromptReco-v1/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023B-PromptReco-v1__AOD.txt
@@ -63,9 +74,12 @@ dasgoclient --query=="file dataset=/JetMET0/Run2023D-PromptReco-v2/AOD" >> L1Ntu
 dasgoclient --query=="file dataset=/JetMET1/Run2023D-PromptReco-v2/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt
 ```
 </details>
+
 <details>
 <summary>ZeroBias</summary>
+
 `EphemeralZeroBias__Run2023D-v1__RAW` (for testing)
+
 </details>
 
 The latest data taking conditions are defined by:
@@ -90,15 +104,28 @@ cd L1NtupleLauncher
 ```bash
 cd L1NtupleLauncher
 voms-proxy-init --rfc --voms cms -valid 192:00
+
 python submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__AOD \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
     --nJobs 5828 --queue short --maxEvts -1 --data --recoFromAOD
-```
 
-<!-- cmsRun L1Ntuple_cfg.py maxEvents=-1 inputFiles_load=/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023A-JetHTJetPlusHOFilter-PromptReco-v2__RAW_RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/filelist_0.txt outputFile=Ntuple_0.root caloParams=caloParams_2023_v0_4_noL1Calib_cfi globalTag=130X_dataRun3_Prompt_v4 reco=1 data=1 JSONfile=/grid_mnt/data__data.polcms/cms/vernazza/L1TCalibration/2024_02_14/CMSSW_13_3_0/src/CaloL1CalibrationProducer/L1NtupleLauncher/DataCertificationJsons/Cert_Collisions2023_366442_370790_Golden.json -->
+python submitOnTier3.py --inFileList JetMET__Run2023C-PromptReco-v4__AOD \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 33373 --queue short --maxEvts -1 --data --recoFromAOD
+
+python submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 3560 --queue short --maxEvts -1 --data --recoFromAOD
+```
 
 ### Re-emulate data (ZB) with the current Global Tag
 
