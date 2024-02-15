@@ -5,6 +5,11 @@ This repository contains all the packages and scripts to produce and test the La
 ### Introduction
 
 This guide contains the instructions to extract the calibration from 2023 data to be applied to 2024 data taking.
+It is divided into:
+- [Installation](#introduction)
+- [1. Re-emulate data with the latest data taking conditions](#1-re-emulate-data-with-the-latest-data-taking-conditions)
+- [2. Read jets a prepare inputs](#2-read-jets-a-prepare-inputs)
+- [3. Train the model and extract the Scale Factors](#3-train-the-model-and-extract-the-scale-factors)
 
 ## Installation
 
@@ -164,3 +169,56 @@ python submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
     --nJobs 772 --queue short --maxEvts -1 --data
 ```
 
+Since many files are on TAPE, some jobs will fail due to error opening the file.
+To only select the good files in the next steps, use:
+
+```bash
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+```
+
+You can plot the re-emulated samples using:
+
+```bash
+python3 resolutions.py --indir EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+ --outdir 2024_02_15_NtuplesV58/TestInput_EGamma2023B --label EGamma_data_reco --reco --nEvts 50000 --target ele \
+ --raw --LooseEle --do_EoTot --tag _LooseEle_50K_Raw
+
+python3 resolutions.py --indir JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+ --outdir 2024_02_15_NtuplesV58/TestInput_JetMET2023B --label Jet_data_reco --reco --nEvts 50000 --target jet \
+ --raw --PuppiJet --jetPtcut 30 --do_HoTot --tag _PuppiJet_50K_Pt30_Raw
+```
+
+## 2. Read jets a prepare inputs
+
+At this point we can read the re-emulated samples to extract the 9x9 chunky donut describing the EGamma and Jets at Layer-1.
+<!-- We need to add all the samples here (B,C,D) -->
+
+### Read EGamma
+
+```bash
+cd L1NtupleReader
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023B_LooseEle_EoTot80 \
+    --target reco --type ele --chunk_size 5000 \
+    --queue short \
+    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching
+```
+
+### Read Jet
+
+```bash
+cd L1NtupleReader
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_BarrelEndcap_Pt30_HoTot70 \
+    --target reco --type jet --chunk_size 5000 \
+    --queue short \
+    --hcalcut 0.70 --lJetPtCut 30 --PuppiJet --matching --etacut 28
+```
+
+## 3. Train the model and extract the Scale Factors
+
+```bash
+cd L1JaxTraining
+python3 JaxOptimizer.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors \
+ --odir Trainings_2023 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.5 --v HCAL
+```
