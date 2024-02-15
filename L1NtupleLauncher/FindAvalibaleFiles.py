@@ -10,7 +10,8 @@ if __name__ == "__main__" :
     print(options)
 
     sample_name = options.sample
-    txt_name = os.getcwd() + "/inputFiles/"  + "__".join(sample_name.split('/')[1:]) + '.txt'
+    if options.txt: txt_name = os.getcwd() + "/inputFiles/" + options.txt + '.txt'
+    else: txt_name = os.getcwd() + "/inputFiles/"  + "__".join(sample_name.split('/')[1:]) + '.txt'
     print(f" ### INFO: Saving samples to {txt_name}")
 
     avaliable_sample_list = []
