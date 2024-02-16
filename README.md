@@ -145,12 +145,6 @@ python submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__AOD \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
     --nJobs 5828 --queue short --maxEvts -1 --data --recoFromAOD
-# python submitOnTier3.py --inFileList JetMET__Run2023C-PromptReco-v4__AOD \
-#     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
-#     --inJson Cert_Collisions2023_366442_370790_Golden \
-#     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
-#     --globalTag 130X_dataRun3_Prompt_v4 \
-#     --nJobs 33373 --queue short --maxEvts -1 --data --recoFromAOD
 ```
 
 <!-- ### Re-emulate data ZeroBias
@@ -167,12 +161,15 @@ python submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
     --nJobs 772 --queue short --maxEvts -1 --data
 ``` -->
 
+<details>
+<summary>Check samples</summary>
+
 Since many files are on TAPE, some jobs will fail due to error opening the file.
 To only select the good files and eventually resubmit non-finished jobs use:
 
 ```bash
 python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
-ython3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
 ```
 ```bash
 python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
@@ -191,6 +188,8 @@ python3 resolutions.py --indir JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRu
  --outdir 2024_02_15_NtuplesV58/TestInput_JetMET2023B --label Jet_data_reco --reco --nEvts 50000 --target jet \
  --raw --PuppiJet --jetPtcut 30 --do_HoTot --tag _PuppiJet_50K_Pt30_Raw
 ```
+
+</details>
 
 ## 2. Read jets a prepare inputs
 
@@ -251,8 +250,6 @@ python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_Puppi
     --odir Trainings_2023/TestInputJetMET_BarrelEndcap --jetsLim 1000000
 ```
 
-Then train the model:
-
 ### Calibrate ECAL
 
 ### Calibrate HCAL
@@ -261,9 +258,9 @@ Then train the model:
 cd L1JaxTraining
 python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
     --odir Trainings_2023/JAX_HCAL_1 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.75 --v HCAL
-python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
-    --odir Trainings_2023/JAX_HCAL_2 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.8 --v HCAL
 ```
+
+The full list of training is stored in `L1JaxTraining/Instructions/RunTrainings.sh`.
 
 ## 4. Re-emulate and compare with old calibration
 
