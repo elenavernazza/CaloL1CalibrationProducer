@@ -33,7 +33,7 @@ python3 ../L1Plotting/turnOn.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2
 python3 ../L1Plotting/resolutions.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023"${number}"_data_reco_json \
  --outdir 2024_02_15_NtuplesV58/"${number}"/NtuplesVnew --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot --tag L1pt
 
-python3 ../L1Plotting/comparisonPlots.py --indir 2024_02_15_NtuplesV58/"${number}"/NtuplesVnew  --target jet --reco \
+python3 ../L1Plotting/comparisonPlots.py --indir 2024_02_15_NtuplesV58/"${number}"/NtuplesVnew  --target ele --reco \
  --old 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVoldL1pt \
  --unc 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVuncL1pt \
  --thrsFixRate 10 --thrsFixRate 12 --thrsFixRate 20 --thrsFixRate 40 --tag L1pt

@@ -208,7 +208,10 @@ if __name__ == "__main__" :
         l1_jet_energies = jnp.sum(ihad_calib[:], axis=1)
         l1_jet_em_energies = jnp.sum(iem[:], axis=1)
 
-        return jnp.divide((l1_jet_energies + l1_jet_em_energies), jet_energies)
+        if options.v == "HCAL":
+            return jnp.divide((l1_jet_energies + l1_jet_em_energies), jet_energies)
+        elif options.v == "ECAL":
+            return jnp.divide((l1_jet_energies), jet_energies)
 
     def LossFunction(ietas_idx, ihad_idx, ihad, iem, jets, SFs):
     
@@ -231,7 +234,10 @@ if __name__ == "__main__" :
         l1_jet_energies = jnp.sum(ihad_calib[:], axis=1)
         l1_jet_em_energies = jnp.sum(iem[:], axis=1)
 
-        DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
+        if options.v == "HCAL":
+            DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
+        elif options.v == "ECAL":
+            DIFF = jnp.abs((l1_jet_energies) - scale*jet_energies)
         # DIFF_2 = jnp.square(DIFF)
         MAPE = jnp.divide(DIFF, scale*jet_energies)
         MAPE_s = jnp.divide(jnp.sum(MAPE), len(jets))

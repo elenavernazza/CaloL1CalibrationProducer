@@ -15,7 +15,8 @@ number=$1
 python3 SFPlots.py --indir Trainings_2023/"${number}" --v ECAL
 
 python3 ProduceCaloParams.py --name caloParams_2023_"${number}"_newCalib_cfi \
- --ECAL Trainings_2023/"${number}"/ScaleFactors_ECAL.csv
+ --ECAL Trainings_2023/"${number}"/ScaleFactors_ECAL.csv \
+ --base caloParams_2023_v0_4_cfi.py
 
 #################################################################################
 # TESTING PLOTS

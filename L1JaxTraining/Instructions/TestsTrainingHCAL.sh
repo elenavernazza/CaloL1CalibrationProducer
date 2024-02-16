@@ -16,7 +16,8 @@ python3 SFPlots.py --indir Trainings_2023/"${number}" --v HCAL
 
 python3 ProduceCaloParams.py --name caloParams_2023_"${number}"_newCalib_cfi \
  --HCAL Trainings_2023/"${number}"/ScaleFactors_HCAL.csv \
- --HF Trainings_2023/"${number}"/ScaleFactors_HCAL.csv
+ --HF Trainings_2023/"${number}"/ScaleFactors_HCAL.csv \
+ --base caloParams_2023_v0_4_cfi.py
 
 #################################################################################
 # TESTING PLOTS

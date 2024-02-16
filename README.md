@@ -294,7 +294,8 @@ cd L1JaxTraining
 voms-proxy-init --rfc --voms cms -valid 192:00
 python3 SFPlots.py --indir Trainings_2023/JAX_ECAL_1 --v ECAL
 python3 ProduceCaloParams.py --name caloParams_2023_JAX_ECAL_1_newCalib_cfi \
- --ECAL Trainings_2023/JAX_ECAL_1/ScaleFactors_ECAL.csv
+ --ECAL Trainings_2023/JAX_ECAL_1/ScaleFactors_ECAL.csv \
+ --base caloParams_2023_v0_4_noL1Calib_cfi.py
 
 python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
@@ -372,8 +373,9 @@ python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EG
 ```bash
 cd L1JaxTraining
 python3 SFPlots.py --indir Trainings_2023/JAX_HCAL_1
-python3 ProduceCaloParams.py --name caloParams_2023_JAX_HCAL_1_newCalib_cfi --base caloParams_2023_v0_4_noL1Calib_cfi.py \
-    --HCAL ./Trainings_2023/JAX_HCAL_1/ScaleFactors_HCAL.csv --HF ./Trainings_2023/JAX_HCAL_1/ScaleFactors_HCAL.csv
+python3 ProduceCaloParams.py --name caloParams_2023_JAX_HCAL_1_newCalib_cfi \
+    --HCAL ./Trainings_2023/JAX_HCAL_1/ScaleFactors_HCAL.csv --HF ./Trainings_2023/JAX_HCAL_1/ScaleFactors_HCAL.csv \
+    --base caloParams_2023_v0_4_noL1Calib_cfi.py
 
 python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
@@ -488,7 +490,7 @@ python3 resolutions.py \
     --outdir 2024_02_15_NtuplesV58/JAX_ECAL_1/NtuplesVnew --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot --tag L1pt
 
 python3 comparisonPlots.py \
-    --indir 2024_02_15_NtuplesV58/JAX_ECAL_1/NtuplesVnew  --target jet --reco \
+    --indir 2024_02_15_NtuplesV58/JAX_ECAL_1/NtuplesVnew  --target ele --reco \
     --old 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVoldL1pt \
     --unc 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVuncL1pt \
     --thrsFixRate 10 --thrsFixRate 12 --thrsFixRate 20 --thrsFixRate 40 --tag L1pt
