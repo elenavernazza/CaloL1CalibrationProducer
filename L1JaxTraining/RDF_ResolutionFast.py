@@ -205,10 +205,12 @@ if not options.plot_only:
     if options.etacut:
         cut_eta = float(options.etacut)
 
-    # [FIXME] Yet to be implemented
-    if options.target == 'ele' and options.LooseEle:
-        sys.exit(" ERROR: This is not implemented yet")
-    #     df = df.Define("isLooseElectron", "Electron.isLooseElectron")
+    if options.LooseEle:
+        df = df.Define("FlagLooseElectron", "Electron.isLooseElectron")
+        df = df.Define("FlaggedLooseElectron",  "GetFlagged (Offline_pt, Offline_eta, Offline_phi, FlagLooseElectron)")
+        df = df.Redefine("Offline_pt",  "FlaggedLooseElectron.at(0)")
+        df = df.Redefine("Offline_eta", "FlaggedLooseElectron.at(1)")
+        df = df.Redefine("Offline_phi", "FlaggedLooseElectron.at(2)")
 
     df = df.Define("Offline_pt_cut", 
             "CutOffline(Offline_pt, Offline_eta, Offline_phi, {}, {}, {}).at(0)".format(cut_pt, cut_eta, cut_phi))

@@ -372,6 +372,23 @@ ROOT.gInterpreter.Declare("""
 
 ROOT.gInterpreter.Declare("""
     using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<ROOT::RVec<float>> GetFlagged(Vfloat Offline_pt, Vfloat Offline_eta, Vfloat Offline_phi,
+            Vfloat isLooseElectron) {
+        ROOT::RVec<float> Offline_pt_flag;
+        ROOT::RVec<float> Offline_eta_flag;
+        ROOT::RVec<float> Offline_phi_flag;
+        for (int i_Of = 0; i_Of < Offline_pt.size(); i_Of ++) {
+            if (isLooseElectron.at(i_Of) == 0) continue;
+            Offline_pt_flag.push_back(Offline_pt.at(i_Of));
+            Offline_eta_flag.push_back(Offline_eta.at(i_Of));
+            Offline_phi_flag.push_back(Offline_phi.at(i_Of));
+        }
+        return {Offline_pt_flag, Offline_eta_flag, Offline_phi_flag};
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
     ROOT::RVec<ROOT::RVec<float>> CutBarrel(Vfloat Offline_pt, Vfloat Offline_eta, Vfloat Offline_phi, 
             float cut_pt, float cut_eta, float cut_phi) {
         ROOT::RVec<float> Offline_pt_cut;
