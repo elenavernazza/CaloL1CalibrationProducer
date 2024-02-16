@@ -271,7 +271,7 @@ if not options.plot_only:
     if options.HCALcalib or options.ECALcalib:
         response_name = "Response_CD_calib"
         from RDF_Calibration import *
-        caloParams_file = "/data_CMS/cms/vernazza/L1TCalibration/CMSSW_13_1_0_pre4_Fix/CMSSW_13_1_0_pre4/src/CaloL1CalibrationProducer/caloParams/" + options.caloParam
+        caloParams_file = os.getcwd() + "/../caloParams/" + options.caloParam
         save_folder = outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs'
 
         ROOT.load_HCAL_SFs(caloParams_file, save_folder)
