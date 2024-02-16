@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
 import jax.numpy as jnp
-from jax.scipy import optimize
 import numpy as np
 from optparse import OptionParser
-from jax import grad, jacobian
 import matplotlib.pyplot as plt
 import glob, os, json, matplotlib, sys
 
@@ -17,6 +15,7 @@ if __name__ == "__main__" :
     parser = OptionParser()
     parser.add_option("--indir",                  dest="indir",                  default=""  ,                         help="Input directory with tensors")
     parser.add_option("--odir",                   dest="odir",                   default="./",                         help="Output tag of the output folder")
+    parser.add_option("--v",                      dest="v",                      default="HCAL",                       help="Calibration target (ECAL, HCAL)")
     parser.add_option("--jetsLim",                dest="jetsLim",                default=None,       type=int,         help="Fix the total amount of jets to be used")
     parser.add_option("--filesLim",               dest="filesLim",               default=None,       type=int,         help="Maximum number of npz files to use")
     (options, args) = parser.parse_args()
@@ -80,15 +79,17 @@ if __name__ == "__main__" :
     towers = jnp.concatenate(list_train_towers)
     jets = jnp.concatenate(list_train_jets)
 
-
     print(" ### INFO: Training on {} jets".format(len(jets)))
 
-    eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
-    # et_binning  = [i for i in range(1,101)]
+    if options.v == "HCAL":
+        eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
+    elif options.v == "ECAL":
+        eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     et_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
 
     eta_binning = np.array(eta_binning)
     et_binning = np.array(et_binning)
+    eta_axis = [int(x) for x in eta_binning[eta_binning < 29]] + [int(x+1) for x in eta_binning[eta_binning >= 29]]
 
     print(" ### INFO: Eta binning = ", eta_binning)
     print(" ### INFO: Energy binning = ", et_binning)
@@ -102,7 +103,10 @@ if __name__ == "__main__" :
     ## TOWERS HISTOGRAM
     #######################################################################
 
-    hist, xedges, yedges = np.histogram2d(ieta, ihad, bins=[eta_binning, et_binning])
+    if options.v == 'HCAL':
+        hist, xedges, yedges = np.histogram2d(ieta, ihad, bins=[eta_binning, et_binning])
+    elif options.v == 'ECAL':
+        hist, xedges, yedges = np.histogram2d(ieta, iem, bins=[eta_binning, et_binning])
     hist[hist == 0] = -1
     min_ = 1
     max_ = int(np.max(hist)/20)
@@ -113,7 +117,7 @@ if __name__ == "__main__" :
     im = plt.pcolormesh(xedges[:-1], yedges[:-1], hist.T, cmap=cmap, edgecolor='black', vmin=min_, vmax=max_)
     plt.colorbar()
     ax.set_xticks(eta_binning[:-1])
-    ax.set_xticklabels([int(x) for x in eta_binning[:-1]], fontsize=11, rotation=90)
+    ax.set_xticklabels([int(x) for x in eta_axis[:-1]], fontsize=11, rotation=90)
     ax.set_yticks(et_binning[:-1])
     ax.set_yticklabels([int(x) for x in et_binning[:-1]], fontsize=11, rotation=0)
     # colorbar.set_ticks(np.linspace(min_, max_, nticks))
