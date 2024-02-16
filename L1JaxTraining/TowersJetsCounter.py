@@ -17,7 +17,6 @@ if __name__ == "__main__" :
     parser = OptionParser()
     parser.add_option("--indir",                  dest="indir",                  default=""  ,                         help="Input directory with tensors")
     parser.add_option("--odir",                   dest="odir",                   default="./",                         help="Output tag of the output folder")
-    parser.add_option("--v",                      dest="v",                      default="HCAL",                       help="Calibration target (ECAL, HCAL)")
     parser.add_option("--jetsLim",                dest="jetsLim",                default=None,       type=int,         help="Fix the total amount of jets to be used")
     parser.add_option("--filesLim",               dest="filesLim",               default=None,       type=int,         help="Maximum number of npz files to use")
     (options, args) = parser.parse_args()

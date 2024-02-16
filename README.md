@@ -85,6 +85,22 @@ dasgoclient --query=="file dataset=/JetMET1/Run2023D-PromptReco-v2/AOD" >> L1Ntu
 dasgoclient --query=="file dataset=/EphemeralZeroBias0/Run2023D-v1/RAW" >> L1NtupleLauncher/inputFiles/EphemeralZeroBias__Run2023D-v1__RAW.txt
 ```
 
+To check the availability of samples, use:
+
+```bash
+python3 FindAvalibaleFiles.py --sample /EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO
+python3 FindAvalibaleFiles.py --sample /EGamma1/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO
+python3 FindAvalibaleFiles.py --sample /JetMET0/Run2023B-PromptReco-v1/AOD --txt JetMET__Run2023B-PromptReco-v1__AOD
+python3 FindAvalibaleFiles.py --sample /JetMET1/Run2023B-PromptReco-v1/AOD --txt JetMET__Run2023B-PromptReco-v1__AOD
+```
+
+The EraD samples will be used for the performance evaluation (~30 files are enough):
+```bash
+python3 FindAvalibaleFiles.py --sample /EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO_test # All but took 30
+python3 FindAvalibaleFiles.py --sample /JetMET0/Run2023D-PromptReco-v2/AOD --txt JetMET__Run2023D-PromptReco-v2__AOD # 29
+python3 FindAvalibaleFiles.py --sample /EphemeralZeroBias0/Run2023D-v1/RAW --txt EphemeralZeroBias__Run2023D-v1__RAW_test # All but took 30
+```
+
 </details>
 
 The latest data taking conditions are defined by:
@@ -104,27 +120,18 @@ Copy your caloParams_2023_v0_4_noL1Calib_cfi.py to `src/L1Trigger/L1TCalorimeter
 ```bash
 cd L1NtupleLauncher
 voms-proxy-init --rfc --voms cms -valid 192:00
-
 python submitOnTier3.py --inFileList EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
     --nJobs 1344 --queue short --maxEvts -1 --data --recoFromSKIM
-
 python submitOnTier3.py --inFileList EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 11105 --queue short --maxEvts -1 --data --recoFromSKIM
-
-python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO \
-    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
-    --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 1663 --queue short --maxEvts -1 --data --recoFromSKIM
+    --nJobs 4000 --queue short --maxEvts -1 --data --recoFromSKIM
 ```
 
 ### Re-emulate JetMET
@@ -132,30 +139,21 @@ python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__R
 ```bash
 cd L1NtupleLauncher
 voms-proxy-init --rfc --voms cms -valid 192:00
-
 python submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__AOD \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
     --nJobs 5828 --queue short --maxEvts -1 --data --recoFromAOD
-
-python submitOnTier3.py --inFileList JetMET__Run2023C-PromptReco-v4__AOD \
-    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
-    --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 33373 --queue short --maxEvts -1 --data --recoFromAOD
-
-python submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD \
-    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
-    --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 3560 --queue short --maxEvts -1 --data --recoFromAOD
+# python submitOnTier3.py --inFileList JetMET__Run2023C-PromptReco-v4__AOD \
+#     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+#     --inJson Cert_Collisions2023_366442_370790_Golden \
+#     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+#     --globalTag 130X_dataRun3_Prompt_v4 \
+#     --nJobs 33373 --queue short --maxEvts -1 --data --recoFromAOD
 ```
 
-### Re-emulate data ZeroBias
+<!-- ### Re-emulate data ZeroBias
 
 ```bash
 cd L1NtupleLauncher
@@ -167,23 +165,28 @@ python submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
     --nJobs 772 --queue short --maxEvts -1 --data
-```
+``` -->
 
 Since many files are on TAPE, some jobs will fail due to error opening the file.
 To only select the good files and eventually resubmit non-finished jobs use:
 
 ```bash
 python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+ython3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+```
+```bash
 python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
 ```
 
 You can plot the re-emulated samples using:
 
 ```bash
+cd L1Plotting
 python3 resolutions.py --indir EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --outdir 2024_02_15_NtuplesV58/TestInput_EGamma2023B --label EGamma_data_reco --reco --nEvts 50000 --target ele \
  --raw --LooseEle --do_EoTot --tag _LooseEle_50K_Raw
-
+```
+```bash
 python3 resolutions.py --indir JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --outdir 2024_02_15_NtuplesV58/TestInput_JetMET2023B --label Jet_data_reco --reco --nEvts 50000 --target jet \
  --raw --PuppiJet --jetPtcut 30 --do_HoTot --tag _PuppiJet_50K_Pt30_Raw
@@ -192,7 +195,15 @@ python3 resolutions.py --indir JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRu
 ## 2. Read jets a prepare inputs
 
 At this point we can read the re-emulated samples to extract the 9x9 chunky donut describing the EGamma and Jets at Layer-1.
-<!-- We need to add all the samples here (B,C,D) -->
+
+The reader will loop over all the jets and save the input to `*.npz` tensors directly compatible with the training script.
+Some selections are applied:
+- DeltaR separation between two objects
+- Matching between L1 object and Offline object
+- Electromagnetic (ecalcut) or Hadronic (hcalcut) fraction
+- For EGamma, only electrons passing the LooseEle flag are considered
+- For Jets, minimum JetPt at 30 GeV
+- If specified, maximum JetPt and maximum Eta 
 
 ### Read EGamma
 
@@ -200,6 +211,11 @@ At this point we can read the re-emulated samples to extract the 9x9 chunky donu
 cd L1NtupleReader
 python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
     --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023B_LooseEle_EoTot80 \
+    --target reco --type ele --chunk_size 5000 \
+    --queue short \
+    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023C_LooseEle_EoTot80 \
     --target reco --type ele --chunk_size 5000 \
     --queue short \
     --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching
@@ -223,8 +239,131 @@ python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTu
 
 ## 3. Train the model and extract the Scale Factors
 
+Before training the model, check the distribution of the input towers with:
+
 ```bash
 cd L1JaxTraining
-python3 JaxOptimizer.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors \
- --odir Trainings_2023 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.5 --v HCAL
+python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80/GoodNtuples/tensors \
+    --odir Trainings_2023/TestInputEGamma --jetsLim 1000000
+python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/TestInputJetMET --jetsLim 1000000
+python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/TestInputJetMET_BarrelEndcap --jetsLim 1000000
+```
+
+Then train the model:
+
+### Calibrate ECAL
+
+### Calibrate HCAL
+
+```bash
+cd L1JaxTraining
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_1 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.75 --v HCAL
+```
+
+<details>
+<summary>Testing</summary>
+
+```bash
+python3 SFPlots.py --indir Trainings_2023/JAX_HCAL_1
+```
+
+</details>
+
+## 4. Re-emulate and compare with old calibration
+
+### Re-emulate Zero Bias
+
+```bash
+cd L1NtupleLauncher
+voms-proxy-init --rfc --voms cms -valid 192:00
+python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
+    --nJobs 30 --queue short --maxEvts 5000 \
+    --globalTag 130X_dataRun3_Prompt_v4 --data \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
+python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data \
+    --nJobs 30 --queue short --maxEvts 5000 \
+    --globalTag 130X_dataRun3_Prompt_v4 --data \
+    --caloParams caloParams_2023_v0_4_cfi
+```
+
+### Re-emulate EGamma
+
+```bash
+cd L1NtupleLauncher
+voms-proxy-init --rfc --voms cms -valid 192:00
+python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 30 --queue short --maxEvts -1 --data --recoFromSKIM \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
+python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 30 --queue short --maxEvts -1 --data --recoFromSKIM \
+    --caloParams caloParams_2023_v0_4_cfi
+```
+
+### Re-emulate JetMET
+
+```bash
+cd L1NtupleLauncher
+voms-proxy-init --rfc --voms cms -valid 192:00
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --nJobs 29 --queue short --maxEvts 5000 \
+    --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --nJobs 29 --queue short --maxEvts 5000 \
+    --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
+    --caloParams caloParams_2023_v0_4_cfi
+```
+
+
+## Plot HCAL calibration
+
+```bash
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+ython3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+```
+```bash
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json
+```
+
+```bash
+cd L1Plotting
+python3 rate.py --indir EphemeralZeroBias__Run2023D-v1__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1pt --target jet --raw --nEvts 100000 --no_plot
+
+python3 rate.py --indir EphemeralZeroBias__Run2023D-v1__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_data \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1pt --target jet --raw --nEvts 100000 --no_plot
+
+python3 turnOn.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1pt --reco --target jet --raw --PuppiJet --nEvts 100000
+
+python3 turnOn.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1pt --reco --target jet --raw --PuppiJet --nEvts 100000
+
+python3 resolutions.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1pt --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot
+
+python3 resolutions.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1pt --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot
+
+python3 rate.py --indir EphemeralZeroBias__Run2023D-v1__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1pt --target jet --raw --nEvts 100000 --no_plot --offline
+
+python3 rate.py --indir EphemeralZeroBias__Run2023D-v1__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_data \
+ --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1pt --target jet --raw --nEvts 100000 --no_plot --offline
 ```
