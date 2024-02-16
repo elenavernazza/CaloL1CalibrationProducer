@@ -7,17 +7,23 @@ import numpy as np
 from optparse import OptionParser
 from jax import grad, jacobian
 import matplotlib.pyplot as plt
-import glob, os, json
+import glob, os, json, sys
 
 #######################################################################
 ######################### SCRIPT BODY #################################
 #######################################################################
 
-# python3 JaxOptimizer.py --filesLim 1 --odir test
+'''
+python3 JaxOptimizer.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors \
+ --odir Trainings/51 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.5
+
+source Instructions/TestsTraining.sh 51
+'''
 
 if __name__ == "__main__" :
 
     parser = OptionParser()
+    parser.add_option("--indir",                  dest="indir",                  default=""  ,                         help="Input directory with tensors")
     parser.add_option("--odir",                   dest="odir",                   default="./",                         help="Output tag of the output folder")
     parser.add_option("--v",                      dest="v",                      default="HCAL",                       help="Calibration target (ECAL, HCAL)")
     parser.add_option("--jetsLim",                dest="jetsLim",                default=None,       type=int,         help="Fix the total amount of jets to be used")
@@ -36,7 +42,8 @@ if __name__ == "__main__" :
     ## READING INPUT
     #######################################################################
 
-    indir = '/data_CMS/cms/motta/CaloL1calibraton/2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors'
+    if options.indir == "": sys.exit("Input directory is not specified")
+    indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir
     odir = options.odir
     os.system('mkdir -p '+ odir)
 
@@ -116,7 +123,10 @@ if __name__ == "__main__" :
     ## INITIALIZING SCALE FACTORS
     #######################################################################
 
-    eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+    if options.v == "HCAL":
+        eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+    elif options.v == "ECAL":
+        eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
     # et_binning  = [i for i in range(1,101)]
     en_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
     eta_binning = jnp.array(eta_binning)
@@ -127,21 +137,22 @@ if __name__ == "__main__" :
     l_et = len(et_binning)
 
     SFs = jnp.ones(shape=(len(eta_binning),len(et_binning)))
-    # Apply ZS to ieta <= 15 and iet == 1
-    SFs = jnp.where((eta_binning[:, None] <= 15) & (et_binning[None, :] == 1 + 0.1), 0, SFs)
+    if options.v == 'HCAL':
+        # Apply ZS to ieta <= 15 and iet == 1
+        SFs = jnp.where((eta_binning[:, None] <= 15) & (et_binning[None, :] == 1 + 0.1), 0, SFs)
+        print(" ### INFO: Zero Suppression applied to ieta <= 15, et == 1")
     SFs_flat = SFs.ravel()
-    print(" ### INFO: Zero Suppression applied to ieta <= 15, et == 1")
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.mask:
         mask_energy = 8 + 0.1
         mask = jnp.where(et_binning <= mask_energy, 0, mask)
         print(" ### INFO: Masking applied to et < {}".format(mask_energy))
-    mask_eta = 28
-    print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
-    eta_binning_reshaped = jnp.expand_dims(eta_binning, axis=1)
-    eta_binning_reshaped = jnp.tile(eta_binning_reshaped, (1, len(et_binning)))
-    mask = jnp.where(eta_binning_reshaped > mask_eta, 0, mask)
+    # mask_eta = 28
+    # print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
+    # eta_binning_reshaped = jnp.expand_dims(eta_binning, axis=1)
+    # eta_binning_reshaped = jnp.tile(eta_binning_reshaped, (1, len(et_binning)))
+    # mask = jnp.where(eta_binning_reshaped > mask_eta, 0, mask)
     mask = mask.ravel()
 
     # Samples for training
@@ -151,6 +162,7 @@ if __name__ == "__main__" :
     ihad = towers[:, :, 1]
     iem = towers[:, :, 0]
     ihad_idx = np.digitize(ihad, et_binning)
+    iem_idx = np.digitize(iem, et_binning)
 
     # Samples for testing
     test_ietas = jnp.argmax(test_towers[:, :, 3: ], axis=2) + 1
@@ -159,12 +171,16 @@ if __name__ == "__main__" :
     test_ihad = test_towers[:, :, 1]
     test_iem = test_towers[:, :, 0]
     test_ihad_idx = np.digitize(test_ihad, et_binning)
+    test_iem_idx = np.digitize(test_iem, et_binning)
 
     if options.norm:
         # Normalization by number of towers
         hist_eta_binning = jnp.append(0,eta_binning)
         hist_et_binning = jnp.append(0.1,et_binning)
-        hist, xedges, yedges = jnp.histogram2d(ietas_idx.ravel(), ihad.ravel(), bins=[hist_eta_binning, hist_et_binning])
+        if options.v == 'HCAL':
+            hist, xedges, yedges = jnp.histogram2d(ietas_idx.ravel(), ihad.ravel(), bins=[hist_eta_binning, hist_et_binning])
+        elif options.v == 'ECAL':
+            hist, xedges, yedges = jnp.histogram2d(ietas_idx.ravel(), iem.ravel(), bins=[hist_eta_binning, hist_et_binning])
         norm_batch_stat = np.where(hist==0, 1, hist/np.sum(hist)*100)
         norm_batch_stat = norm_batch_stat.ravel()
     else:
@@ -174,7 +190,7 @@ if __name__ == "__main__" :
     ## DEFINING LOSS FUNCTION
     #######################################################################
 
-    def ComputeResponse (ietas_idx, ihad_idx, ihad, iem, jets, SFs):
+    def ComputeResponse(ietas_idx, ihad_idx, ihad, iem, jets, SFs):
     
         l_eta = len(eta_binning)
         l_et = len(et_binning)
@@ -221,9 +237,6 @@ if __name__ == "__main__" :
         MAPE_s = jnp.divide(jnp.sum(MAPE), len(jets))
         return MAPE_s
 
-    # test = LossFunction(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat)
-    # print(test)
-
     #######################################################################
     ## TRAINING
     #######################################################################
@@ -235,6 +248,7 @@ if __name__ == "__main__" :
     lr = options.lr
 
     TrainingInfo = {}
+    TrainingInfo["Version"] = options.v
     TrainingInfo["LossType"] = "MAPE"
     TrainingInfo["Target Scale"] = options.scale
     TrainingInfo["NJets"] = len(jets)
@@ -268,28 +282,38 @@ if __name__ == "__main__" :
 
     print(" ### INFO: Start training with LR = {}, EPOCHS = {}".format(lr, nb_epochs))
 
+    if options.v == "HCAL":
+        calib_idx = ihad_idx;   test_calib_idx = test_ihad_idx
+        calib = ihad;           test_calib = test_ihad
+        uncalib = iem;          test_uncalib = test_iem
+    elif options.v == "ECAL":
+        calib_idx = iem_idx;    test_calib_idx = test_iem_idx
+        calib = iem;            test_calib = test_iem
+        uncalib = ihad;         test_uncalib = test_ihad
+
+    # print(LossFunction(ietas_idx, calib_idx, calib, uncalib, jets, SFs_flat))
+
     for ep in range(nb_epochs):
         print("\n *** Starting Epoch", ep)
-        for i in np.arange(0, len(ihad), bs):
-            if i == len(ihad) - 1: break
+        for i in np.arange(0, len(jets), bs):
+            if i == len(jets) - 1: break
             # calculate the loss
-            jac = jacobian(LossFunction, argnums=5)(ietas_idx[i:i+bs], ihad_idx[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat)
+            jac = jacobian(LossFunction, argnums=5)(ietas_idx[i:i+bs], calib_idx[i:i+bs], calib[i:i+bs], uncalib[i:i+bs], jets[i:i+bs], SFs_flat)
             # apply derivative
             SFs_flat = SFs_flat - lr*jac*mask/norm_batch_stat
             SFs_flat = jnp.maximum(SFs_flat, 0)
             # print loss for each batch
-            loss_value = float(LossFunction(ietas_idx[i:i+bs], ihad_idx[i:i+bs], ihad[i:i+bs], iem[i:i+bs], jets[i:i+bs], SFs_flat))
+            loss_value = float(LossFunction(ietas_idx[i:i+bs], calib_idx[i:i+bs], calib[i:i+bs], uncalib[i:i+bs], jets[i:i+bs], SFs_flat))
             if i%1000 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
         # save loss history
-        np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat))
-        LossHistory[ep] = float(LossFunction(ietas_idx, ihad_idx, ihad, iem, jets, SFs_flat))
-        np.savez(history_dir+"/TestResp_{}".format(ep), ComputeResponse(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs_flat))
-        TestLossHistory[ep] = float(LossFunction(test_ietas_idx, test_ihad_idx, test_ihad, test_iem, test_jets, SFs_flat))
+        np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_idx, calib_idx, calib, uncalib, jets, SFs_flat))
+        LossHistory[ep] = float(LossFunction(ietas_idx, calib_idx, calib, uncalib, jets, SFs_flat))
+        np.savez(history_dir+"/TestResp_{}".format(ep), ComputeResponse(test_ietas_idx, test_calib_idx, test_calib, test_uncalib, test_jets, SFs_flat))
+        TestLossHistory[ep] = float(LossFunction(test_ietas_idx, test_calib_idx, test_calib, test_uncalib, test_jets, SFs_flat))
         SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
         SFs_inv = np.transpose(SFs)
         SFOutFile = history_dir+'/ScaleFactors_{}_{}.csv'.format(options.v, ep)
         np.savetxt(SFOutFile, SFs_inv, delimiter=",", newline=',\n', header=head_text, fmt=','.join(['%1.4f']*len(eta_binning)))
-        # fill 2D histogram with number of jets for each et-eta bin
 
     SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
     SFs_inv = np.transpose(SFs)
@@ -297,7 +321,6 @@ if __name__ == "__main__" :
     SFOutFile = odir + '/ScaleFactors_{}.csv'.format(options.v)
     np.savetxt(SFOutFile, SFs_inv, delimiter=",", newline=',\n', header=head_text, fmt=','.join(['%1.4f']*len(eta_binning)))
     print('\nScale Factors saved to: {}'.format(SFOutFile))
-    # jnp.save(options.odir + 'test', SFs)
 
     TrainingInfo["TrainLoss"] = LossHistory
     TrainingInfo["TestLoss"] = TestLossHistory
@@ -305,5 +328,3 @@ if __name__ == "__main__" :
     json_data = json.dumps(TrainingInfo, indent=2)
     with open(json_path, "w") as json_file:
         json_file.write(json_data)
-
-    # SF_for_these_towers_flat = SFs[ietas_idx_flat, ihad_idx_flat]
