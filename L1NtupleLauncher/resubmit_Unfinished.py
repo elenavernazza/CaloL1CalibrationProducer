@@ -45,12 +45,10 @@ print(resubmit_log)
 do_move = input(f" ### Do you want to move the good files to {indir}/GoodNtuples? [y/n]\n")
 os.system(f'mkdir -p {indir}/GoodNtuples')
 if do_move == "y":
-    for i_good_log in tqdm(good_log):
-        os.system(f'mv  {indir}/filelist_{i_good_log}.txt \
-                  {indir}/secondaryFilelist_{i_good_log}.txt \
-                  {indir}/Ntuple_{i_good_log}.root \
-                  {indir}/log_{i_good_log}.txt \
-                  {indir}/GoodNtuples')
+    for i_good_log in good_log:
+        cmd = f'mv {indir}/filelist_{i_good_log}.txt {indir}/secondaryFilelist_{i_good_log}.txt {indir}/Ntuple_{i_good_log}*.root {indir}/log_{i_good_log}.txt {indir}/GoodNtuples'
+        print(cmd)
+        os.system(cmd)
 
 do_resubmit = input(" ### Do you want to resubmit the unfinished files? [y/n]\n")
 queue = input(" ### Choose queue [short/long]\n")
