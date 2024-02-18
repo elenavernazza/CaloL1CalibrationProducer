@@ -6,6 +6,9 @@ from optparse import OptionParser
 import matplotlib.pyplot as plt
 import glob, os, json, matplotlib, sys
 
+import mplhep
+plt.style.use(mplhep.style.CMS)
+
 #######################################################################
 ######################### SCRIPT BODY #################################
 #######################################################################
@@ -131,3 +134,43 @@ if __name__ == "__main__" :
     plt.savefig(savefile+'.pdf')
     print(savefile)
 
+    L1Energy = np.sum(towers[:,:,0], axis=1) + np.sum(towers[:,:,1], axis=1)
+    JetEnergy = jets[:, 3]
+    Response = np.array(L1Energy/JetEnergy)
+
+    fig, ax = plt.subplots(1, 1, figsize=(14,12))
+    bins_pt = np.linspace(0,200,200)
+    plt.hist(JetEnergy/2, bins=bins_pt, histtype='step', stacked=True, linewidth=2, color='black')
+    plt.xlabel(r'$p_{T}$ [GeV]')
+    plt.ylabel('Entries')
+    plt.grid(linestyle='dotted')
+    savefile = odir + '/InputJetPt'
+    plt.savefig(savefile+'.png')
+    plt.savefig(savefile+'.pdf')
+    print(savefile)
+
+    fig, ax = plt.subplots(1, 1, figsize=(14,12))
+    bins_res = np.linspace(0,3,200)
+    plt.hist(Response, bins=bins_res, histtype='step', stacked=True, linewidth=2, color='black')
+    plt.xlabel(r'Response')
+    plt.ylabel('Entries')
+    plt.grid(linestyle='dotted')
+    savefile = odir + '/InputResponse'
+    plt.savefig(savefile+'.png')
+    plt.savefig(savefile+'.pdf')
+    print(savefile)
+
+    fig, ax = plt.subplots(1, 1, figsize=(14,12))
+    bins_res = np.linspace(0,3,200)
+    eta = np.array(np.abs(jets[:,1]))
+    plt.hist(Response[(eta < 1.305)], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='blue', label='Barrel')
+    plt.hist(Response[(eta >= 1.305) & (eta < 3)], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='green', label='Endcap')
+    plt.hist(Response[(eta >= 3)], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='purple', label='Forward')
+    plt.xlabel(r'Response')
+    plt.ylabel('Entries')
+    plt.grid(linestyle='dotted')
+    plt.legend()
+    savefile = odir + '/InputResponseSplit'
+    plt.savefig(savefile+'.png')
+    plt.savefig(savefile+'.pdf')
+    print(savefile)

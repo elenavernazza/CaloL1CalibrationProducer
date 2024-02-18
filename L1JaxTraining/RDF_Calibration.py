@@ -98,10 +98,22 @@ ROOT.gInterpreter.Declare("""
             }
         }
 
+        HCAL_SFmap->GetXaxis()->SetTitle("i#eta");
+        HCAL_SFmap->GetYaxis()->SetTitle("iEt [0.5 GeV]");
         cout << "Saving to " << Form("%s/SFmap_HCAL.root", output) << endl;
         TFile* f = new TFile(Form("%s/SFmap_HCAL.root", output),"RECREATE");
         HCAL_SFmap->Write();
         f->Close();
+                          
+        TCanvas* c1 = new TCanvas("c1","c1",800,800);
+        HCAL_SFmap->SetTitle("");
+        HCAL_SFmap->Draw("COLZ");
+        HCAL_SFmap->GetZaxis()->SetRangeUser(0., 2.);
+        c1->SetLeftMargin(0.11);
+        c1->SetRightMargin(0.14);
+        c1->SaveAs(Form("%s/SFmap_HCAL.png", output));
+        c1->SaveAs(Form("%s/SFmap_HCAL.pdf", output));
+        c1->Close();
     }
 """)
 
@@ -125,11 +137,23 @@ ROOT.gInterpreter.Declare("""
                 HF_SFmap->SetBinContent(i+1, j+1, layer1ScaleFactors[j][i]);
             }
         }
-    
+
+        HF_SFmap->GetXaxis()->SetTitle("i#eta");
+        HF_SFmap->GetYaxis()->SetTitle("iEt [0.5 GeV]");    
         cout << "Saving to " << Form("%s/SFmap_HF.root", output) << endl;
         TFile* f = new TFile(Form("%s/SFmap_HF.root", output),"RECREATE");
         HF_SFmap->Write();
         f->Close();
+        
+        TCanvas* c1 = new TCanvas("c1","c1",800,800);
+        HF_SFmap->SetTitle("");
+        HF_SFmap->Draw("COLZ");
+        HF_SFmap->GetZaxis()->SetRangeUser(0., 2.);
+        c1->SetLeftMargin(0.11);
+        c1->SetRightMargin(0.14);
+        c1->SaveAs(Form("%s/SFmap_HF.png", output));
+        c1->SaveAs(Form("%s/SFmap_HF.pdf", output));
+        c1->Close();
     }
 """)
 
@@ -153,11 +177,23 @@ ROOT.gInterpreter.Declare("""
                 ECAL_SFmap->SetBinContent(i+1, j+1, layer1ScaleFactors[j][i]);
             }
         }
-        
+
+        ECAL_SFmap->GetXaxis()->SetTitle("i#eta");
+        ECAL_SFmap->GetYaxis()->SetTitle("iEt [0.5 GeV]"); 
         cout << "Saving to " << Form("%s/SFmap_ECAL.root", output) << endl;
         TFile* f = new TFile(Form("%s/SFmap_ECAL.root", output),"RECREATE");
         ECAL_SFmap->Write();
         f->Close();
+        
+        TCanvas* c1 = new TCanvas("c1","c1",800,800);
+        ECAL_SFmap->SetTitle("");
+        ECAL_SFmap->Draw("COLZ");
+        ECAL_SFmap->GetZaxis()->SetRangeUser(0., 2.);
+        c1->SetLeftMargin(0.11);
+        c1->SetRightMargin(0.14);
+        c1->SaveAs(Form("%s/SFmap_ECAL.png", output));
+        c1->SaveAs(Form("%s/SFmap_ECAL.pdf", output));
+        c1->Close();
     }
 """)
 

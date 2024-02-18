@@ -298,6 +298,9 @@ if not options.plot_only:
     df_e = df.Redefine("good_Of_pt", "SelectEndcap (good_Of_pt, good_Of_eta)")
     df_e = df_e.Redefine("good_Of_eta", "SelectEndcap (good_Of_eta, good_Of_eta)")
     df_e = df_e.Redefine(response_name, "SelectEndcap ({}, good_Of_eta)".format(response_name))
+    df_f = df.Redefine("good_Of_pt", "SelectForward (good_Of_pt, good_Of_eta)")
+    df_f = df_f.Redefine("good_Of_eta", "SelectForward (good_Of_eta, good_Of_eta)")
+    df_f = df_f.Redefine(response_name, "SelectForward ({}, good_Of_eta)".format(response_name))
     
     ##################################################################    
     ########################### DEBUGGING ############################
@@ -342,6 +345,8 @@ if not options.plot_only:
         "pt_barrel_resp_ptInclusive", res_bins, 0, 3), response_name)
     pt_endcap_resp_ptInclusive = df_e.Histo1D(("pt_endcap_resp_ptInclusive",
         "pt_endcap_resp_ptInclusive", res_bins, 0, 3), response_name) 
+    pt_forward_resp_ptInclusive = df_f.Histo1D(("pt_forward_resp_ptInclusive",
+        "pt_forward_resp_ptInclusive", res_bins, 0, 3), response_name) 
 
     ##################################################################    
     ##################################################################    
@@ -358,3 +363,4 @@ if not options.plot_only:
     pt_response_ptInclusive.Write()
     pt_barrel_resp_ptInclusive.Write()
     pt_endcap_resp_ptInclusive.Write()
+    pt_forward_resp_ptInclusive.Write()

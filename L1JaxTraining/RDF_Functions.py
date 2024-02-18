@@ -86,7 +86,7 @@ ROOT.gInterpreter.Declare("""
     ROOT::RVec<float> SelectBarrel (Vfloat A, Vfloat good_Of_eta) {
         ROOT::RVec<float> A_barrel;
         for (int i = 0; i < good_Of_eta.size(); ++i) {
-            if (good_Of_eta.at(i) < 1.305) {
+            if (abs(good_Of_eta.at(i)) < 1.305) {
                 A_barrel.push_back(A.at(i));
             }
         }
@@ -99,7 +99,20 @@ ROOT.gInterpreter.Declare("""
     ROOT::RVec<float> SelectEndcap (Vfloat A, Vfloat good_Of_eta) {
         ROOT::RVec<float> A_barrel;
         for (int i = 0; i < good_Of_eta.size(); ++i) {
-            if (good_Of_eta.at(i) > 1.479) {
+            if ((abs(good_Of_eta.at(i)) > 1.305) && (abs(good_Of_eta.at(i)) < 3.)) {
+                A_barrel.push_back(A.at(i));
+            }
+        }
+        return A_barrel;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<float> SelectForward (Vfloat A, Vfloat good_Of_eta) {
+        ROOT::RVec<float> A_barrel;
+        for (int i = 0; i < good_Of_eta.size(); ++i) {
+            if (abs(good_Of_eta.at(i)) > 3.) {
                 A_barrel.push_back(A.at(i));
             }
         }

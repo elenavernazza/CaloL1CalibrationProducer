@@ -171,7 +171,8 @@ if options.doResponse == True:
     print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+target+'.root'))
 
     # for histo_name in ["pt_response_ptInclusive", "pt_response_ptInclusive_CD"]:
-    for histo_name in ["pt_response_ptInclusive"]:
+    for histo_name in ["pt_response_ptInclusive", "pt_barrel_resp_ptInclusive", 
+                       "pt_endcap_resp_ptInclusive", "pt_forward_resp_ptInclusive"]:
 
         if histo_name == "pt_response_ptInclusive": name = ''
         if histo_name == "pt_response_ptInclusive_CD": name = '_CD'
@@ -179,6 +180,9 @@ if options.doResponse == True:
         inclusive_resp_unCalib  = file_unCalib.Get(histo_name)
         inclusive_resp_oldCalib = file_oldCalib.Get(histo_name)
         inclusive_resp_newCalib = file_newCalib.Get(histo_name)
+
+        if histo_name == "pt_response_ptInclusive": region = "inclusive"
+        else: region = histo_name.split("_")[1]
 
         for legend_type in ['w', 'w/o']:
 
@@ -205,8 +209,8 @@ if options.doResponse == True:
             ax.step(np.array((np.array(X[:-1])+np.array(X[1:]))/2), np.array(Y[:-1]), color='green')
             Ymax = max(Ymax, max(Y))
             SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0., Ymax*1.3), legend_label_response)
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive'+name+leg+'_'+label+'_'+target+'.pdf')
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive'+name+leg+'_'+label+'_'+target+'.png')
-            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/response_inclusive'+name+leg+'_'+label+'_'+target+'.png')
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/response_'+region+name+leg+'_'+label+'_'+target+'.pdf')
+            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/response_'+region+name+leg+'_'+label+'_'+target+'.png')
+            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/response_'+region+name+leg+'_'+label+'_'+target+'.png')
             plt.close()
 

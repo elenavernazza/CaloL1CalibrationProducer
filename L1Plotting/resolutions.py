@@ -116,9 +116,11 @@ if not options.plot_only:
     pt_response_ptInclusive = ROOT.TH1F("pt_response_ptInclusive","pt_response_ptInclusive",res_bins,0,3)
     pt_barrel_resp_ptInclusive = ROOT.TH1F("pt_barrel_resp_ptInclusive","pt_barrel_resp_ptInclusive",res_bins,0,3)
     pt_endcap_resp_ptInclusive = ROOT.TH1F("pt_endcap_resp_ptInclusive","pt_endcap_resp_ptInclusive",res_bins,0,3)
+    pt_forward_resp_ptInclusive = ROOT.TH1F("pt_forward_resp_ptInclusive","pt_forward_resp_ptInclusive",res_bins,0,3)
     pt_response_ptInclusive_CD = ROOT.TH1F("pt_response_ptInclusive_CD","pt_response_ptInclusive_CD",res_bins,0,3)
     pt_barrel_resp_ptInclusive_CD = ROOT.TH1F("pt_barrel_resp_ptInclusive_CD","pt_barrel_resp_ptInclusive_CD",res_bins,0,3)
     pt_endcap_resp_ptInclusive_CD = ROOT.TH1F("pt_endcap_resp_ptInclusive_CD","pt_endcap_resp_ptInclusive_CD",res_bins,0,3)
+    pt_forward_resp_ptInclusive_CD = ROOT.TH1F("pt_forward_resp_ptInclusive_CD","pt_forward_resp_ptInclusive_CD",res_bins,0,3)
 
     # PT RESPONSE - PT BINS HISTOGRAMS
     response_ptBins = []
@@ -311,9 +313,12 @@ if not options.plot_only:
                 if abs(targetObj.Eta()) < 1.305:
                     pt_barrel_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
                     pt_barrel_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-                elif abs(targetObj.Eta()) < 5.191 and abs(targetObj.Eta()) > 1.479:
+                elif abs(targetObj.Eta()) < 3. and abs(targetObj.Eta()) > 1.305:
                     pt_endcap_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
                     pt_endcap_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
+                elif abs(targetObj.Eta()) > 3.:
+                    pt_forward_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
+                    pt_forward_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
 
                 for i in range(len(ptBins)-1):
                     if targetObj.Pt() > ptBins[i] and targetObj.Pt() <= ptBins[i+1]:
@@ -468,9 +473,11 @@ if not options.plot_only:
     pt_response_ptInclusive.Write()
     pt_barrel_resp_ptInclusive.Write()
     pt_endcap_resp_ptInclusive.Write()
+    if options.target != "ele": pt_forward_resp_ptInclusive.Write()
     pt_response_ptInclusive_CD.Write()
     pt_barrel_resp_ptInclusive_CD.Write()
     pt_endcap_resp_ptInclusive_CD.Write()
+    if options.target != "ele": pt_forward_resp_ptInclusive_CD.Write()
     for i in range(len(response_ptBins)):
         response_ptBins[i].Write()
         barrel_response_ptBins[i].Write()
@@ -512,9 +519,11 @@ else:
     pt_response_ptInclusive = filein.Get('pt_response_ptInclusive')
     pt_barrel_resp_ptInclusive = filein.Get('pt_barrel_resp_ptInclusive')
     pt_endcap_resp_ptInclusive = filein.Get('pt_endcap_resp_ptInclusive')
+    if options.target != "ele": pt_forward_resp_ptInclusive = filein.Get('pt_forward_resp_ptInclusive')
     pt_response_ptInclusive_CD = filein.Get('pt_response_ptInclusive_CD')
     pt_barrel_resp_ptInclusive_CD = filein.Get('pt_barrel_resp_ptInclusive_CD')
     pt_endcap_resp_ptInclusive_CD = filein.Get('pt_endcap_resp_ptInclusive_CD')
+    if options.target != "ele": pt_forward_resp_ptInclusive_CD = filein.Get('pt_forward_resp_ptInclusive_CD')
     response_ptBins = []
     barrel_response_ptBins = []
     endcap_response_ptBins = []
@@ -579,7 +588,8 @@ elif options.target == 'ele':   part_name = 'e'
 elif options.target == 'met':   part_name = 'MET'
 
 barrel_label = r'Barrel $|\eta^{%s, %s}|<1.305$' % (part_name, targ_name)
-endcap_label = r'Endcap $1.479<|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
+endcap_label = r'Endcap $1.305<|\eta^{%s, %s}|<3$' % (part_name, targ_name)
+forward_label = r'Endcap $3<|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
 inclusive_label = r'Inclusive $|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
 
 x_label_pt      = r'$p_{T}^{%s, %s}$' % (part_name, targ_name)
@@ -647,8 +657,12 @@ Ymax = max(Y)
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_endcap_resp_ptInclusive)
 ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
 Ymax = max(Ymax, max(Y))
+if options.target != "ele": 
+    X,Y,X_err,Y_err = GetArraysFromHisto(pt_forward_resp_ptInclusive)
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(2))
+    Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(2))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(3))
 Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_'+label+'_'+options.target+'.pdf')
@@ -665,8 +679,12 @@ Ymax = max(Y)
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_endcap_resp_ptInclusive_CD)
 ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
 Ymax = max(Ymax, max(Y))
+if options.target != "ele": 
+    X,Y,X_err,Y_err = GetArraysFromHisto(pt_forward_resp_ptInclusive_CD)
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(2))
+    Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(2))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(3))
 Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_CD_'+label+'_'+options.target+'.pdf')
