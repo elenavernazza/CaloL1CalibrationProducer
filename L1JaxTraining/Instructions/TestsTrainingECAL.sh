@@ -26,15 +26,15 @@ python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__
  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
  --ECALcalib --caloParam caloParams_2023_"${number}"_newCalib_cfi.py --outdir Trainings_2023/"${number}"/NtuplesVnew
 
-python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
- --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
- --ECALcalib --caloParam caloParams_2023_v0_4_cfi.py \
- --outdir Trainings_2023/JAX_ECAL_0/NtuplesVold
+# python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
+#  --ECALcalib --caloParam caloParams_2023_v0_4_cfi.py \
+#  --outdir Trainings_2023/JAX_ECAL_0/NtuplesVold
 
-python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
- --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
- --ECALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
- --outdir Trainings_2023/JAX_ECAL_0/NtuplesVunc
+# python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
+#  --ECALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
+#  --outdir Trainings_2023/JAX_ECAL_0/NtuplesVunc
 
 python3 comparisonPlotsFast.py --indir Trainings_2023/"${number}"/NtuplesVnew --target ele --reco \
  --old Trainings_2023/JAX_ECAL_0/NtuplesVold --unc Trainings_2023/JAX_ECAL_0/NtuplesVunc \
@@ -49,19 +49,19 @@ alias cd_launch='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
 
 cd_launch
 
-# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
+# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
 #     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-#     --nJobs 30 --queue short --maxEvts 5000 \
+#     --nJobs 151 --queue short --maxEvts 2000 \
 #     --globalTag 130X_dataRun3_Prompt_v4 --data \
 #     --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
+# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
 #     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data \
-#     --nJobs 30 --queue short --maxEvts 5000 \
+#     --nJobs 151 --queue short --maxEvts 2000 \
 #     --globalTag 130X_dataRun3_Prompt_v4 --data \
 #     --caloParams caloParams_2023_v0_4_cfi
-python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW \
+python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
  --outTag GT130XdataRun3Promptv4_CaloParams2023"${number}"_data \
- --nJobs 30 --queue short --maxEvts 5000 \
+ --nJobs 151 --queue short --maxEvts 2000 \
  --globalTag 130X_dataRun3_Prompt_v4 --data \
  --caloParams caloParams_2023_"${number}"_newCalib_cfi
 

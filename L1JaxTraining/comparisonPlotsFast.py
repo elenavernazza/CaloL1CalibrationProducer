@@ -44,7 +44,7 @@ def SetStyle(ax, x_label, y_label, x_lim, y_lim, leg_title='', turnon=False):
     plt.grid()
     for xtick in ax.xaxis.get_major_ticks():
         xtick.set_pad(10)
-    if options.reco: mplhep.cms.label(data=False, rlabel='(13.6 TeV)')
+    if options.reco: mplhep.cms.label(data=True, rlabel='(13.6 TeV)')
     else:            mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
 
 def AddRectangles(ax, Ymax):
@@ -174,6 +174,9 @@ if options.doResponse == True:
     for histo_name in ["pt_response_ptInclusive", "pt_barrel_resp_ptInclusive", 
                        "pt_endcap_resp_ptInclusive", "pt_forward_resp_ptInclusive"]:
 
+        if options.target == "ele": 
+            if histo_name == "pt_forward_resp_ptInclusive": continue
+            
         if histo_name == "pt_response_ptInclusive": name = ''
         if histo_name == "pt_response_ptInclusive_CD": name = '_CD'
 

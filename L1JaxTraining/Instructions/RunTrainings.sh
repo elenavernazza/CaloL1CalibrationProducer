@@ -42,6 +42,11 @@ python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_P
 source Instructions/TestsTrainingHCAL.sh JAX_HCAL_8
 source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_8
 
+python3 JaxOptimizerSatu.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70_NoSatu/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_9 --jetsLim 900000 --lr 0.5 --bs 4096 --ep 100 --scale 0.82 --scaleHF 1. --v HCAL
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_9
+source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_9
+
 ########################################################################################################################
 # ECAL TRAININGS (full stats 5353702)
 ########################################################################################################################
@@ -50,6 +55,11 @@ python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_E
     --odir Trainings_2023/JAX_ECAL_1 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --v ECAL
 source Instructions/TestsTrainingECAL.sh JAX_ECAL_1
 source Instructions/TestsPerformanceECAL.sh JAX_ECAL_1
+
+python3 JaxOptimizerECAL.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_ECAL_2 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --v ECAL
+source Instructions/TestsTrainingECAL.sh JAX_ECAL_2
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_2
 
 ########################################################################################################################
 # ECAL TRAININGS
