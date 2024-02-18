@@ -58,16 +58,19 @@ if __name__ == "__main__" :
     parser.add_option("--out",      dest="odir",    help="Output folder",                       default=None)
     parser.add_option("--v",        dest="v",       help="Ntuple type ('ECAL' or 'HCAL')",      default='HCAL')
     parser.add_option("--perf",     dest="perf",    help="Performance history",                 default=False, action='store_true')
+    parser.add_option("--loss",     dest="loss",    help="Loss history",                        default=False, action='store_true')
     (options, args) = parser.parse_args()
     print(options)
 
     indir = options.indir
     odirSFs = indir+'/History/SFs'
     os.system("mkdir -p {}".format(odirSFs))
-    odirLoss = indir+'/History/Loss'
-    os.system("mkdir -p {}".format(odirLoss))
-    odirPerf = indir+'/History/Performance'
-    os.system("mkdir -p {}".format(odirPerf))
+    if options.loss:
+        odirLoss = indir+'/History/Loss'
+        os.system("mkdir -p {}".format(odirLoss))
+    if options.perf:
+        odirPerf = indir+'/History/Performance'
+        os.system("mkdir -p {}".format(odirPerf))
 
     SFsHistory = glob.glob(indir + '/History/ScaleFactors_*')
     for i, SF_filename in enumerate(SFsHistory):
@@ -85,13 +88,17 @@ if __name__ == "__main__" :
         et_binning = [float(i) for i in et_binning]
     
         PlotSF(ScaleFactors, et_binning, odirSFs, options.v, eta_binning, i_epoch=i)
+
+        et_binning = header.split(',')
+        et_binning = [float(i) for i in et_binning]
         PlotSF2D(ScaleFactors, odirSFs, et_binning, eta_binning, options.v, i_epoch=i)
 
-        TrainLoss = indir+'/History/TrainLoss_{}.npz'.format(i)
-        TestLoss = indir+'/History/TestLoss_{}.npz'.format(i)
-        TrainResp = indir+'/History/TrainResp_{}.npz'.format(i)
-        TestResp = indir+'/History/TestResp_{}.npz'.format(i)
-        PlotLoss(TrainLoss, TestLoss, TrainResp, TestResp, odirLoss, i)
+        if options.loss:
+            TrainLoss = indir+'/History/TrainLoss_{}.npz'.format(i)
+            TestLoss = indir+'/History/TestLoss_{}.npz'.format(i)
+            TrainResp = indir+'/History/TrainResp_{}.npz'.format(i)
+            TestResp = indir+'/History/TestResp_{}.npz'.format(i)
+            PlotLoss(TrainLoss, TestLoss, TrainResp, TestResp, odirLoss, i)
 
         if options.perf:
             caloname = "/History/caloParams_2023_JAX{}_{}_newCalib_cfi".format(indir, i)
@@ -121,10 +128,11 @@ if __name__ == "__main__" :
     plot_map = list(map(lambda plot: imageio.imread(plot), plot_list))
     imageio.v2.mimsave(indir+'/History/SFs_2D_HCAL.gif', plot_map, format='GIF', duration=500)
 
-    plot_list = glob.glob(odirLoss + '/Loss*.png')
-    AddText(plot_list)
-    plot_map = list(map(lambda plot: imageio.imread(plot), plot_list))
-    imageio.v2.mimsave(indir+'/History/Loss.gif', plot_map, format='GIF', duration=500)
+    if options.loss:
+        plot_list = glob.glob(odirLoss + '/Loss*.png')
+        AddText(plot_list)
+        plot_map = list(map(lambda plot: imageio.imread(plot), plot_list))
+        imageio.v2.mimsave(indir+'/History/Loss.gif', plot_map, format='GIF', duration=500)
 
     if options.perf:
         plot_list = glob.glob(odirPerf + '/PerformancePlots*/PNGs/comparisons__jet/response_inclusive_res__jet.png')

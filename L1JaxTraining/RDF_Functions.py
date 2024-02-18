@@ -114,6 +114,7 @@ ROOT.gInterpreter.Declare("""
         for (int i = 0; i < good_Of_eta.size(); ++i) {
             if (abs(good_Of_eta.at(i)) > 3.) {
                 A_barrel.push_back(A.at(i));
+                // cout << A.at(i) << endl;
             }
         }
         return A_barrel;
@@ -260,11 +261,13 @@ ROOT.gInterpreter.Declare("""
     int NextEtaTower(int ieta) {
         if (ieta == -1)         return 1;
         else if (ieta == 28)    return 30;
+        else if (ieta == -30)   return -28;
         else                    return ieta + 1;
     }
     int PrevEtaTower(int ieta) {
         if (ieta == 1)          return -1;
         else if (ieta == 30)    return 28;
+        else if (ieta == -28)   return -30;
         else                    return ieta - 1;
     }
                         

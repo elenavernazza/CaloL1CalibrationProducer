@@ -298,26 +298,59 @@ if not options.plot_only:
     df_e = df.Redefine("good_Of_pt", "SelectEndcap (good_Of_pt, good_Of_eta)")
     df_e = df_e.Redefine("good_Of_eta", "SelectEndcap (good_Of_eta, good_Of_eta)")
     df_e = df_e.Redefine(response_name, "SelectEndcap ({}, good_Of_eta)".format(response_name))
+    # df_f = df.Redefine("good_Of_pt", "SelectForward (good_Of_pt, good_Of_eta)")
+    # df_f = df_f.Redefine("good_Of_eta", "SelectForward (good_Of_eta, good_Of_eta)")
+    # df_f = df_f.Redefine(response_name, "SelectForward ({}, good_Of_eta)".format(response_name))
     
     ##################################################################    
     ########################### DEBUGGING ############################
 
-    # print("Test iem 1,1 =",ROOT.TestCalibrateIem(1,1))
-    # print("Test ihad 1,1 =",ROOT.TestCalibrateIhad(1,1))
+    ROOT.gInterpreter.Declare("""
+        using Vfloat = const ROOT::RVec<float>&;
+        bool Debug (Vfloat good_L1_pt, Vfloat good_L1_eta, Vfloat good_L1_ieta, Vfloat good_L1_iphi, Vfloat CD_iesum) {
+            for (int i = 0; i < good_L1_pt.size(); ++i) {
+                if (abs(good_L1_eta.at(i)) > 3.) {
+                    if (CD_iesum.at(i) / good_L1_pt.at(i) < 1.) {
+                        cout << good_L1_ieta.at(i) << " " << good_L1_iphi.at(i) << endl;
+                    }
+                }
+            }
+            return 0;
+        }
+    """)
+
+    df2 = df.Define("debug", "Debug (good_L1_pt, good_L1_eta, good_L1_ieta, good_L1_iphi, CD_iesum)")
+    histo0 = df2.Histo1D("debug")
+
+    # print("Test iem 2,10 =",ROOT.TestCalibrateIem(2,10))
+    # print("Test ihad 2,10 =",ROOT.TestCalibrateIhad(2,10))
 
     # df = df.Define("Ratio", "GetRatio (CD_iesum, CD_iet)")
-    # df = df.Define("Ratio", "GetRatio (CD_iesum, good_L1_pt)")
+    df = df.Define("Ratio", "GetRatio (CD_iesum, good_L1_pt)")
+    # df = df.Redefine("good_Of_eta", "SelectForward (good_Of_eta, good_Of_eta)")
+    df1 = df.Define("Ratio_forward", "SelectForward (Ratio, good_L1_eta)")
+    # df = df.Define("good_L1_pt_forward", "SelectForward (good_L1_pt, good_L1_eta)")
+    # df = df.Define("Ratio_forward", "GetRatio (CD_iesum_forward, good_L1_pt_forward)")
 
-    # histo1 = df.Histo1D("Ratio")
+    histo1 = df.Histo1D("Ratio")
+    histo2 = df1.Histo1D("Ratio_forward")
+    print("MEAN = ", histo2.GetMean())
+    print("RMS = ", histo2.GetRMS())
+    # histo3 = df.Histo1D("CD_iesum_forward")
+    # histo4 = df.Histo1D("good_L1_pt_forward")
     # histo2 = df.Histo2D(("Ratio2", "", 50, 0, 2, 50, 0, 500), "Ratio", "good_L1_pt")
-    # histo3 = df.Histo2D(("Ratio3", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_eta")
+    histo3 = df.Histo2D(("Ratio3", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_eta")
+    histo4 = df.Histo2D(("Ratio4", "", 50, -10, 10, 50, -5, 5), "Ratio", "good_L1_eta")
     # histo4 = df.Histo2D(("Ratio4", "", 50, 0, 2, 50, -5, 5), "Ratio", "good_L1_phi")
     # histo5 = df.Histo2D(("Ieta", "", 42, 0, 41, 50, -5, 5), "good_L1_ieta", "good_L1_eta")
     # histo6 = df.Histo2D(("Iphi", "", 73, 0, 72, 50, -5, 5), "good_L1_iphi", "good_L1_phi")
 
-    # f = ROOT.TFile("./test.root","RECREATE")
-    # histo1.Write(); histo2.Write(); histo3.Write(); histo4.Write(); histo5.Write(); histo6.Write()
-    # f.Close()
+    f = ROOT.TFile("./test.root","RECREATE")
+    histo1.Write(); histo2.Write(); histo3.Write(); histo4.Write(); # histo5.Write(); histo6.Write()
+    f.Close()
+
+    sys.exit()
+
 
     #################################################################    
     ########################## HISTOGRAMS ###########################
