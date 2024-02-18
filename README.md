@@ -277,11 +277,13 @@ You can now test the performance by plotting the SFs and re-emulating on the tes
 cd L1JaxTraining
 voms-proxy-init --rfc --voms cms -valid 192:00
 source Instructions/TestsTrainingECAL.sh JAX_ECAL_1
+python3 PlotHistory.py --indir Trainings_2023/JAX_ECAL_1 --v ECAL 
 ```
 ```bash
 cd L1JaxTraining
 voms-proxy-init --rfc --voms cms -valid 192:00
 source Instructions/TestsTrainingHCAL.sh JAX_HCAL_1
+python3 PlotHistory.py --indir Trainings_2023/JAX_HCAL_1 --v HCAL 
 ```
 
 <details>
@@ -377,15 +379,15 @@ python3 ProduceCaloParams.py --name caloParams_2023_JAX_HCAL_1_newCalib_cfi \
     --HCAL ./Trainings_2023/JAX_HCAL_1/ScaleFactors_HCAL.csv --HF ./Trainings_2023/JAX_HCAL_1/ScaleFactors_HCAL.csv \
     --base caloParams_2023_v0_4_noL1Calib_cfi.py
 
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_v0_4_cfi.py \
  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVold
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVunc
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_JAX_HCAL_1_newCalib_cfi.py \
  --outdir Trainings_2023/JAX_HCAL_1/NtuplesVnew
