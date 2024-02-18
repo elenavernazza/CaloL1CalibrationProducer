@@ -35,6 +35,7 @@ if __name__ == "__main__" :
     parser.add_option("--test",                   dest="test",                   default=0.1,        type=float,       help="Testing fraction")
     parser.add_option("--norm",                   dest="norm",                   default=False,   action='store_true', help="Normalize by number of towers in each bin")
     parser.add_option("--scale",                  dest="scale",                  default=1.,         type=float,       help="Target scale")
+    parser.add_option("--scaleHF",                dest="scaleHF",                default=1.,         type=float,       help="Target scale HF")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -235,6 +236,7 @@ if __name__ == "__main__" :
         l1_jet_em_energies = jnp.sum(iem[:], axis=1)
 
         if options.v == "HCAL":
+            scale = options.scaleHF * (jets[:,1] >= 3) + options.scale * (jets[:,1] < 3) # Apply separate scale to HF
             DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
         elif options.v == "ECAL":
             DIFF = jnp.abs((l1_jet_energies) - scale*jet_energies)
