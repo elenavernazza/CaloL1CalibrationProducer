@@ -1,6 +1,6 @@
 from optparse import OptionParser
 import json
-import os
+import os, sys
 
 
 def splitInBlocks (l, n):
@@ -43,6 +43,11 @@ if __name__ == "__main__" :
 
     (options, args) = parser.parse_args()
     
+    calo_path = os.getcwd() + "/../../L1Trigger/L1TCalorimeter/python/" + options.caloParams + ".py"
+    print(calo_path)
+    if not os.path.isfile(calo_path):
+        sys.exit(" ### ERROR: You forgot to copy the file:\ncp ../caloParams/{}.py ../../L1Trigger/L1TCalorimeter/python/".format(options.caloParams))
+
     if not options.outTag:
         print('** WARNING: outTag not specified, will default to date and time. Please consider specifying a meaningfull tag, e.g. GT130XdataRun3Promptv10_CPv28newCalib_data_reco_json')
 
