@@ -124,6 +124,7 @@ if __name__ == "__main__" :
     json_path = indir + '/training.json'
     with open(json_path, 'r') as json_file: data = json.load(json_file)
     ep = list(data["TrainLoss"].keys())
+    ep = np.array([int(i) for i in ep])
     train_loss = list(data["TrainLoss"].values())
     test_loss = list(data["TestLoss"].values())
 

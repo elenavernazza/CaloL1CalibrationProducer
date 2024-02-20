@@ -298,14 +298,14 @@ if not options.plot_only:
     df_b = df_b.Define(response_name+"_b", "SelectBarrel ({}, good_Of_eta)".format(response_name))
     df_e = df.Define("good_Of_pt_e", "SelectEndcap (good_Of_pt, good_Of_eta)")
     df_e = df_e.Define("good_Of_eta_e", "SelectEndcap (good_Of_eta, good_Of_eta)")
-    df_e = df_e.Define(response_name+"_e", "SelectEndcap ({}, good_Of_eta)".format(response_name))
+    df_e = df_e.Define(response_name+"_e_", "SelectEndcap ({}, good_Of_eta)".format(response_name))
     df_e = df_e.Define("FoundSaturation_e",  "SelectEndcap (FoundSaturation, good_Of_eta)")
-    df_e = df_e.Define(response_name+"_ee", "GetFlaggedResponse ({}, FoundSaturation_e)".format(response_name+"_e"))
+    df_e = df_e.Define(response_name+"_e", "GetFlaggedResponse ({}, FoundSaturation_e)".format(response_name+"_e_"))
     df_f = df.Define("good_Of_pt_f", "SelectForward (good_Of_pt, good_Of_eta)")
     df_f = df_f.Define("good_Of_eta_f", "SelectForward (good_Of_eta, good_Of_eta)")
-    df_f = df_f.Define(response_name+"_f", "SelectForward ({}, good_Of_eta)".format(response_name))
+    df_f = df_f.Define(response_name+"_f_", "SelectForward ({}, good_Of_eta)".format(response_name))
     df_f = df_f.Define("FoundSaturation_f",  "SelectForward (FoundSaturation, good_Of_eta)")
-    df_f = df_f.Define(response_name+"_ff", "GetFlaggedResponse ({}, FoundSaturation_f)".format(response_name+"_f"))
+    df_f = df_f.Define(response_name+"_f", "GetFlaggedResponse ({}, FoundSaturation_f)".format(response_name+"_f_"))
 
 
     ##################################################################    
@@ -350,9 +350,9 @@ if not options.plot_only:
     pt_barrel_resp_ptInclusive = df_b.Histo1D(("pt_barrel_resp_ptInclusive",
         "pt_barrel_resp_ptInclusive", res_bins, 0, 3), response_name+"_b")
     pt_endcap_resp_ptInclusive = df_e.Histo1D(("pt_endcap_resp_ptInclusive",
-        "pt_endcap_resp_ptInclusive", res_bins, 0, 3), response_name+"_ee") 
+        "pt_endcap_resp_ptInclusive", res_bins, 0, 3), response_name+"_e") 
     pt_forward_resp_ptInclusive = df_f.Histo1D(("pt_forward_resp_ptInclusive",
-        "pt_forward_resp_ptInclusive", res_bins, 0, 3), response_name+"_ff") 
+        "pt_forward_resp_ptInclusive", res_bins, 0, 3), response_name+"_f") 
 
 
     ##################################################################    
