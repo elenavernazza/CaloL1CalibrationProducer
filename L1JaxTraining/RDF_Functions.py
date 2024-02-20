@@ -314,6 +314,59 @@ ROOT.gInterpreter.Declare("""
     }
 """)
 
+ROOT.gInterpreter.Declare("""
+                        
+    using Vfloat = const ROOT::RVec<float>&;
+    ROOT::RVec<int> FindSaturation (Vfloat L1_ieta, Vfloat L1_iphi, Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iem, Vfloat TT_ihad, Vfloat TT_iet) {
+        
+        ROOT::RVec<int> FoundSaturation;
+        for (int i = 0; i < L1_ieta.size(); ++i) {
+            
+            int found = 0;
+            int max_IEta = NextEtaTower(NextEtaTower(NextEtaTower(NextEtaTower(L1_ieta.at(i)))));
+            int min_IEta = PrevEtaTower(PrevEtaTower(PrevEtaTower(PrevEtaTower(L1_ieta.at(i)))));
+            int max_IPhi = NextPhiTower(NextPhiTower(NextPhiTower(NextPhiTower(L1_iphi.at(i)))));
+            int min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(L1_iphi.at(i)))));
+
+            for (int i_TT = 0; i_TT < TT_ieta.size(); i_TT ++) {
+                if (min_IPhi <= max_IPhi) {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) && 
+                        ((TT_iphi.at(i_TT) <= max_IPhi) && (TT_iphi.at(i_TT) >= min_IPhi))) {
+                        if ((TT_iem.at(i_TT) >= 255) || (TT_ihad.at(i_TT) >= 255)) {
+                            found = 1;
+                            break;
+                        }
+                    }
+                } 
+                else {
+                    if (((TT_ieta.at(i_TT) <= max_IEta) && (TT_ieta.at(i_TT) >= min_IEta)) &&
+                        ((TT_iphi.at(i_TT) >= max_IPhi) || (TT_iphi.at(i_TT) <= min_IPhi))) {
+                        if ((TT_iem.at(i_TT) >= 255) || (TT_ihad.at(i_TT) >= 255) ){
+                            found = 1;
+                            break;
+                        }
+                    }                        
+                }
+            }
+            FoundSaturation.push_back(found);
+        }
+        return FoundSaturation;
+    }
+""")
+
+ROOT.gInterpreter.Declare("""
+    using Vfloat = const ROOT::RVec<float>&;
+    using Vint = const ROOT::RVec<int>&;
+    ROOT::RVec<float> GetFlaggedResponse (Vfloat Response, Vint FoundSaturation) {
+        ROOT::RVec<float> Response_flag;
+        for (int i = 0; i < Response.size(); i ++) {
+            if (FoundSaturation.at(i) == 1) continue;
+            Response_flag.push_back(Response.at(i));
+        }
+        return Response_flag;
+    }
+""")
+
 ROOT.gInterpreter.Declare("""                        
     using Vfloat = const ROOT::RVec<float>&;
     ROOT::RVec<ROOT::RVec<float>> ChunkyDonutEnergyWithSeed (Vfloat L1_ieta, Vfloat L1_iphi, Vfloat TT_ieta, Vfloat TT_iphi, Vfloat TT_iem, Vfloat TT_ihad, Vfloat TT_iet, float seed) {
