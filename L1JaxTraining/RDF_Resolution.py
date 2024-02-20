@@ -57,6 +57,7 @@ parser.add_option("--HCALcalib", dest="HCALcalib",action='store_true', default=F
 parser.add_option("--ECALcalib", dest="ECALcalib",action='store_true', default=False)
 parser.add_option("--caloParam", dest="caloParam",type=str,   default='')
 parser.add_option("--no_CD",     dest="no_CD",   action='store_true', default=False)
+parser.add_option("--no_Satu",   dest="no_Satu", action='store_true', default=False)
 (options, args) = parser.parse_args()
 
 cmap = plt.get_cmap('Set1')
@@ -116,6 +117,11 @@ if not options.plot_only:
     towersTree.Add(indir+"/Ntuple*.root")
     targetTree.AddFriend(towersTree, towersTreeName)
 
+    recoTreeName = "l1RecoTree/RecoTree"
+    recoTree = ROOT.TChain(recoTreeName)
+    recoTree.Add(indir+"/Ntuple*.root")
+    targetTree.AddFriend(recoTree, recoTreeName)
+    
     df = ROOT.RDataFrame(targetTree)
 
     print(" ### INFO: End loading data")
@@ -292,24 +298,28 @@ if not options.plot_only:
     #     # [FIXME] understand why sometimes they are different
     #     df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
 
-    df = df.Define("FoundSaturation",  "FindSaturation (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet)")
+    if options.no_Satu:
+        # removing saturated towers
+        df = df.Define("FoundSaturation",  "FindSaturation (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet)")
+        df = df.Redefine("good_Of_pt", "GetFlaggedResponse (good_Of_pt, FoundSaturation)")
+        df = df.Redefine("good_Of_eta", "GetFlaggedResponse (good_Of_eta, FoundSaturation)")
+        df = df.Redefine("HoTot", "GetFlaggedResponse (HoTot, FoundSaturation)")
+        df = df.Redefine("EoTot", "GetFlaggedResponse (EoTot, FoundSaturation)")
+        df = df.Redefine(response_name, "GetFlaggedResponse ({}, FoundSaturation)".format(response_name))
+
+    # Keeping saturated towers
     df_b = df.Define("good_Of_pt_b", "SelectBarrel (good_Of_pt, good_Of_eta)")
     df_b = df_b.Define("good_Of_eta_b", "SelectBarrel (good_Of_eta, good_Of_eta)")
     df_b = df_b.Define(response_name+"_b", "SelectBarrel ({}, good_Of_eta)".format(response_name))
-    df_e = df.Define("good_Of_pt_e_", "SelectEndcap (good_Of_pt, good_Of_eta)")
-    df_e = df_e.Define("good_Of_eta_e", "SelectEndcap (good_Of_eta, good_Of_eta)")
-    df_e = df_e.Define(response_name+"_e_", "SelectEndcap ({}, good_Of_eta)".format(response_name))
-    df_e = df_e.Define("FoundSaturation_e",  "SelectEndcap (FoundSaturation, good_Of_eta)")
-    df_e = df_e.Define("good_Of_pt_e", "GetFlaggedResponse (good_Of_pt_e_, FoundSaturation_e)")
-    df_e = df_e.Define(response_name+"_e", "GetFlaggedResponse ({}, FoundSaturation_e)".format(response_name+"_e_"))
-    df_f = df.Define("good_Of_pt_f_", "SelectForward (good_Of_pt, good_Of_eta)")
-    df_f = df_f.Define("good_Of_eta_f", "SelectForward (good_Of_eta, good_Of_eta)")
-    df_f = df_f.Define(response_name+"_f_", "SelectForward ({}, good_Of_eta)".format(response_name))
-    df_f = df_f.Define("FoundSaturation_f",  "SelectForward (FoundSaturation, good_Of_eta)")
-    df_f = df_f.Define("good_Of_pt_f", "GetFlaggedResponse (good_Of_pt_f_, FoundSaturation_f)")
-    df_f = df_f.Define(response_name+"_f", "GetFlaggedResponse ({}, FoundSaturation_f)".format(response_name+"_f_"))
-
     
+    df_e = df.Define("good_Of_pt_e", "SelectEndcap (good_Of_pt, good_Of_eta)")
+    df_e = df_e.Define("good_Of_eta_e", "SelectEndcap (good_Of_eta, good_Of_eta)")
+    df_e = df_e.Define(response_name+"_e", "SelectEndcap ({}, good_Of_eta)".format(response_name))
+
+    df_f = df.Define("good_Of_pt_f", "SelectForward (good_Of_pt, good_Of_eta)")
+    df_f = df_f.Define("good_Of_eta_f", "SelectForward (good_Of_eta, good_Of_eta)")
+    df_f = df_f.Define(response_name+"_f", "SelectForward ({}, good_Of_eta)".format(response_name))
+
     ##################################################################    
     ########################### DEBUGGING ############################
 
@@ -347,13 +357,13 @@ if not options.plot_only:
     print("\n ### INFO: Define energy histograms")
 
     # INCLUSIVE HISTOGRAMS
-    nbins = 100; min = 0; max = 500
-    offline_pt = df.Histo1D(("good_Of_pt", "good_Of_pt", nbins, min, max), "good_Of_pt")
-    online_pt = df.Histo1D(("good_L1_pt", "good_L1_pt", nbins, min, max), "good_L1_pt")
-    CD_iet = df.Histo1D(("CD_iet", "CD_iet", nbins, min, max), "CD_iet")     
-    CD_iesum = df.Histo1D(("CD_iesum", "CD_iesum", nbins, min, max), "CD_iesum")
+    nbins = 100; min_ = 0; max_ = 500
+    offline_pt = df.Histo1D(("good_Of_pt", "good_Of_pt", nbins, min_, max_), "good_Of_pt")
+    online_pt = df.Histo1D(("good_L1_pt", "good_L1_pt", nbins, min_, max_), "good_L1_pt")
+    CD_iet = df.Histo1D(("CD_iet", "CD_iet", nbins, min_, max_), "CD_iet")     
+    CD_iesum = df.Histo1D(("CD_iesum", "CD_iesum", nbins, min_, max_), "CD_iesum")
     if options.HCALcalib or options.ECALcalib:
-        CD_iet_calib = df.Histo1D(("CD_iesum_calib", "CD_iesum_calib", nbins, min, max), "CD_iesum_calib")
+        CD_iet_calib = df.Histo1D(("CD_iesum_calib", "CD_iesum_calib", nbins, min_, max_), "CD_iesum_calib")
 
     print(" ### INFO: Define response histograms")
 
@@ -382,7 +392,6 @@ if not options.plot_only:
         df_barrel_PtBin = df_b.Redefine(response_name+"_b", "SelectBin ({}, good_Of_pt_b, {}, {})".format(response_name+"_b", ptBins[i], ptBins[i+1]))
         name = "pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])
         barrel_response_ptBins.append(df_barrel_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name+"_b"))
-        response_ptBins.append(df_barrel_PtBin.Histo1D((name, name, res_bins, 0, 3), response_name))
         del df_barrel_PtBin
 
         df_endcap_PtBin = df_e.Redefine(response_name+"_e", "SelectBin ({}, good_Of_pt_e, {}, {})".format(response_name+"_e", ptBins[i], ptBins[i+1]))
@@ -443,6 +452,9 @@ if not options.plot_only:
     pt_resol_fctEta = ROOT.TH1F("pt_resol_fctEta","pt_resol_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
 
     pt_scale_fctPt = ROOT.TH1F("pt_scale_fctPt","pt_scale_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_scale_barrel_fctPt = ROOT.TH1F("pt_scale_barrel_fctPt","pt_scale_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_scale_endcap_fctPt = ROOT.TH1F("pt_scale_endcap_fctPt","pt_scale_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_scale_forward_fctPt = ROOT.TH1F("pt_scale_forward_fctPt","pt_scale_forward_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_scale_fctEta = ROOT.TH1F("pt_scale_fctEta","pt_scale_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
 
     pt_scale_max_fctPt = ROOT.TH1F("pt_scale_max_fctPt","pt_scale_max_fctPt",len(ptBins)-1, array('f',ptBins))
@@ -461,6 +473,12 @@ if not options.plot_only:
     for i in range(len(barrel_response_ptBins)):
         pt_scale_fctPt.SetBinContent(i+1, response_ptBins[i].GetMean())
         pt_scale_fctPt.SetBinError(i+1, response_ptBins[i].GetMeanError())
+        pt_scale_barrel_fctPt.SetBinContent(i+1, barrel_response_ptBins[i].GetMean())
+        pt_scale_barrel_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetMeanError())
+        pt_scale_endcap_fctPt.SetBinContent(i+1, endcap_response_ptBins[i].GetMean())
+        pt_scale_endcap_fctPt.SetBinError(i+1, endcap_response_ptBins[i].GetMeanError())
+        pt_scale_forward_fctPt.SetBinContent(i+1, forward_response_ptBins[i].GetMean())
+        pt_scale_forward_fctPt.SetBinError(i+1, forward_response_ptBins[i].GetMeanError())
 
         pt_scale_max_fctPt.SetBinContent(i+1, response_ptBins[i].GetBinCenter(response_ptBins[i].GetMaximumBin()))
         pt_scale_max_fctPt.SetBinError(i+1, response_ptBins[i].GetBinWidth(response_ptBins[i].GetMaximumBin()))
@@ -474,10 +492,10 @@ if not options.plot_only:
 
         if barrel_response_ptBins[i].GetMean() > 0:
             pt_resol_barrel_fctPt.SetBinContent(i+1, barrel_response_ptBins[i].GetRMS()/barrel_response_ptBins[i].GetMean())
-            pt_resol_endcap_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetRMSError()/barrel_response_ptBins[i].GetMean())
+            pt_resol_barrel_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetRMSError()/barrel_response_ptBins[i].GetMean())
         else:
             pt_resol_barrel_fctPt.SetBinContent(i+1, 0)
-            pt_resol_endcap_fctPt.SetBinError(i+1, 0)        
+            pt_resol_barrel_fctPt.SetBinError(i+1, 0)        
 
         if endcap_response_ptBins[i].GetMean() > 0:
             pt_resol_endcap_fctPt.SetBinContent(i+1, endcap_response_ptBins[i].GetRMS()/endcap_response_ptBins[i].GetMean())
@@ -561,6 +579,9 @@ if not options.plot_only:
     pt_endcap_resp_ptInclusive.Write()
     pt_forward_resp_ptInclusive.Write()
     pt_scale_fctPt.Write()
+    pt_scale_barrel_fctPt.Write()
+    pt_scale_endcap_fctPt.Write()
+    pt_scale_forward_fctPt.Write()
     pt_scale_max_fctPt.Write()
     pt_resol_fctPt.Write()
     pt_resol_barrel_fctPt.Write()
@@ -603,6 +624,9 @@ else:
     print(" ### INFO: Read existing root files")
     filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root')
     pt_scale_fctPt = filein.Get('pt_scale_fctPt')
+    pt_scale_barrel_fctPt = filein.Get('pt_scale_barrel_fctPt')
+    pt_scale_endcap_fctPt = filein.Get('pt_scale_endcap_fctPt')
+    pt_scale_forward_fctPt = filein.Get('pt_scale_forward_fctPt')
     pt_scale_fctEta = filein.Get('pt_scale_fctEta')
     if options.do_HoTot:
         pt_scale_fctHoTot = filein.Get('pt_scale_fctHoTot')
@@ -746,17 +770,17 @@ print(" ### INFO: Produce plots inclusive")
 ## response inclusive 
 
 fig, ax = plt.subplots(figsize=(10,10))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
 Ymax = max(Y)
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
+Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_endcap_resp_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
 Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_forward_resp_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(2))
-Ymax = max(Ymax, max(Y))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(3))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
 Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_'+label+'_'+options.target+'.pdf')
@@ -772,14 +796,17 @@ print(" ### INFO: Produce plots in pt bins")
 
 for i in range(len(barrel_response_ptBins)):
     fig, ax = plt.subplots(figsize=(10,10))
+    X,Y,X_err,Y_err = GetArraysFromHisto(response_ptBins[i])
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
+    Ymax = max(Y)
     X,Y,X_err,Y_err = GetArraysFromHisto(barrel_response_ptBins[i])
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
     Ymax = max(Y)
     X,Y,X_err,Y_err = GetArraysFromHisto(endcap_response_ptBins[i])
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
     Ymax = max(Ymax, max(Y))
     X,Y,X_err,Y_err = GetArraysFromHisto(forward_response_ptBins[i])
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(2))
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
     Ymax = max(Ymax, max(Y))
     SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax), str(ptBins[i])+legend_label_pt+str(ptBins[i+1]))
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_'+str(ptBins[i])+"pt"+str(ptBins[i+1])+'_'+label+'_'+options.target+'.pdf')
@@ -790,14 +817,17 @@ for i in range(len(barrel_response_ptBins)):
 ## resolution in pt bins
 
 fig, ax = plt.subplots(figsize=(10,10))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_barrel_fctPt)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
 Ymax = max(Y)
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_barrel_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
+Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_endcap_fctPt)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
 Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_forward_fctPt)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(2))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
 Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_pt, y_label_resolution, x_lim_pt, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/resolution_ptBins_'+label+'_'+options.target+'.pdf')
@@ -809,7 +839,17 @@ plt.close()
 
 fig, ax = plt.subplots(figsize=(10,10))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_fctPt)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, lw=2, marker='o', color=cmap(0))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
+Ymax = max(Y)
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_barrel_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
+Ymax = max(Ymax, max(Y))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_endcap_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
+Ymax = max(Ymax, max(Y))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_forward_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
+Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_pt, y_label_scale, x_lim_pt, y_lim_scale)
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/scale_ptBins_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/scale_ptBins_'+label+'_'+options.target+'.png')

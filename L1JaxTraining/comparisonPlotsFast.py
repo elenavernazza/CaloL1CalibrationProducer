@@ -88,7 +88,6 @@ parser.add_option("--er",          dest="er",                               defa
 (options, args) = parser.parse_args()
 
 # get/create folders
-basedir = "/data_CMS/cms/motta/CaloL1calibraton/"
 olddir = options.olddir_name+"/"
 uncdir = options.uncdir_name+"/"
 indir = options.indir
@@ -104,7 +103,7 @@ os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/co
 
 #defining binning of histogram
 if options.target == 'jet':
-    ptBins  = [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
+    ptBins  = [30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
     etaBins = [0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.191]
     x_lim_response = (0.,3.)
 if options.target == 'ele':
@@ -125,7 +124,8 @@ elif options.target == 'ele':   part_name = 'e'
 elif options.target == 'met':   part_name = 'MET'
 
 barrel_label = r'Barrel $|\eta^{%s, %s}|<1.305$' % (part_name, targ_name)
-endcap_label = r'Endcap $1.479<|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
+endcap_label = r'Endcap $1.305<|\eta^{%s, %s}|<3$' % (part_name, targ_name)
+forward_label = r'Forward $3<|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
 inclusive_label = r'Inclusive $|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
 
 x_label_pt      = r'$p_{T}^{%s, %s}$' % (part_name, targ_name)

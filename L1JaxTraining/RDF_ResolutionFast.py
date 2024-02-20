@@ -57,6 +57,7 @@ parser.add_option("--HCALcalib", dest="HCALcalib",action='store_true', default=F
 parser.add_option("--ECALcalib", dest="ECALcalib",action='store_true', default=False)
 parser.add_option("--caloParam", dest="caloParam",type=str,   default='')
 parser.add_option("--no_CD",     dest="no_CD",   action='store_true', default=False)
+parser.add_option("--no_Satu",   dest="no_Satu", action='store_true', default=False)
 (options, args) = parser.parse_args()
 
 cmap = plt.get_cmap('Set1')
@@ -71,7 +72,7 @@ os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs')
 
 #defining binning of histogram
 if options.target == 'jet':
-    ptBins  = [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
+    ptBins  = [30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
     etaBins = [0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.191]
     signedEtaBins = [-5.191, -4.5, -4.0, -3.5, -3.0, -2.5, -2.0, -1.479, -1.305, -1.0, -0.5, 0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.191]
 if options.target == 'ele':
@@ -292,21 +293,27 @@ if not options.plot_only:
     #     # [FIXME] understand why sometimes they are different
     #     df = df.Filter("(CD_iet == good_L1_pt) && (CD_iesum == good_L1_pt)")
 
-    df = df.Define("FoundSaturation",  "FindSaturation (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet)")
+    if options.no_Satu:
+        # removing saturated towers
+        df = df.Define("FoundSaturation",  "FindSaturation (good_L1_ieta, good_L1_iphi, TT_ieta, TT_iphi, TT_iem, TT_ihad, TT_iet)")
+        df = df.Redefine("good_Of_pt", "GetFlaggedResponse (good_Of_pt, FoundSaturation)")
+        df = df.Redefine("good_Of_eta", "GetFlaggedResponse (good_Of_eta, FoundSaturation)")
+        df = df.Redefine("HoTot", "GetFlaggedResponse (HoTot, FoundSaturation)")
+        df = df.Redefine("EoTot", "GetFlaggedResponse (EoTot, FoundSaturation)")
+        df = df.Redefine(response_name, "GetFlaggedResponse ({}, FoundSaturation)".format(response_name))
+
+    # Keeping saturated towers
     df_b = df.Define("good_Of_pt_b", "SelectBarrel (good_Of_pt, good_Of_eta)")
     df_b = df_b.Define("good_Of_eta_b", "SelectBarrel (good_Of_eta, good_Of_eta)")
     df_b = df_b.Define(response_name+"_b", "SelectBarrel ({}, good_Of_eta)".format(response_name))
+    
     df_e = df.Define("good_Of_pt_e", "SelectEndcap (good_Of_pt, good_Of_eta)")
     df_e = df_e.Define("good_Of_eta_e", "SelectEndcap (good_Of_eta, good_Of_eta)")
-    df_e = df_e.Define(response_name+"_e_", "SelectEndcap ({}, good_Of_eta)".format(response_name))
-    df_e = df_e.Define("FoundSaturation_e",  "SelectEndcap (FoundSaturation, good_Of_eta)")
-    df_e = df_e.Define(response_name+"_e", "GetFlaggedResponse ({}, FoundSaturation_e)".format(response_name+"_e_"))
+    df_e = df_e.Define(response_name+"_e", "SelectEndcap ({}, good_Of_eta)".format(response_name))
+
     df_f = df.Define("good_Of_pt_f", "SelectForward (good_Of_pt, good_Of_eta)")
     df_f = df_f.Define("good_Of_eta_f", "SelectForward (good_Of_eta, good_Of_eta)")
-    df_f = df_f.Define(response_name+"_f_", "SelectForward ({}, good_Of_eta)".format(response_name))
-    df_f = df_f.Define("FoundSaturation_f",  "SelectForward (FoundSaturation, good_Of_eta)")
-    df_f = df_f.Define(response_name+"_f", "GetFlaggedResponse ({}, FoundSaturation_f)".format(response_name+"_f_"))
-
+    df_f = df_f.Define(response_name+"_f", "SelectForward ({}, good_Of_eta)".format(response_name))
 
     ##################################################################    
     ########################### DEBUGGING ############################
@@ -334,13 +341,13 @@ if not options.plot_only:
     print("\n ### INFO: Define energy histograms")
 
     # INCLUSIVE HISTOGRAMS
-    nbins = 100; min = 0; max = 500
-    offline_pt = df.Histo1D(("good_Of_pt", "good_Of_pt", nbins, min, max), "good_Of_pt")
-    online_pt = df.Histo1D(("good_L1_pt", "good_L1_pt", nbins, min, max), "good_L1_pt")
-    CD_iet = df.Histo1D(("CD_iet", "CD_iet", nbins, min, max), "CD_iet")     
-    CD_iesum = df.Histo1D(("CD_iesum", "CD_iesum", nbins, min, max), "CD_iesum")
+    nbins = 100; min_ = 0; max_ = 500
+    offline_pt = df.Histo1D(("good_Of_pt", "good_Of_pt", nbins, min_, max_), "good_Of_pt")
+    online_pt = df.Histo1D(("good_L1_pt", "good_L1_pt", nbins, min_, max_), "good_L1_pt")
+    CD_iet = df.Histo1D(("CD_iet", "CD_iet", nbins, min_, max_), "CD_iet")     
+    CD_iesum = df.Histo1D(("CD_iesum", "CD_iesum", nbins, min_, max_), "CD_iesum")
     if options.HCALcalib or options.ECALcalib:
-        CD_iet_calib = df.Histo1D(("CD_iesum_calib", "CD_iesum_calib", nbins, min, max), "CD_iesum_calib")
+        CD_iet_calib = df.Histo1D(("CD_iesum_calib", "CD_iesum_calib", nbins, min_, max_), "CD_iesum_calib")
 
     print(" ### INFO: Define response histograms")
 

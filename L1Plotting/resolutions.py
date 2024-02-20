@@ -24,11 +24,15 @@ def PrevPhiTower(iphi):
     if iphi == 1: return 72
     else:         return iphi - 1
 def NextEtaTower(ieta):
-    if ieta == -1: return 1
-    else:          return ieta + 1
+    if ieta == -1:      return 1
+    elif (ieta == 28):  return 30
+    elif (ieta == -30): return -28
+    else:               return ieta + 1
 def PrevEtaTower(ieta):
-    if ieta == 1: return -1
-    else:         return ieta - 1
+    if ieta == 1:       return -1
+    elif (ieta == 30):  return 28
+    elif (ieta == -28): return -30
+    else:               return ieta - 1
 
 #######################################################################
 ######################### SCRIPT BODY #################################
@@ -52,6 +56,7 @@ parser.add_option("--LooseEle",  dest="LooseEle", action='store_true', default=F
 parser.add_option("--PuppiJet",  dest="PuppiJet", action='store_true', default=False)
 parser.add_option("--do_HoTot",  dest="do_HoTot", action='store_true', default=False)
 parser.add_option("--do_EoTot",  dest="do_EoTot", action='store_true', default=False)
+parser.add_option("--no_Satu",   dest="no_Satu",  action='store_true', default=False)
 parser.add_option("--plot_only", dest="plot_only",action='store_true', default=False)
 parser.add_option("--no_plot",   dest="no_plot",  action='store_true', default=False)
 parser.add_option("--norm",      dest="norm",     action='store_true', default=False)
@@ -69,7 +74,7 @@ os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs')
 
 #defining binning of histogram
 if options.target == 'jet':
-    ptBins  = [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
+    ptBins  = [30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
     etaBins = [0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.191]
     signedEtaBins = [-5.191, -4.5, -4.0, -3.5, -3.0, -2.5, -2.0, -1.479, -1.305, -1.0, -0.5, 0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.191]
 if options.target == 'ele':
@@ -126,10 +131,12 @@ if not options.plot_only:
     response_ptBins = []
     barrel_response_ptBins = []
     endcap_response_ptBins = []
+    forward_response_ptBins = []
     for i in range(len(ptBins)-1):
         response_ptBins.append(ROOT.TH1F("pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
         barrel_response_ptBins.append(ROOT.TH1F("pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
         endcap_response_ptBins.append(ROOT.TH1F("pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
+        forward_response_ptBins.append(ROOT.TH1F("pt_forward_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),"pt_forward_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1]),res_bins,0,3))
 
     # PT RESPONSE -  ETA BINS HISTIGRAMS
     absEta_response_ptBins = []
@@ -153,6 +160,8 @@ if not options.plot_only:
             response_EoTotBins.append(ROOT.TH1F("pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),"pt_resp_EoTotBin"+str(EoTotBins[i])+"to"+str(EoTotBins[i+1]),res_bins,0,3))
 
     print(" ### INFO: Start looping on events")
+    counter = 0
+    counter_3 = 0
     for i in tqdm(range(0, nevents)):
 
         entry2 = level1Tree.GetEntry(i)
@@ -253,9 +262,12 @@ if not options.plot_only:
                 L1Pt = myGoodLevel1Obj.Pt()
                 # print(L1Pt, targetObj.Pt())
 
+                found_255 = False
+
                 iem_sum = 0
                 ihad_sum = 0
-                if options.do_HoTot or options.do_EoTot:
+                if options.do_HoTot or options.do_EoTot or options.no_Satu:
+
                     # find Chunky Donut center
                     jetIEta = FindIeta(targetObj.Eta())
                     jetIPhi = FindIphi(targetObj.Phi())
@@ -268,20 +280,28 @@ if not options.plot_only:
                     min_IPhi = PrevPhiTower(PrevPhiTower(PrevPhiTower(PrevPhiTower(jetIPhi))))
 
                     nTowers = towersTree.L1CaloTower.nTower
-                    if min_IPhi <= max_IPhi:
-                        for iTower in range(0, nTowers):
-                            ieta = towersTree.L1CaloTower.ieta[iTower]
-                            iphi = towersTree.L1CaloTower.iphi[iTower]
-                            if ((ieta <= max_IEta) & (ieta >= min_IEta) & (iphi <= max_IPhi) & (iphi >= min_IPhi)):
-                                iem_sum += towersTree.L1CaloTower.iem[iTower]
-                                ihad_sum += towersTree.L1CaloTower.ihad[iTower]
-                    else: # when iphi > 72
-                        for iTower in range(0, nTowers):
-                            ieta = towersTree.L1CaloTower.ieta[iTower]
-                            iphi = towersTree.L1CaloTower.iphi[iTower]
-                            if ((ieta <= max_IEta) & (ieta >= min_IEta) & ((iphi >= min_IPhi) | (iphi <= max_IPhi))):
-                                iem_sum += towersTree.L1CaloTower.iem[iTower]
-                                ihad_sum += towersTree.L1CaloTower.ihad[iTower]
+                    for iTower in range(0, nTowers):
+                        ieta = towersTree.L1CaloTower.ieta[iTower]
+                        iphi = towersTree.L1CaloTower.iphi[iTower]
+                        if min_IPhi <= max_IPhi:
+                            if (((ieta <= max_IEta) & (ieta >= min_IEta)) & ((iphi <= max_IPhi) & (iphi >= min_IPhi))):
+                                iem_ = towersTree.L1CaloTower.iem[iTower]
+                                ihad_ = towersTree.L1CaloTower.ihad[iTower] if abs(towersTree.L1CaloTower.ieta[iTower]) <= 28 else towersTree.L1CaloTower.iet[iTower]
+                                iem_sum += iem_; ihad_sum += ihad_
+                                if options.no_Satu:
+                                    if iem_ >= 255 or ihad_ >= 255 :
+                                        found_255 = True
+                                        break
+                        else: # when iphi > 72
+                            if (((ieta <= max_IEta) & (ieta >= min_IEta)) & ((iphi >= max_IPhi) | (iphi <= min_IPhi))):
+                                iem_ = towersTree.L1CaloTower.iem[iTower]
+                                ihad_ = towersTree.L1CaloTower.ihad[iTower] if abs(towersTree.L1CaloTower.ieta[iTower]) <= 28 else towersTree.L1CaloTower.iet[iTower]
+                                iem_sum += iem_; ihad_sum += ihad_
+                                if options.no_Satu:
+                                    if iem_ >= 255 or ihad_ >= 255 :
+                                        found_255 = True
+                                        break
+
                     # print(ihad_sum, iem_sum)
                     if ihad_sum+iem_sum != 0:
                         HoTot = ihad_sum/(ihad_sum+iem_sum)
@@ -294,6 +314,12 @@ if not options.plot_only:
 
                     ##########################################################################################
 
+                # skip the whole jet if a saturated tower is found
+                if found_255 == True:
+                    counter_3 += 1
+                if found_255 == False: 
+                    counter += 1
+
                     if options.do_HoTot:
                         for i in range(len(HoTotBins)-1):
                             if HoTot > HoTotBins[i] and HoTot <= HoTotBins[i+1]:
@@ -302,42 +328,47 @@ if not options.plot_only:
                         for i in range(len(EoTotBins)-1):
                             if EoTot > EoTotBins[i] and EoTot <= EoTotBins[i+1]:
                                 response_EoTotBins[i].Fill(L1Pt/targetObj.Pt())
-                    
-                    ##########################################################################################
-
-                # fill histograms
-
-                pt_response_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                pt_response_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-
-                if abs(targetObj.Eta()) < 1.305:
-                    pt_barrel_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                    pt_barrel_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-                elif abs(targetObj.Eta()) < 3. and abs(targetObj.Eta()) > 1.305:
-                    pt_endcap_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                    pt_endcap_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-                elif abs(targetObj.Eta()) > 3.:
-                    pt_forward_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
-                    pt_forward_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
-
-                for i in range(len(ptBins)-1):
-                    if targetObj.Pt() > ptBins[i] and targetObj.Pt() <= ptBins[i+1]:
-                        response_ptBins[i].Fill(L1Pt/targetObj.Pt())
                         
-                        if abs(targetObj.Eta()) < 1.305:
-                            barrel_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
-                        elif abs(targetObj.Eta()) < 5.191 and abs(targetObj.Eta()) > 1.479:
-                            endcap_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+                        ##########################################################################################
 
-                for i in range(len(etaBins)-1):
-                    if abs(targetObj.Eta()) > etaBins[i] and abs(targetObj.Eta()) < etaBins[i+1]:
-                        absEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+                    # fill histograms
 
-                    if targetObj.Eta() > etaBins[i] and targetObj.Eta() < etaBins[i+1]:
-                        plusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+                    pt_response_ptInclusive.Fill(L1Pt/targetObj.Pt())
+                    pt_response_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
 
-                    elif targetObj.Eta() < -etaBins[i] and targetObj.Eta() > -etaBins[i+1]:
-                        minusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+                    if abs(targetObj.Eta()) < 1.305:
+                        pt_barrel_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
+                        pt_barrel_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
+                    elif abs(targetObj.Eta()) < 3. and abs(targetObj.Eta()) > 1.305:
+                        pt_endcap_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
+                        pt_endcap_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
+                    elif abs(targetObj.Eta()) > 3.:
+                        pt_forward_resp_ptInclusive.Fill(L1Pt/targetObj.Pt())
+                        pt_forward_resp_ptInclusive_CD.Fill((iem_sum+ihad_sum)/targetObj.Pt()/2)
+
+                    for i in range(len(ptBins)-1):
+                        if targetObj.Pt() > ptBins[i] and targetObj.Pt() <= ptBins[i+1]:
+                            response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+                            
+                            if abs(targetObj.Eta()) < 1.305:
+                                barrel_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+                            elif abs(targetObj.Eta()) < 3 and abs(targetObj.Eta()) > 1.305:
+                                endcap_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+                            elif abs(targetObj.Eta()) > 3:
+                                forward_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+
+                    for i in range(len(etaBins)-1):
+                        if abs(targetObj.Eta()) > etaBins[i] and abs(targetObj.Eta()) < etaBins[i+1]:
+                            absEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+
+                        if targetObj.Eta() > etaBins[i] and targetObj.Eta() < etaBins[i+1]:
+                            plusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+
+                        elif targetObj.Eta() < -etaBins[i] and targetObj.Eta() > -etaBins[i+1]:
+                            minusEta_response_ptBins[i].Fill(L1Pt/targetObj.Pt())
+
+    # print("Counter = ", counter)
+    # print("Counter 3 = ", counter_3)
 
     ############################################################################################
     ############################################################################################
@@ -349,10 +380,14 @@ if not options.plot_only:
     pt_resol_fctPt = ROOT.TH1F("pt_resol_fctPt","pt_resol_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_resol_barrel_fctPt = ROOT.TH1F("pt_resol_barrel_fctPt","pt_resol_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_resol_endcap_fctPt = ROOT.TH1F("pt_resol_endcap_fctPt","pt_resol_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_resol_forward_fctPt = ROOT.TH1F("pt_resol_forward_fctPt","pt_resol_forward_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_resol_fctAbsEta = ROOT.TH1F("pt_resol_fctAbsEta","pt_resol_fctAbsEta",len(etaBins)-1, array('f',etaBins))
     pt_resol_fctEta = ROOT.TH1F("pt_resol_fctEta","pt_resol_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
 
     pt_scale_fctPt = ROOT.TH1F("pt_scale_fctPt","pt_scale_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_scale_barrel_fctPt = ROOT.TH1F("pt_scale_barrel_fctPt","pt_scale_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_scale_endcap_fctPt = ROOT.TH1F("pt_scale_endcap_fctPt","pt_scale_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_scale_forward_fctPt = ROOT.TH1F("pt_scale_forward_fctPt","pt_scale_forward_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_scale_fctEta = ROOT.TH1F("pt_scale_fctEta","pt_scale_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
 
     pt_scale_max_fctPt = ROOT.TH1F("pt_scale_max_fctPt","pt_scale_max_fctPt",len(ptBins)-1, array('f',ptBins))
@@ -374,7 +409,6 @@ if not options.plot_only:
 
         pt_scale_max_fctPt.SetBinContent(i+1, response_ptBins[i].GetBinCenter(response_ptBins[i].GetMaximumBin()))
         pt_scale_max_fctPt.SetBinError(i+1, response_ptBins[i].GetBinWidth(response_ptBins[i].GetMaximumBin()))
-
         if response_ptBins[i].GetMean() > 0:
             pt_resol_fctPt.SetBinContent(i+1, response_ptBins[i].GetRMS()/response_ptBins[i].GetMean())
             pt_resol_fctPt.SetBinError(i+1, response_ptBins[i].GetRMSError()/response_ptBins[i].GetMean())
@@ -382,19 +416,32 @@ if not options.plot_only:
             pt_resol_fctPt.SetBinContent(i+1, 0)
             pt_resol_fctPt.SetBinError(i+1, 0)
 
+        pt_scale_barrel_fctPt.SetBinContent(i+1, barrel_response_ptBins[i].GetMean())
+        pt_scale_barrel_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetMeanError())
         if barrel_response_ptBins[i].GetMean() > 0:
             pt_resol_barrel_fctPt.SetBinContent(i+1, barrel_response_ptBins[i].GetRMS()/barrel_response_ptBins[i].GetMean())
-            pt_resol_endcap_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetRMSError()/barrel_response_ptBins[i].GetMean())
+            pt_resol_barrel_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetRMSError()/barrel_response_ptBins[i].GetMean())
         else:
             pt_resol_barrel_fctPt.SetBinContent(i+1, 0)
-            pt_resol_endcap_fctPt.SetBinError(i+1, 0)        
+            pt_resol_barrel_fctPt.SetBinError(i+1, 0)        
 
+        pt_scale_endcap_fctPt.SetBinContent(i+1, endcap_response_ptBins[i].GetMean())
+        pt_scale_endcap_fctPt.SetBinError(i+1, endcap_response_ptBins[i].GetMeanError())
         if endcap_response_ptBins[i].GetMean() > 0:
             pt_resol_endcap_fctPt.SetBinContent(i+1, endcap_response_ptBins[i].GetRMS()/endcap_response_ptBins[i].GetMean())
             pt_resol_endcap_fctPt.SetBinError(i+1, endcap_response_ptBins[i].GetRMSError()/endcap_response_ptBins[i].GetMean())
         else:
             pt_resol_endcap_fctPt.SetBinContent(i+1, 0)
             pt_resol_endcap_fctPt.SetBinError(i+1, 0)
+
+        pt_scale_forward_fctPt.SetBinContent(i+1, forward_response_ptBins[i].GetMean())
+        pt_scale_forward_fctPt.SetBinError(i+1, forward_response_ptBins[i].GetMeanError())
+        if forward_response_ptBins[i].GetMean() > 0:
+            pt_resol_forward_fctPt.SetBinContent(i+1, forward_response_ptBins[i].GetRMS()/forward_response_ptBins[i].GetMean())
+            pt_resol_forward_fctPt.SetBinError(i+1, forward_response_ptBins[i].GetRMSError()/forward_response_ptBins[i].GetMean())
+        else:
+            pt_resol_forward_fctPt.SetBinContent(i+1, 0)
+            pt_resol_forward_fctPt.SetBinError(i+1, 0)
 
     for i in range(len(minusEta_response_ptBins)):
         pt_scale_fctEta.SetBinContent(len(etaBins)-1-i, minusEta_response_ptBins[i].GetMean())
@@ -454,6 +501,9 @@ if not options.plot_only:
     print(" ### INFO: Saving to root format")
     fileout = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root','RECREATE')
     pt_scale_fctPt.Write()
+    pt_scale_barrel_fctPt.Write()
+    pt_scale_endcap_fctPt.Write()
+    pt_scale_forward_fctPt.Write()
     pt_scale_fctEta.Write()
     if options.do_HoTot:
         pt_scale_fctHoTot.Write()
@@ -468,6 +518,7 @@ if not options.plot_only:
     pt_resol_fctPt.Write()
     pt_resol_barrel_fctPt.Write()
     pt_resol_endcap_fctPt.Write()
+    pt_resol_forward_fctPt.Write()
     pt_resol_fctAbsEta.Write()
     pt_resol_fctEta.Write()
     pt_response_ptInclusive.Write()
@@ -477,11 +528,13 @@ if not options.plot_only:
     pt_response_ptInclusive_CD.Write()
     pt_barrel_resp_ptInclusive_CD.Write()
     pt_endcap_resp_ptInclusive_CD.Write()
+    pt_forward_resp_ptInclusive_CD.Write()
     if options.target != "ele": pt_forward_resp_ptInclusive_CD.Write()
     for i in range(len(response_ptBins)):
         response_ptBins[i].Write()
         barrel_response_ptBins[i].Write()
         endcap_response_ptBins[i].Write()
+        forward_response_ptBins[i].Write()
     for i in range(len(minusEta_response_ptBins)):
         absEta_response_ptBins[i].Write()
         minusEta_response_ptBins[i].Write()
@@ -500,6 +553,9 @@ else:
     print(" ### INFO: Read existing root files")
     filein = ROOT.TFile(outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/resolution_graphs_'+label+'_'+options.target+'.root')
     pt_scale_fctPt = filein.Get('pt_scale_fctPt')
+    pt_scale_barrel_fctPt = filein.Get('pt_scale_barrel_fctPt')
+    pt_scale_endcap_fctPt = filein.Get('pt_scale_endcap_fctPt')
+    pt_scale_forward_fctPt = filein.Get('pt_scale_forward_fctPt')
     pt_scale_fctEta = filein.Get('pt_scale_fctEta')
     if options.do_HoTot:
         pt_scale_fctHoTot = filein.Get('pt_scale_fctHoTot')
@@ -514,6 +570,7 @@ else:
     pt_resol_fctPt = filein.Get('pt_resol_fctPt')
     pt_resol_barrel_fctPt = filein.Get('pt_resol_barrel_fctPt')
     pt_resol_endcap_fctPt = filein.Get('pt_resol_endcap_fctPt')
+    pt_resol_forward_fctPt = filein.Get('pt_resol_forward_fctPt')
     pt_resol_fctAbsEta = filein.Get('pt_resol_fctAbsEta')
     pt_resol_fctEta = filein.Get('pt_resol_fctEta')
     pt_response_ptInclusive = filein.Get('pt_response_ptInclusive')
@@ -527,10 +584,12 @@ else:
     response_ptBins = []
     barrel_response_ptBins = []
     endcap_response_ptBins = []
+    forward_response_ptBins = []
     for i in range(len(ptBins)-1):
         response_ptBins.append(filein.Get("pt_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])))
         barrel_response_ptBins.append(filein.Get("pt_barrel_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])))
         endcap_response_ptBins.append(filein.Get("pt_endcap_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])))
+        forward_response_ptBins.append(filein.Get("pt_forward_resp_ptBin"+str(ptBins[i])+"to"+str(ptBins[i+1])))
     absEta_response_ptBins = []
     minusEta_response_ptBins = []
     plusEta_response_ptBins = []
@@ -556,6 +615,8 @@ if options.norm:
             barrel_response_ptBins[i].Scale(1.0/barrel_response_ptBins[i].Integral())
         if endcap_response_ptBins[i].Integral() > 0:
             endcap_response_ptBins[i].Scale(1.0/endcap_response_ptBins[i].Integral())
+        if forward_response_ptBins[i].Integral() > 0:
+            forward_response_ptBins[i].Scale(1.0/forward_response_ptBins[i].Integral())
 
     for i in range(len(minusEta_response_ptBins)):
         if minusEta_response_ptBins[i].Integral() > 0:
@@ -634,7 +695,7 @@ def SetStyle(ax, x_label, y_label, x_lim, y_lim, leg_title=''):
     plt.grid()
     for xtick in ax.xaxis.get_major_ticks():
         xtick.set_pad(10)
-    if options.reco: mplhep.cms.label(data=True, rlabel='(13.6 TeV)')
+    if options.reco: mplhep.cms.label('Preliminary', data=True, rlabel='(13.6 TeV)')
     else:            mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
 
 def AddRectangles(ax, Ymax):
@@ -651,19 +712,19 @@ print(" ### INFO: Produce plots inclusive")
 ## response inclusive 
 
 fig, ax = plt.subplots(figsize=(10,10))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
 Ymax = max(Y)
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
+Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_endcap_resp_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
 Ymax = max(Ymax, max(Y))
 if options.target != "ele": 
     X,Y,X_err,Y_err = GetArraysFromHisto(pt_forward_resp_ptInclusive)
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(2))
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
     Ymax = max(Ymax, max(Y))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(3))
-Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/response_ptInclusive_'+label+'_'+options.target+'.png')
@@ -673,19 +734,20 @@ plt.close()
 ## response inclusive CD
 
 fig, ax = plt.subplots(figsize=(10,10))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive_CD)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
 Ymax = max(Y)
+fig, ax = plt.subplots(figsize=(10,10))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_barrel_resp_ptInclusive_CD)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
+Ymax = max(Ymax, max(Y))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_endcap_resp_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
 Ymax = max(Ymax, max(Y))
 if options.target != "ele": 
     X,Y,X_err,Y_err = GetArraysFromHisto(pt_forward_resp_ptInclusive_CD)
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(2))
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
     Ymax = max(Ymax, max(Y))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_response_ptInclusive_CD)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label="Inclusive", lw=2, marker='o', color=cmap(3))
-Ymax = max(Ymax, max(Y))
 SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_ptInclusive_CD_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/response_ptInclusive_CD_'+label+'_'+options.target+'.png')
@@ -700,12 +762,19 @@ print(" ### INFO: Produce plots in pt bins")
 
 for i in range(len(barrel_response_ptBins)):
     fig, ax = plt.subplots(figsize=(10,10))
-    X,Y,X_err,Y_err = GetArraysFromHisto(barrel_response_ptBins[i])
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
+    X,Y,X_err,Y_err = GetArraysFromHisto(response_ptBins[i])
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
     Ymax = max(Y)
-    X,Y,X_err,Y_err = GetArraysFromHisto(endcap_response_ptBins[i])
-    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
+    X,Y,X_err,Y_err = GetArraysFromHisto(barrel_response_ptBins[i])
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
     Ymax = max(Ymax, max(Y))
+    X,Y,X_err,Y_err = GetArraysFromHisto(endcap_response_ptBins[i])
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
+    Ymax = max(Ymax, max(Y))
+    if options.target != "ele": 
+        X,Y,X_err,Y_err = GetArraysFromHisto(forward_response_ptBins[i])
+        ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
+        Ymax = max(Ymax, max(Y))        
     SetStyle(ax, x_label_response, y_label_response, x_lim_response, (0,1.3*Ymax), str(ptBins[i])+legend_label_pt+str(ptBins[i+1]))
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/response_'+str(ptBins[i])+"pt"+str(ptBins[i+1])+'_'+label+'_'+options.target+'.pdf')
     plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/response_'+str(ptBins[i])+"pt"+str(ptBins[i+1])+'_'+label+'_'+options.target+'.png')
@@ -715,12 +784,19 @@ for i in range(len(barrel_response_ptBins)):
 ## resolution in pt bins
 
 fig, ax = plt.subplots(figsize=(10,10))
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_barrel_fctPt)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(0))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
 Ymax = max(Y)
-X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_endcap_fctPt)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(1))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_barrel_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
 Ymax = max(Ymax, max(Y))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_endcap_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
+Ymax = max(Ymax, max(Y))
+if options.target != "ele":
+    X,Y,X_err,Y_err = GetArraysFromHisto(pt_resol_forward_fctPt)
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
+    Ymax = max(Ymax, max(Y)) 
 SetStyle(ax, x_label_pt, y_label_resolution, x_lim_pt, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/resolution_ptBins_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/resolution_ptBins_'+label+'_'+options.target+'.png')
@@ -731,7 +807,18 @@ plt.close()
 
 fig, ax = plt.subplots(figsize=(10,10))
 X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_fctPt)
-ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, lw=2, marker='o', color=cmap(0))
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
+Ymax = max(Y)
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_barrel_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
+Ymax = max(Ymax, max(Y))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_endcap_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
+Ymax = max(Ymax, max(Y))
+if options.target != "ele":
+    X,Y,X_err,Y_err = GetArraysFromHisto(pt_scale_forward_fctPt)
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
+    Ymax = max(Ymax, max(Y)) 
 SetStyle(ax, x_label_pt, y_label_scale, x_lim_pt, y_lim_scale)
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/scale_ptBins_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/scale_ptBins_'+label+'_'+options.target+'.png')
