@@ -408,7 +408,7 @@ def SetStyle(ax, x_label):
     plt.xlim(0, 220)
     plt.ylim(0, 1.05)
     plt.grid()
-    if options.reco: mplhep.cms.label(data=False, rlabel='(13.6 TeV)')
+    if options.reco: mplhep.cms.label('Preliminary', data=True, rlabel='(13.6 TeV)')
     else:            mplhep.cms.label('Preliminary', data=True, rlabel=r'110 pb$^{-1}$ (13.6 TeV)') ## 110pb-1 is Run 362617
 
 thresholds = list(thresholds)
