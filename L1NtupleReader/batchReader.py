@@ -177,6 +177,44 @@ def FindDirection(iEta, iPhi, df):
     else:
         return -1 # left
 
+def padDataFrameWithZeros_SizeFixed( dfFlatEJT , size):
+    padded = pd.DataFrame()
+    for i, uniqueIdx in enumerate(dfFlatEJT.index.unique()):
+        if i%100 == 0:
+            print('{:.4f}%'.format(i/len(dfFlatEJT.index.unique())*100))
+
+        df_i = dfFlatEJT[(dfFlatEJT.index == uniqueIdx)]
+        CDCoordinates = FindCDCoordinates(df_i['jetIeta'].unique()[0], df_i['jetIphi'].unique()[0], size)
+        filtered_padded = df_i[df_i[['ieta', 'iphi']].apply(tuple, axis=1).isin(CDCoordinates)]
+        padded = pd.concat([padded, filtered_padded])
+
+        N = len(filtered_padded['jetIeta'])
+        jetIeta     = df_i['jetIeta'].unique()[0]
+        jetIphi     = df_i['jetIphi'].unique()[0]
+        trainingPt  = df_i['trainingPt'].unique()[0]
+        jetPt       = df_i['jetPt'].unique()[0]
+        jetEta      = df_i['jetEta'].unique()[0]
+        jetPhi      = df_i['jetPhi'].unique()[0]
+
+        padder = pd.DataFrame(columns=dfFlatEJT.columns, index=range(0,81-N))
+        padder['uniqueId'] = uniqueIdx
+        padder['jetPt'] = jetPt
+        padder['trainingPt'] = trainingPt
+        padder['jetEta'] = jetEta
+        padder['jetPhi'] = jetPhi
+        padder['jetIeta'] = jetIeta
+        padder['jetIphi'] = jetIphi
+        padder['iem'] = 0
+        padder['ihad'] = 0
+        padder['iet'] = 0
+        padder['hcalET'] = 0
+        padder['ieta'] = 0
+        padder['iphi'] = 0
+
+        padded = pd.concat([padded, padder])
+        del padder, df_i
+    return padded
+
 def padDataFrameWithZeros_HFSizeFixed( dfFlatEJT , size):
 
     padded = pd.DataFrame()
@@ -411,7 +449,7 @@ def padDataFrameWithZeros( dfFlatEJT ):
 
 def mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, uJetPtcut, lJetPtcut, lRawPtCut, iEtacut, iEtacutMin, applyCut_3_6_9, Ecalcut, \
                 Hcalcut, HoTotcut, TTNumberCut, TTNumberCutInverse, trainPtVers, whichECALcalib, whichHCALcalib, \
-                flattenPtDistribution, flattenEtaDistribution, applyOnTheFly, ClusterFilter, applyZS, LooseEle, matching, sizeHF):
+                flattenPtDistribution, flattenEtaDistribution, applyOnTheFly, ClusterFilter, applyZS, LooseEle, matching, sizeHF, sizeCD):
     
     if len(dfFlatET) == 0 or len(dfFlatEJ) == 0:
         print(' ** WARNING: Zero data here --> EXITING!\n')
@@ -685,6 +723,9 @@ def mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, uJetPtcu
     elif sizeHF != 9:
         print(' ### INFO: Considering CD {}x{} for HF'.format(sizeHF, sizeHF))
         paddedEJT = padDataFrameWithZeros_HFSizeFixed(dfFlatEJT, sizeHF)
+    elif sizeCD != 9:
+        print(' ### INFO: Considering CD {}x{} everywhere'.format(sizeCD, sizeCD))
+        paddedEJT = padDataFrameWithZeros_SizeFixed(dfFlatEJT, sizeCD)
     else:
         paddedEJT = padDataFrameWithZeros(dfFlatEJT)
 
@@ -813,6 +854,7 @@ if __name__ == "__main__" :
     parser.add_option("--PuppiJet",      dest="PuppiJet", action='store_true', default=False)
     parser.add_option("--matching",      dest="matching", action='store_true', default=False)
     parser.add_option("--sizeHF",        dest="sizeHF",        default=9,     type=int)
+    parser.add_option("--sizeCD",        dest="sizeCD",        default=9,     type=int)
     (options, args) = parser.parse_args()
 
     if (options.fin=='' or options.fout=='' or options.target=='' or options.type==''): print('** ERROR: wrong input options --> EXITING!!'); exit()
@@ -1013,7 +1055,7 @@ if __name__ == "__main__" :
         mainReader( dfFlatET, dfFlatEJ, dfFlatEL, saveToDFs, saveToTensors, options.uJetPtCut, options.lJetPtCut, options.lRawPtCut, options.etacut, options.etacutmin, options.applyCut_3_6_9, \
                     options.ecalcut, options.hcalcut, options.HoTotcut, options.TTNumberCut, options.TTNumberCutInverse, options.trainPtVers, \
                     options.calibrateECAL, options.calibrateHCAL, options.flattenPtDistribution, options.flattenEtaDistribution, options.applyOnTheFly, \
-                    options.ClusterFilter, options.applyZS, options.LooseEle, options.matching, options.sizeHF)
+                    options.ClusterFilter, options.applyZS, options.LooseEle, options.matching, options.sizeHF, options.sizeCD)
 
     print("\nNumber of events = ", n_events)
     print("Number of jets passing reader conditions = ", n_jets)

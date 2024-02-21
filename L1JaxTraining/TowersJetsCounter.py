@@ -86,9 +86,10 @@ if __name__ == "__main__" :
 
     if options.v == "HCAL":
         eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
+        et_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
     elif options.v == "ECAL":
         eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
-    et_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
+        et_binning  = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
 
     eta_binning = np.array(eta_binning)
     et_binning = np.array(et_binning)
@@ -112,7 +113,9 @@ if __name__ == "__main__" :
         hist, xedges, yedges = np.histogram2d(ieta, iem, bins=[eta_binning, et_binning])
     hist[hist == 0] = -1
     min_ = 1
-    max_ = int(np.max(hist)/20)
+    max_ = int(np.max(hist)/20) # for 9x9 CD
+    # max_ = int(np.max(hist)/5) # for 3x3 CD
+    # max_ = int(np.max(hist)) # for Cluster
 
     fig, ax = plt.subplots(1, 1, figsize=(14,12))
     cmap = matplotlib.cm.get_cmap("viridis")
@@ -138,7 +141,7 @@ if __name__ == "__main__" :
     JetEnergy = jets[:, 3]
     Response = np.array(L1Energy/JetEnergy)
 
-    fig, ax = plt.subplots(1, 1, figsize=(14,12))
+    fig, ax = plt.subplots(1, 1, figsize=(10,10))
     bins_pt = np.linspace(0,200,200)
     plt.hist(JetEnergy/2, bins=bins_pt, histtype='step', stacked=True, linewidth=2, color='black')
     plt.xlabel(r'$p_{T}$ [GeV]')
@@ -149,7 +152,7 @@ if __name__ == "__main__" :
     plt.savefig(savefile+'.pdf')
     print(savefile)
 
-    fig, ax = plt.subplots(1, 1, figsize=(14,12))
+    fig, ax = plt.subplots(1, 1, figsize=(10,10))
     bins_res = np.linspace(0,3,200)
     plt.hist(Response, bins=bins_res, histtype='step', stacked=True, linewidth=2, color='black')
     plt.xlabel(r'Response')
@@ -160,7 +163,7 @@ if __name__ == "__main__" :
     plt.savefig(savefile+'.pdf')
     print(savefile)
 
-    fig, ax = plt.subplots(1, 1, figsize=(14,12))
+    fig, ax = plt.subplots(1, 1, figsize=(10,10))
     bins_res = np.linspace(0,3,200)
     eta = np.array(np.abs(jets[:,1]))
     plt.hist(Response[(eta < 1.305)], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='blue', label='Barrel')
@@ -174,3 +177,22 @@ if __name__ == "__main__" :
     plt.savefig(savefile+'.png')
     plt.savefig(savefile+'.pdf')
     print(savefile)
+
+    os.system('mkdir -p '+ odir + '/EtaBins')
+    if options.v == "ECAL":
+        etaBins = [0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0]
+    if options.v == "HCAL":
+        etaBins = [0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.191]
+    for i,etaBin in enumerate(etaBins[:-1]):
+        fig, ax = plt.subplots(1, 1, figsize=(10,10))
+        bins_res = np.linspace(0,3,200)
+        eta = np.array(np.abs(jets[:,1]))
+        plt.hist(Response[(eta >= etaBins[i]) & (eta < etaBins[i+1])], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='black', label='Barrel')
+        plt.xlabel(r'Response')
+        plt.ylabel('Entries')
+        plt.grid(linestyle='dotted')
+        plt.legend(title=str(etaBins[i])+r'$<|\eta|<$'+str(etaBins[i+1]))
+        savefile = odir + '/EtaBins/InputResponse_'+str(etaBins[i])+'eta'+str(etaBins[i+1])
+        plt.savefig(savefile+'.png')
+        plt.savefig(savefile+'.pdf')
+        print(savefile)

@@ -106,7 +106,7 @@ os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/co
 
 #defining binning of histogram
 if options.target == 'jet':
-    ptBins  = [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
+    ptBins  = [30, 35, 40, 45, 50, 60, 70, 90, 110, 130, 160, 200, 500]
     etaBins = [0., 0.5, 1.0, 1.305, 1.479, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.191]
     x_lim_response = (0.,3.)
 if options.target == 'ele':
@@ -128,7 +128,7 @@ elif options.target == 'met':   part_name = 'MET'
 
 barrel_label = r'Barrel $|\eta^{%s, %s}|<1.305$' % (part_name, targ_name)
 endcap_label = r'Endcap $1.305<|\eta^{%s, %s}|<3$' % (part_name, targ_name)
-forward_label = r'Endcap $3<|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
+forward_label = r'Forward $3<|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
 inclusive_label = r'Inclusive $|\eta^{%s, %s}|<5.191$' % (part_name, targ_name)
 
 x_label_pt      = r'$p_{T}^{%s, %s}$' % (part_name, targ_name)
@@ -271,53 +271,54 @@ if options.doResponse == True:
 ############################################################################################
 # for DEBUG
 
-file_turnon_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
-file_turnon_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
-file_turnon_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
+if options.doTurnOn == True:
+    file_turnon_unCalib  = ROOT.TFile(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
+    file_turnon_oldCalib = ROOT.TFile(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
+    file_turnon_newCalib = ROOT.TFile(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root', 'r')
 
-print("\n *** COMPARING TURN ONS")
-print(" ### INFO: UnCalib file  = {}".format(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
-print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
-print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
+    print("\n *** COMPARING TURN ONS")
+    print(" ### INFO: UnCalib file  = {}".format(uncdir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
+    print(" ### INFO: OldCalib file = {}".format(olddir+'/PerformancePlots/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
+    print(" ### INFO: NewCalib file = {}".format(indir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs/efficiency_graphs_'+label+'_'+target+'.root'))
 
-y_label_turnon = 'Efficiency'
-x_lim_turnon = (0, 250)
-y_lim_turnon = (0, 1.05)
+    y_label_turnon = 'Efficiency'
+    x_lim_turnon = (0, 250)
+    y_lim_turnon = (0, 1.05)
 
-eta_range_list = ['', 'er2p5']
-if options.er: eta_range_list.append("er"+options.er.replace(".", "p"))
+    eta_range_list = ['', 'er2p5']
+    if options.er: eta_range_list.append("er"+options.er.replace(".", "p"))
 
-for rate in ['rateDi', 'rate']:
-    for eta_range in eta_range_list:
+    for rate in ['rateDi', 'rate']:
+        for eta_range in eta_range_list:
 
-        if rate == 'rateDi':
-            name = 'DiObj'
-        if rate == 'rate':
-            name = 'Obj'
+            if rate == 'rateDi':
+                name = 'DiObj'
+            if rate == 'rate':
+                name = 'Obj'
 
-        if eta_range == '': 
-            er_label = ''
-            er_name = ''
-        else:
-            er_name = eta_range.capitalize()
-            er_label = '_' + er_name
+            if eta_range == '': 
+                er_label = ''
+                er_name = ''
+            else:
+                er_name = eta_range.capitalize()
+                er_label = '_' + er_name
 
-        for thr in [30,50,70,100]:
-            turnon_unCalib  = file_turnon_unCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
-            turnon_oldCalib = file_turnon_oldCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
-            turnon_newCalib = file_turnon_newCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
-            fig, ax = plt.subplots(figsize=(10,10))
-            X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_unCalib)
-            ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NoCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='black', zorder=0)
-            X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_oldCalib)
-            ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=OldCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='red', zorder=1)
-            X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_newCalib)
-            ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NewCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='green', zorder=2)
-            SetStyle(ax, x_label_turnon, y_label_turnon, x_lim_turnon, y_lim_turnon, 'Fixed '+name+'ect Rate '+er_name+': '+str(round(thr,2))+' kHz', turnon=True)
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.pdf')
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
-            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
-            plt.close()
+            for thr in [30,50,70,100]:
+                turnon_unCalib  = file_turnon_unCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
+                turnon_oldCalib = file_turnon_oldCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
+                turnon_newCalib = file_turnon_newCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
+                fig, ax = plt.subplots(figsize=(10,10))
+                X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_unCalib)
+                ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NoCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='black', zorder=0)
+                X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_oldCalib)
+                ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=OldCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='red', zorder=1)
+                X,Y,Y_low,Y_high = GetArraysFromGraph(turnon_newCalib)
+                ax.errorbar(X, Y, xerr=1, yerr=[Y_low, Y_high], label=NewCalibLabel+R': $p_{T}^{L1}>$'+str(int(thr))+' GeV', lw=2, marker='o', color='green', zorder=2)
+                SetStyle(ax, x_label_turnon, y_label_turnon, x_lim_turnon, y_lim_turnon, 'Fixed '+name+'ect Rate '+er_name+': '+str(round(thr,2))+' kHz', turnon=True)
+                plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.pdf')
+                plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
+                print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/turnon'+er_name+'_'+str(thr)+'_'+label+'_'+target+'.png')
+                plt.close()
 
 ############################################################################################
 ############################################################################################
@@ -358,58 +359,65 @@ if options.doResolution == True:
                 y_label = y_label_resolution
                 y_lim = None
                 name_y = 'resolution'
+                if var == "Pt": regions = ["", "_barrel", "_endcap", "_forward"]
+                else: regions = [""]
             if quantity == 'scale': 
                 y_label = y_label_scale
                 y_lim = y_lim_scale
                 name_y = 'scale'
+                if var == "Pt": regions = ["", "_barrel", "_endcap", "_forward"]
+                else: regions = [""]
             if quantity == 'scale_max': 
                 y_label = y_label_scale_max
                 y_lim = y_lim_scale
                 name_y = 'scale_max'
+                regions = [""]
 
-            Bins_resol_unCalib  = file_unCalib.Get("pt_"+quantity+"_fct"+var)
-            Bins_resol_oldCalib = file_oldCalib.Get("pt_"+quantity+"_fct"+var)
-            Bins_resol_newCalib = file_newCalib.Get("pt_"+quantity+"_fct"+var)
+            for region in regions:
 
-            fig, ax = plt.subplots(figsize=(10,10))
-            X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_unCalib)
-            ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NoCalibLabel, ls='None', lw=2, marker='o', color='black', zorder=0)
-            if quantity == 'resol': X_r_uncalib = X; Y_r_uncalib = Y
-            if quantity == 'scale': X_s_uncalib = X; Y_s_uncalib = Y
-            Ymax = max(Y)
-            X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_oldCalib)
-            ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=OldCalibLabel, ls='None', lw=2, marker='o', color='red', zorder=1)
-            if quantity == 'resol': X_r_oldcalib = X; Y_r_oldcalib = Y
-            if quantity == 'scale': X_s_oldcalib = X; Y_s_oldcalib = Y
-            Ymax = max(Ymax, max(Y))
-            X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_newCalib)
-            ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NewCalibLabel, ls='None', lw=2, marker='o', color='green', zorder=2)
-            if quantity == 'resol': X_r_newcalib = X; Y_r_newcalib = Y
-            if quantity == 'scale': X_s_newcalib = X; Y_s_newcalib = Y
-            Ymax = max(Ymax, max(Y))
-            if var == 'Eta': AddRectangles(ax,Ymax)
-            if y_lim: SetStyle(ax, x_label, y_label, x_lim, y_lim)
-            else: SetStyle(ax, x_label, y_label, x_lim, (0., 1.3*Ymax))
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+'_'+name_x+'Bins_'+label+'_'+target+'.pdf')
-            plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+'_'+name_x+'Bins_'+label+'_'+target+'.png')
-            print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+'_'+name_x+'Bins_'+label+'_'+target+'.png')
-            plt.close()
+                Bins_resol_unCalib  = file_unCalib.Get("pt_"+quantity+"_fct"+var)
+                Bins_resol_oldCalib = file_oldCalib.Get("pt_"+quantity+"_fct"+var)
+                Bins_resol_newCalib = file_newCalib.Get("pt_"+quantity+"_fct"+var)
 
-            if len(X_r_uncalib) > 0 and len(X_s_uncalib) > 0:
-
-                fig, ax = plt.subplots(figsize=(14,10))
-                trans_l = ax.transData + ScaledTranslation(-4/72, 0, fig.dpi_scale_trans)
-                trans_r = ax.transData + ScaledTranslation(+4/72, 0, fig.dpi_scale_trans)
-                ax.errorbar(X_s_uncalib, Y_s_uncalib, yerr=Y_r_uncalib, label=NoCalibLabel, ls='None', lw=2, marker='v', capsize=3, color='black', zorder=0, transform=trans_l)
-                ax.errorbar(X_s_oldcalib, Y_s_oldcalib, yerr=Y_r_oldcalib, label=OldCalibLabel, ls='None', lw=2, marker='^', capsize=3, color='red', zorder=1)
-                ax.errorbar(X_s_newcalib, Y_s_newcalib, yerr=Y_r_newcalib, label=NewCalibLabel, ls='None', lw=2, marker='o', capsize=3, color='green', zorder=2, transform=trans_r)
-                SetStyle(ax, x_label, 'Energy scale ($\mu \pm \sigma$)', x_lim, (0.3, 1.8))
-                plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/scale_res_'+var+'Bins_'+label+'_'+target+'.pdf')
-                plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/scale_res_'+var+'Bins_'+label+'_'+target+'.png')
-                print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/scale_res_'+var+'Bins_'+label+'_'+target+'.png')
+                fig, ax = plt.subplots(figsize=(10,10))
+                X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_unCalib)
+                ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NoCalibLabel, ls='None', lw=2, marker='o', color='black', zorder=0)
+                if quantity == 'resol' and region == '': X_r_uncalib = X; Y_r_uncalib = Y
+                if quantity == 'scale' and region == '': X_s_uncalib = X; Y_s_uncalib = Y
+                Ymax = max(Y)
+                X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_oldCalib)
+                ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=OldCalibLabel, ls='None', lw=2, marker='o', color='red', zorder=1)
+                if quantity == 'resol' and region == '': X_r_oldcalib = X; Y_r_oldcalib = Y
+                if quantity == 'scale' and region == '': X_s_oldcalib = X; Y_s_oldcalib = Y
+                Ymax = max(Ymax, max(Y))
+                X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_newCalib)
+                ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NewCalibLabel, ls='None', lw=2, marker='o', color='green', zorder=2)
+                if quantity == 'resol' and region == '': X_r_newcalib = X; Y_r_newcalib = Y
+                if quantity == 'scale' and region == '': X_s_newcalib = X; Y_s_newcalib = Y
+                Ymax = max(Ymax, max(Y))
+                if var == 'Eta': AddRectangles(ax,Ymax)
+                if y_lim: SetStyle(ax, x_label, y_label, x_lim, y_lim)
+                else: SetStyle(ax, x_label, y_label, x_lim, (0., 1.3*Ymax))
+                plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+region+'_'+name_x+'Bins_'+label+'_'+target+'.pdf')
+                plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+region+'_'+name_x+'Bins_'+label+'_'+target+'.png')
+                print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/'+name_y+region+'_'+name_x+'Bins_'+label+'_'+target+'.png')
                 plt.close()
 
-                X_r_uncalib, X_s_uncalib = [], []
+                if len(X_r_uncalib) > 0 and len(X_s_uncalib) > 0:
+
+                    fig, ax = plt.subplots(figsize=(14,10))
+                    trans_l = ax.transData + ScaledTranslation(-4/72, 0, fig.dpi_scale_trans)
+                    trans_r = ax.transData + ScaledTranslation(+4/72, 0, fig.dpi_scale_trans)
+                    ax.errorbar(X_s_uncalib, Y_s_uncalib, yerr=Y_r_uncalib, label=NoCalibLabel, ls='None', lw=2, marker='v', capsize=3, color='black', zorder=0, transform=trans_l)
+                    ax.errorbar(X_s_oldcalib, Y_s_oldcalib, yerr=Y_r_oldcalib, label=OldCalibLabel, ls='None', lw=2, marker='^', capsize=3, color='red', zorder=1)
+                    ax.errorbar(X_s_newcalib, Y_s_newcalib, yerr=Y_r_newcalib, label=NewCalibLabel, ls='None', lw=2, marker='o', capsize=3, color='green', zorder=2, transform=trans_r)
+                    SetStyle(ax, x_label, 'Energy scale ($\mu \pm \sigma$)', x_lim, (0.3, 1.8))
+                    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/comparisons_'+label+'_'+target+options.ref+'/scale_res_'+var+'Bins_'+label+'_'+target+'.pdf')
+                    plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/scale_res_'+var+'Bins_'+label+'_'+target+'.png')
+                    print(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/comparisons_'+label+'_'+target+options.ref+'/scale_res_'+var+'Bins_'+label+'_'+target+'.png')
+                    plt.close()
+
+                    X_r_uncalib, X_s_uncalib = [], []
 
 if options.doResponse == True or options.doResolution == True:
     file_unCalib.Close() 

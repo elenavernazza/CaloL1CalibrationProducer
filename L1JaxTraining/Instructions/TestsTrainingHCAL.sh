@@ -2,6 +2,7 @@
 # An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
 
 number=$1
+re_emu=$2
 
 #################################################################################
 # TRAINING 
@@ -23,27 +24,29 @@ python3 ProduceCaloParams.py --name caloParams_2023_"${number}"_newCalib_cfi \
 # TESTING PLOTS
 #################################################################################
 
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_Resolution.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
- --HCALcalib --caloParam caloParams_2023_"${number}"_newCalib_cfi.py --outdir Trainings_2023/"${number}"/NtuplesVnew
+ --HCALcalib --caloParam caloParams_2023_"${number}"_newCalib_cfi.py --outdir Trainings_2023/"${number}"/NtuplesVnew --no_Satu
 
-# python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-#  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
+# python3 RDF_Resolution.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 \
 #  --HCALcalib --caloParam caloParams_2023_v0_4_cfi.py \
-#  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVold
+#  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVold --no_Satu
 
-# python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-#  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
+# python3 RDF_Resolution.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 \
 #  --HCALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
-#  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVunc
+#  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVunc --no_Satu
 
-python3 comparisonPlotsFast.py --indir Trainings_2023/"${number}"/NtuplesVnew --target jet --reco \
+python3 comparisonPlots.py --target jet --reco --do_HoTot \
  --old Trainings_2023/JAX_HCAL_0/NtuplesVold --unc Trainings_2023/JAX_HCAL_0/NtuplesVunc \
- --do_HoTot --doRate False --doTurnOn False
+ --indir Trainings_2023/"${number}"/NtuplesVnew
 
 #################################################################################
 # RE-EMULATION 
 #################################################################################
+
+if [ "$re_emu" != "NO" ]; then
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 alias cd_launch='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
@@ -88,3 +91,5 @@ python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079_
 alias cd_back='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
 
 cd_back
+
+fi

@@ -126,10 +126,11 @@ if __name__ == "__main__" :
 
     if options.v == "HCAL":
         eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+        en_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
     elif options.v == "ECAL":
         eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
+        en_binning  = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
     # et_binning  = [i for i in range(1,101)]
-    en_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
     eta_binning = jnp.array(eta_binning)
     et_binning = jnp.array(en_binning) + 0.1 # this shift allows to have et = 1 in the first bin
     print(" ### INFO: Eta binning = ", eta_binning)
@@ -142,6 +143,12 @@ if __name__ == "__main__" :
         # Apply ZS to ieta <= 15 and iet == 1
         SFs = jnp.where((eta_binning[:, None] <= 15) & (et_binning[None, :] == 1 + 0.1), 0, SFs)
         print(" ### INFO: Zero Suppression applied to ieta <= 15, et == 1")
+    if options.v == 'ECAL':
+        # Apply ZS to 3_6_9 region
+        SFs = jnp.where((eta_binning[:, None] == 26) & (et_binning[None, :] <= 6 + 0.1), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] == 27) & (et_binning[None, :] <= 12 + 0.1), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 18 + 0.1), 0, SFs)
+        print(" ### INFO: Zero Suppression applied to TT 26 (iEt<=6),27 (iEt<=12), 28 (iEt<=18)")
     SFs_flat = SFs.ravel()
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))

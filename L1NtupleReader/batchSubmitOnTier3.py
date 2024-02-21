@@ -63,6 +63,7 @@ parser.add_option("--LooseEle",           dest="LooseEle",           default=Fal
 parser.add_option("--PuppiJet",           dest="PuppiJet",           default=False, action='store_true')
 parser.add_option("--matching",           dest="matching",           default=False, action='store_true')
 parser.add_option("--sizeHF",             dest="sizeHF",             default=False)
+parser.add_option("--sizeCD",             dest="sizeCD",             default=False)
 parser.add_option("--resubmit_failed",    dest="resubmit_failed",    default=False, action='store_true')
 parser.add_option("--no_exec",            dest="no_exec",            default=False, action='store_true')
 (options, args) = parser.parse_args()
@@ -171,6 +172,8 @@ for file in InFiles:
         cmsRun = cmsRun + " --matching"
     if options.sizeHF != False:
         cmsRun = cmsRun + " --sizeHF "+options.sizeHF
+    if options.sizeCD != False:
+        cmsRun = cmsRun + " --sizeCD "+options.sizeCD
 
     cmsRun = cmsRun + " >& "+outLogName
 

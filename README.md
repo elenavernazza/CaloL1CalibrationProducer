@@ -223,6 +223,39 @@ python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTu
     --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching
 ```
 
+<details>
+<summary>New ECAL inputs being tested</summary>
+
+```bash
+cd L1NtupleReader
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023B_LooseEle_EoTot80_Cluster \
+    --target reco --type ele --chunk_size 5000 \
+    --queue short \
+    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --ClusterFilter
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023C_LooseEle_EoTot80_Cluster \
+    --target reco --type ele --chunk_size 5000 \
+    --queue short \
+    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --ClusterFilter
+```
+
+```bash
+cd L1NtupleReader
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023B_LooseEle_EoTot80_CD3x3 \
+    --target reco --type ele --chunk_size 5000 \
+    --queue short \
+    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --sizeCD 3
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023C_LooseEle_EoTot80_CD3x3 \
+    --target reco --type ele --chunk_size 5000 \
+    --queue short \
+    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --sizeCD 3
+```
+
+</details>
+
 ### Read Jet
 
 ```bash
@@ -249,6 +282,11 @@ python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_Loose
     --odir Trainings_2023/TestInputEGamma --jetsLim 1000000 --v ECAL
 python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
     --odir Trainings_2023/TestInputJetMET --jetsLim 1000000 --v HCAL
+
+python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
+    --odir Trainings_2023/TestInputEGamma_Cluster --jetsLim 1000000 --v ECAL
+python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_CD3x3/GoodNtuples/tensors \
+    --odir Trainings_2023/TestInputEGamma_CD3x3 --jetsLim 1000000 --v ECAL
 ```
 
 <!-- python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors \
