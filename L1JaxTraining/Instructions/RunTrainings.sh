@@ -63,6 +63,33 @@ python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_P
     --odir Trainings_2023/JAX_HCAL_13 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --scaleHF 1.6 --v HCAL
 source Instructions/TestsTrainingHCAL.sh JAX_HCAL_13 NO
 
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_14 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --scaleHF 1 --v HCAL --maskHF
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_14
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_15 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --scaleHF 1 --v HCAL --maskHF # (adding TT 28 ZS)
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_15 # bugged, forgot to ask masking of TT 28
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_16 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --scaleHF 1 --v HCAL --maskHF # (adding TT 28 ZS)
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_16
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_17 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --scaleHF 1 --v HCAL --maskHF # (adding TT 28 to 1)
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_17
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt50_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_18 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --scaleHF 1 --v HCAL --maskHF # (adding TT 28 to 1)
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_18
+
+# python3 JaxOptimizerFloor.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+#     --odir Trainings_2023/JAX_HCAL_18 --jetsLim 10000 --lr 0.5 --bs 512 --ep 10 --scale 1 --scaleHF 1 --v HCAL --maskHF # (adding TT 28 to 1)
+# source Instructions/TestsTrainingHCAL.sh JAX_HCAL_18
+
+# python3 JaxOptimizerFloor.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+#     --odir Trainings_2023/JAX_HCAL_14 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.82 --scaleHF 1. --v HCAL
+
 ########################################################################################################################
 # ECAL TRAININGS (full stats 5353702)
 ########################################################################################################################
@@ -72,7 +99,7 @@ python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_E
 source Instructions/TestsTrainingECAL.sh JAX_ECAL_1
 source Instructions/TestsPerformanceECAL.sh JAX_ECAL_1
 
-python3 JaxOptimizerECAL.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80/GoodNtuples/tensors \
+python3 JaxOptimizerPtNorm.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80/GoodNtuples/tensors \
     --odir Trainings_2023/JAX_ECAL_2 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 1 --v ECAL
 source Instructions/TestsTrainingECAL.sh JAX_ECAL_2
 source Instructions/TestsPerformanceECAL.sh JAX_ECAL_2
@@ -106,6 +133,21 @@ python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_E
     --odir Trainings_2023/JAX_ECAL_8 --jetsLim 3000000 --lr 0.5 --bs 4096 \
     --ep 100 --scale 0.9 --v ECAL # (applying 3_6_9 and new binning)
 source Instructions/TestsTrainingECAL.sh JAX_ECAL_8
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_ECAL_9 --jetsLim 3000000 --lr 0.5 --bs 4096 \
+    --ep 100 --scale 0.95 --v ECAL # (applying 3_6_9 and new binning)
+source Instructions/TestsTrainingECAL.sh JAX_ECAL_9
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_ECAL_10 --jetsLim 1000000 --lr 0.5 --bs 4096 \
+    --ep 100 --scale 0.95 --v ECAL # (applying 3_6_9 and new binning)
+source Instructions/TestsTrainingECAL.sh JAX_ECAL_10
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_ECAL_11 --jetsLim 1000000 --lr 0.5 --bs 4096 \
+    --ep 100 --scaleB 0.95 --scaleE 0.9 --v ECAL # (applying 3_6_9 and new binning)
+source Instructions/TestsTrainingECAL.sh JAX_ECAL_11
 
 ########################################################################################################################
 # OLD BEST TRAININGS

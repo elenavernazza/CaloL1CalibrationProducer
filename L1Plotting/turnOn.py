@@ -64,7 +64,8 @@ os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/ROOTs')
 
 # defining binning of histogram
 # bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100, 120, 150, 180, 250]
-bins = np.arange(0,251,5)
+if options.target == 'jet': bins = np.arange(0,251,5)
+if options.target == 'ele': bins = np.arange(5,200,3)
 
 # list the ET thresholds to be tested
 thresholds = np.linspace(8,150,143).tolist()

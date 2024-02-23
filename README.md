@@ -272,6 +272,18 @@ python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTu
     --hcalcut 0.70 --lJetPtCut 30 --PuppiJet --matching --etacut 28
 ```
 
+<details>
+<summary>New HCAL input being tested</summary>
+
+```bash
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt50_HoTot70 \
+    --target reco --type jet --chunk_size 5000 \
+    --queue short \
+    --hcalcut 0.70 --lJetPtCut 50 --PuppiJet --matching
+```
+</details>
+
 ## 3. Train the model and extract the Scale Factors
 
 Before training the model, check the distribution of the input towers with:

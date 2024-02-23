@@ -301,12 +301,14 @@ if options.doResolution == True:
                 y_lim = None
                 name_y = 'resolution'
                 if var == "Pt": regions = ["", "_barrel", "_endcap", "_forward"]
+                elif var == "Pt" and target == "ele": regions = ["", "_barrel", "_endcap"]
                 else: regions = [""]
             if quantity == 'scale': 
                 y_label = y_label_scale
                 y_lim = y_lim_scale
                 name_y = 'scale'
                 if var == "Pt": regions = ["", "_barrel", "_endcap", "_forward"]
+                elif var == "Pt" and target == "ele": regions = ["", "_barrel", "_endcap"]
                 else: regions = [""]
             if quantity == 'scale_max': 
                 y_label = y_label_scale_max

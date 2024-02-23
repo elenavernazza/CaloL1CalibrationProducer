@@ -8,41 +8,44 @@ re_emu=$2
 # TRAINING 
 #################################################################################
 
-# python3 SFPlots.py --indir Trainings_2023/"${number}" --v ECAL
+python3 SFPlots.py --indir Trainings_2023/"${number}" --v ECAL
 
-# python3 ProduceCaloParams.py --name caloParams_2023_"${number}"_newCalib_cfi \
-#  --ECAL Trainings_2023/"${number}"/ScaleFactors_ECAL.csv \
-#  --base caloParams_2023_v0_4_cfi.py
+python3 ProduceCaloParams.py --name caloParams_2023_"${number}"_newCalib_cfi \
+ --ECAL Trainings_2023/"${number}"/ScaleFactors_ECAL.csv \
+ --base caloParams_2023_v0_4_cfi.py
 
-# #################################################################################
-# # TESTING PLOTS
-# #################################################################################
+#################################################################################
+# TESTING PLOTS
+#################################################################################
+
+python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+ --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
+ --ECALcalib --caloParam caloParams_2023_"${number}"_newCalib_cfi.py --outdir Trainings_2023/"${number}"/NtuplesVnew
 
 # python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
 #  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
-#  --ECALcalib --caloParam caloParams_2023_"${number}"_newCalib_cfi.py --outdir Trainings_2023/"${number}"/NtuplesVnew
+#  --ECALcalib --caloParam caloParams_2023_v0_4_cfi.py \
+#  --outdir Trainings_2023/JAX_ECAL_0/NtuplesVold
 
-# # python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-# #  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
-# #  --ECALcalib --caloParam caloParams_2023_v0_4_cfi.py \
-# #  --outdir Trainings_2023/JAX_ECAL_0/NtuplesVold
+# python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
+#  --ECALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
+#  --outdir Trainings_2023/JAX_ECAL_0/NtuplesVunc
 
-# # python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-# #  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
-# #  --ECALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
-# #  --outdir Trainings_2023/JAX_ECAL_0/NtuplesVunc
-
-# python3 comparisonPlotsFast.py --indir Trainings_2023/"${number}"/NtuplesVnew --target ele --reco \
-#  --old Trainings_2023/JAX_ECAL_0/NtuplesVold --unc Trainings_2023/JAX_ECAL_0/NtuplesVunc \
-#  --do_HoTot --doRate False --doTurnOn False
+python3 comparisonPlotsFast.py --indir Trainings_2023/"${number}"/NtuplesVnew --target ele --reco \
+ --old Trainings_2023/JAX_ECAL_0/NtuplesVold --unc Trainings_2023/JAX_ECAL_0/NtuplesVunc \
+ --do_HoTot --doRate False --doTurnOn False
 
 #################################################################################
 # RE-EMULATION 
 #################################################################################
 
 if [ "$re_emu" != "NO" ]; then
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-alias cd_launch_ECAL='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
+
+SCRIPT_DIR_ECAL=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+echo $SCRIPT_DIR_ECAL
+alias cd_launch_ECAL='cd '"${SCRIPT_DIR_ECAL}"'/../../L1NtupleLauncher/'
+
 cd_launch_ECAL
 
 # python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
