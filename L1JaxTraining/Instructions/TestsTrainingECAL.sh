@@ -3,6 +3,8 @@
 
 number=$1
 re_emu=$2
+SCRIPT_DIR_ECAL=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+alias cd_launch_ECAL='cd '"${SCRIPT_DIR_ECAL}"'/../../L1NtupleLauncher/'
 
 #################################################################################
 # TRAINING 
@@ -34,17 +36,13 @@ python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__
 
 python3 comparisonPlotsFast.py --indir Trainings_2023/"${number}"/NtuplesVnew --target ele --reco \
  --old Trainings_2023/JAX_ECAL_0/NtuplesVold --unc Trainings_2023/JAX_ECAL_0/NtuplesVunc \
- --do_HoTot --doRate False --doTurnOn False
+ --do_EoTot --doRate False --doTurnOn False
 
 #################################################################################
 # RE-EMULATION 
 #################################################################################
 
 if [ "$re_emu" != "NO" ]; then
-
-SCRIPT_DIR_ECAL=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-echo $SCRIPT_DIR_ECAL
-alias cd_launch_ECAL='cd '"${SCRIPT_DIR_ECAL}"'/../../L1NtupleLauncher/'
 
 cd_launch_ECAL
 

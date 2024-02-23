@@ -3,6 +3,8 @@
 
 number=$1
 re_emu=$2
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+alias cd_launch='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
 
 #################################################################################
 # TRAINING 
@@ -47,9 +49,6 @@ python3 comparisonPlots.py --target jet --reco --do_HoTot \
 #################################################################################
 
 if [ "$re_emu" != "NO" ]; then
-
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-alias cd_launch='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
 
 cd_launch
 
