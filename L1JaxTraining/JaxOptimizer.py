@@ -32,10 +32,13 @@ if __name__ == "__main__" :
     parser.add_option("--lr",                     dest="lr",                     default=0.001,      type=float,       help="Learning rate")
     parser.add_option("--ep",                     dest="ep",                     default=5,          type=int,         help="Number of epochs")
     parser.add_option("--mask",                   dest="mask",                   default=False,   action='store_true', help="Mask low energy SFs")
+    parser.add_option("--maskHF",                 dest="maskHF",                 default=False,   action='store_true', help="Mask HF for iEt <= 3.5 GeV")
     parser.add_option("--test",                   dest="test",                   default=0.1,        type=float,       help="Testing fraction")
     parser.add_option("--norm",                   dest="norm",                   default=False,   action='store_true', help="Normalize by number of towers in each bin")
     parser.add_option("--scale",                  dest="scale",                  default=1.,         type=float,       help="Target scale")
     parser.add_option("--scaleHF",                dest="scaleHF",                default=1.,         type=float,       help="Target scale HF")
+    parser.add_option("--scaleE",                 dest="scaleE",                 default=1.,         type=float,       help="Target scale Endcap")
+    parser.add_option("--scaleB",                 dest="scaleB",                 default=1.,         type=float,       help="Target scale Barrel")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -149,13 +152,17 @@ if __name__ == "__main__" :
         SFs = jnp.where((eta_binning[:, None] == 27) & (et_binning[None, :] <= 12 + 0.1), 0, SFs)
         SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 18 + 0.1), 0, SFs)
         print(" ### INFO: Zero Suppression applied to TT 26 (iEt<=6),27 (iEt<=12), 28 (iEt<=18)")
+    if options.maskHF:
+        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7 + 0.1), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 1 + 0.1), 1, SFs)
+        print(" ### INFO: Zero Suppression applied HF for iEt <= 3.5 GeV")
     SFs_flat = SFs.ravel()
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
-    if options.mask:
-        mask_energy = 8 + 0.1
-        mask = jnp.where(et_binning <= mask_energy, 0, mask)
-        print(" ### INFO: Masking applied to et < {}".format(mask_energy))
+    if options.maskHF:
+        mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7 + 0.1), 0, mask)
+        mask = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 1 + 0.1), 0, mask)
+        print(" ### INFO: Masking applied HF for iEt <= 3.5 GeV")
     # mask_eta = 28
     # print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
     # eta_binning_reshaped = jnp.expand_dims(eta_binning, axis=1)
@@ -246,6 +253,7 @@ if __name__ == "__main__" :
             scale = options.scaleHF * (jets[:,1] >= 3) + options.scale * (jets[:,1] < 3) # Apply separate scale to HF
             DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
         elif options.v == "ECAL":
+            scale = options.scaleE * (jets[:,1] >= 1.305) + options.scaleB * (jets[:,1] < 1.305)
             DIFF = jnp.abs((l1_jet_energies) - scale*jet_energies)
         # DIFF_2 = jnp.square(DIFF)
         MAPE = jnp.divide(DIFF, scale*jet_energies)
