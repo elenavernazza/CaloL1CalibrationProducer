@@ -5,6 +5,7 @@ number=$1
 re_emu=$2
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 alias cd_launch='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
+alias cd_back='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
 
 #################################################################################
 # TRAINING 
@@ -86,8 +87,6 @@ python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079_
  --nJobs 39 --queue short --maxEvts 3000 \
  --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
  --caloParams caloParams_2023_"${number}"_newCalib_cfi
-
-alias cd_back='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
 
 cd_back
 

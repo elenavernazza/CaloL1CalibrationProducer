@@ -5,6 +5,7 @@ number=$1
 re_emu=$2
 SCRIPT_DIR_ECAL=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 alias cd_launch_ECAL='cd '"${SCRIPT_DIR_ECAL}"'/../../L1NtupleLauncher/'
+alias cd_back_ECAL='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
 
 #################################################################################
 # TRAINING 
@@ -81,6 +82,6 @@ python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__R
     --nJobs 300 --queue short --maxEvts -1 --data --recoFromSKIM \
     --caloParams caloParams_2023_"${number}"_newCalib_cfi
 
-alias cd_back_ECAL='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
 cd_back_ECAL
+
 fi

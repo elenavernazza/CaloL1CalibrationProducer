@@ -39,6 +39,7 @@ if __name__ == "__main__" :
     parser.add_option("--scaleHF",                dest="scaleHF",                default=1.,         type=float,       help="Target scale HF")
     parser.add_option("--scaleE",                 dest="scaleE",                 default=1.,         type=float,       help="Target scale Endcap")
     parser.add_option("--scaleB",                 dest="scaleB",                 default=1.,         type=float,       help="Target scale Barrel")
+    parser.add_option("--ECALCalib",              dest="ECALCalib",              default=None,       type=str,         help="Path to ECAL SFs on the fly")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -260,6 +261,18 @@ if __name__ == "__main__" :
         MAPE_s = jnp.divide(jnp.sum(MAPE), len(jets))
         return MAPE_s
 
+    def ReadECALScaleFactors(ECAL_SFs_name, cols=28):
+        ECAL_SFs = np.loadtxt(open(ECAL_SFs_name, "rb"), delimiter=',', usecols=range(0,cols))
+        ECAL_SFs = np.transpose(ECAL_SFs)
+        eta_binning = np.arange(1,cols+1)
+        with open(ECAL_SFs_name) as f:
+            header = f.readline().rstrip()
+        header = header.split("[")[1].split("]")[0]
+        en_binning = header.split(',')
+        en_binning = [float(i) for i in en_binning]
+        en_binning = np.array(en_binning)
+        return ECAL_SFs, eta_binning, en_binning
+
     #######################################################################
     ## TRAINING
     #######################################################################
@@ -308,7 +321,26 @@ if __name__ == "__main__" :
     if options.v == "HCAL":
         calib_idx = ihad_idx;   test_calib_idx = test_ihad_idx
         calib = ihad;           test_calib = test_ihad
-        uncalib = iem;          test_uncalib = test_iem
+
+        if options.ECALCalib:
+            ECAL_SFs, ECAL_eta_binning, ECAL_en_binning = ReadECALScaleFactors(options.ECALCalib)
+            ECAL_et_binning = jnp.array(ECAL_en_binning[:1]) + 0.1
+
+            def CalibrateIem (iem, ietas_idx):
+                iem_idx = np.digitize(iem, ECAL_et_binning)
+                iem_idx_flat = iem_idx.flatten()
+                ietas_idx_flat = ietas_idx.flatten()
+                ietas_idx_flat = ietas_idx_flat.at[ietas_idx_flat > 27].set(27)
+                iem_flat = iem.flatten()
+                SF_for_iem_towers_flat = ECAL_SFs[ietas_idx_flat, iem_idx_flat]
+                iem_calib_flat = jnp.multiply(iem_flat, SF_for_iem_towers_flat)
+                iem_calib_flat = jnp.floor(iem_calib_flat)
+                iem_calib = iem_calib_flat.reshape(len(iem_idx),81)
+                return iem_calib
+            
+            uncalib = CalibrateIem(iem, ietas_idx);     test_uncalib = CalibrateIem(test_iem, test_ietas_idx)
+        else:
+            uncalib = iem;                              test_uncalib = test_iem
     elif options.v == "ECAL":
         calib_idx = iem_idx;    test_calib_idx = test_iem_idx
         calib = iem;            test_calib = test_iem

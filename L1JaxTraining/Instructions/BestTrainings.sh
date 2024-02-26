@@ -45,3 +45,7 @@ source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11
 source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_17
 source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_17
 source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_17
+
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_19
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_19
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_19

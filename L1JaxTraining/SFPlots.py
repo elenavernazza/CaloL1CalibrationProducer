@@ -113,9 +113,37 @@ if __name__ == "__main__" :
     header = header.split("[")[1].split("]")[0]
     et_binning = header.split(',')
     et_binning = [float(i) for i in et_binning]
-    
+    et_binning = np.array(et_binning)
+
     PlotSF(ScaleFactors, et_binning, odir, options.v, eta_binning)
     PlotSF2D(ScaleFactors, odir, et_binning, eta_binning, options.v)
+
+    testing_en = np.arange(1,256)
+    en_binning = np.array(et_binning[1:-1]) + 0.1
+    testing_en_idx = np.digitize(testing_en, en_binning)
+    for ieta in eta_binning[:-1]:
+        for i in np.arange(1,256):
+            calib_factors = [ScaleFactors[i,ieta] for i in testing_en_idx]
+            calib_testing_en = (calib_factors*testing_en).astype(int)
+            calib_testing_en_sort = calib_testing_en
+            calib_testing_en_sort.sort()
+            if not np.all(calib_testing_en_sort == calib_testing_en):
+                print(" ### WARNING: Scale Factors for ieta={} not consistently sorted".format(ieta))
+    
+    # Convert to physically meaningful values only for SFs affecting one energy (otherwise we would need a different energy binning)
+    ScaleFactorsPhysics = ScaleFactors
+    testing_en_idx_v, testing_en_idx_c = np.unique(testing_en_idx, return_counts=True)
+    testing_en_idx_v = testing_en_idx_v[testing_en_idx_c == 1]
+    testing_en_v = et_binning[testing_en_idx_v]
+    for ieta in eta_binning[:-1]:
+        for i in testing_en_idx_v:
+            calib_en = (ScaleFactors[i,ieta]*et_binning[i+1]).astype(int)
+            NewSF = round(calib_en/et_binning[i+1],4) if et_binning[i+1] != 0 else 0
+            # if ScaleFactorsPhysics[i,ieta] != NewSF:
+            #     print(i,et_binning[i+1],ieta,ScaleFactorsPhysics[i,ieta],NewSF)
+            ScaleFactorsPhysics[i,ieta] = NewSF
+    
+    PlotSF(ScaleFactorsPhysics, et_binning, odir, options.v, eta_binning, i_epoch="Test")
 
     #######################################################
     ################# Loss History plots ##################
