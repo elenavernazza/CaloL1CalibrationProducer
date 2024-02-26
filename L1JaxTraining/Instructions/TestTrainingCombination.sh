@@ -14,6 +14,12 @@ python3 ProduceCaloParams.py --name caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_newC
  --ECAL Trainings_2023/JAX_"${ECAL}"/ScaleFactors_ECAL.csv \
  --base caloParams_2023_v0_4_cfi.py
 
+python3 ProduceCaloParams.py --name caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi \
+ --HCAL Trainings_2023/JAX_"${HCAL}"/ScaleFactors_HCAL_Phys.csv \
+ --HF Trainings_2023/JAX_"${HCAL}"/ScaleFactors_HCAL_Phys.csv \
+ --ECAL Trainings_2023/JAX_"${ECAL}"/ScaleFactors_ECAL_Phys.csv \
+ --base caloParams_2023_v0_4_cfi.py
+
 # plot Jet
 python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \

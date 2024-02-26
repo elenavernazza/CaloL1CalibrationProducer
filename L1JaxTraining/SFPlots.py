@@ -123,7 +123,7 @@ if __name__ == "__main__" :
     testing_en_idx = np.digitize(testing_en, en_binning)
     for ieta in eta_binning[:-1]:
         for i in np.arange(1,256):
-            calib_factors = [ScaleFactors[i,ieta] for i in testing_en_idx]
+            calib_factors = [ScaleFactors[i,ieta-1] for i in testing_en_idx]
             calib_testing_en = (calib_factors*testing_en).astype(int)
             calib_testing_en_sort = calib_testing_en
             calib_testing_en_sort.sort()
@@ -135,15 +135,22 @@ if __name__ == "__main__" :
     testing_en_idx_v, testing_en_idx_c = np.unique(testing_en_idx, return_counts=True)
     testing_en_idx_v = testing_en_idx_v[testing_en_idx_c == 1]
     testing_en_v = et_binning[testing_en_idx_v]
-    for ieta in eta_binning[:-1]:
+    for ieta in eta_binning:
         for i in testing_en_idx_v:
-            calib_en = (ScaleFactors[i,ieta]*et_binning[i+1]).astype(int)
+            calib_en = (ScaleFactors[i,ieta-1]*et_binning[i+1]).astype(int)
             NewSF = round(calib_en/et_binning[i+1],4) if et_binning[i+1] != 0 else 0
             # if ScaleFactorsPhysics[i,ieta] != NewSF:
             #     print(i,et_binning[i+1],ieta,ScaleFactorsPhysics[i,ieta],NewSF)
-            ScaleFactorsPhysics[i,ieta] = NewSF
+            ScaleFactorsPhysics[i,ieta-1] = NewSF
     
-    PlotSF(ScaleFactorsPhysics, et_binning, odir, options.v, eta_binning, i_epoch="Test")
+    PlotSF(ScaleFactorsPhysics, et_binning, odir, options.v, eta_binning, i_epoch="Phys")
+
+    with open(SF_filename) as f:
+        header = f.readlines()[:3]
+    header = "".join(header)
+    SFOutFile = odir + '/ScaleFactors_{}_Phys.csv'.format(options.v)
+    np.savetxt(SFOutFile, ScaleFactorsPhysics, delimiter=",", newline=',\n', header=header, fmt=','.join(['%1.4f']*len(eta_binning)))
+    print('\nScale Factors saved to: {}\n'.format(SFOutFile))
 
     #######################################################
     ################# Loss History plots ##################
