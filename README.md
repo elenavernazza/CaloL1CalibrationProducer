@@ -38,6 +38,14 @@ git cms-checkdeps -A -a
 scram b -j 8 
 cd CaloL1CalibrationProducer
 ```
+
+Activating the latest HCAL response corrections: [GoogleDOC](https://docs.google.com/document/d/1T0ileOTXzM7kgJx0V_dbJzcWr_JNbyi1V5mvssnigAI/edit)
+
+```bash
+mkdir L1NtupleLauncher/HCALResponseCorrections
+scp evernazz@lxplus.cern.ch:/afs/cern.ch/user/m/mkrohn/public/ForLaurent/HcalRespCorrs_2023_v3.0_data.txt L1NtupleLauncher/HCALResponseCorrections
+scp evernazz@lxplus.cern.ch:/afs/cern.ch/user/m/mkrohn/public/ForLaurent/HcalGains_2023_v2.0_data.txt L1NtupleLauncher/HCALResponseCorrections
+```
 </details>
 
 ## 1. Re-emulate data with the latest data taking conditions
@@ -144,6 +152,17 @@ cd L1NtupleLauncher
 voms-proxy-init --rfc --voms cms -valid 192:00
 python submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__AOD \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
+    --globalTag 130X_dataRun3_Prompt_v4 \
+    --nJobs 5828 --queue short --maxEvts -1 --data --recoFromAOD
+```
+
+```bash
+cd L1NtupleLauncher
+voms-proxy-init --rfc --voms cms -valid 192:00
+python submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__AOD \
+    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \

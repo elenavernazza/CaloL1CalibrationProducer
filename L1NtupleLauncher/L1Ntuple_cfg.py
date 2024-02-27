@@ -80,6 +80,22 @@ if options.secondaryInputFiles:
 if options.JSONfile:
     process.source.lumisToProcess = LumiList.LumiList(filename = options.JSONfile).getVLuminosityBlockRange()
 
+import os
+CONDDIR=os.path.dirname(os.path.abspath(__file__))+"/HCALResponseCorrections"
+process.es_prefer = cms.ESPrefer('HcalTextCalibrations','es_ascii')
+process.es_ascii = cms.ESSource('HcalTextCalibrations',
+   input = cms.VPSet(
+      cms.PSet(
+         object = cms.string('RespCorrs'),
+	 file   = cms.FileInPath(CONDDIR+'/HcalRespCorrs_2023_v3.0_data.txt')
+      ),
+      cms.PSet(
+         object = cms.string('Gains'),
+         file   = cms.FileInPath(CONDDIR+'/HcalGains_2023_v2.0_data.txt')
+      ),
+   )
+)
+
 process.options = cms.untracked.PSet(
     # FailPath = cms.untracked.vstring(), # for 2023
     IgnoreCompletely = cms.untracked.vstring(),
