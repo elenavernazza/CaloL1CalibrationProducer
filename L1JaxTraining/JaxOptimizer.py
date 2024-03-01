@@ -15,7 +15,7 @@ import glob, os, json, sys
 
 '''
 python3 JaxOptimizer.py --indir 2023_12_13_NtuplesV56/Input2/JetMET_PuppiJet_BarrelEndcap_Pt30_HoTot70/GoodNtuples/tensors \
- --odir Trainings/51 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scale 0.5
+ --odir Trainings/51 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --scaleB 0.5
 
 source Instructions/TestsTraining.sh 51
 '''
@@ -35,8 +35,7 @@ if __name__ == "__main__" :
     parser.add_option("--maskHF",                 dest="maskHF",                 default=False,   action='store_true', help="Mask HF for iEt <= 3.5 GeV")
     parser.add_option("--test",                   dest="test",                   default=0.1,        type=float,       help="Testing fraction")
     parser.add_option("--norm",                   dest="norm",                   default=False,   action='store_true', help="Normalize by number of towers in each bin")
-    parser.add_option("--scale",                  dest="scale",                  default=1.,         type=float,       help="Target scale")
-    parser.add_option("--scaleHF",                dest="scaleHF",                default=1.,         type=float,       help="Target scale HF")
+    parser.add_option("--scaleF",                 dest="scaleF",                 default=1.,         type=float,       help="Target scale HF")
     parser.add_option("--scaleE",                 dest="scaleE",                 default=1.,         type=float,       help="Target scale Endcap")
     parser.add_option("--scaleB",                 dest="scaleB",                 default=1.,         type=float,       help="Target scale Barrel")
     parser.add_option("--ECALCalib",              dest="ECALCalib",              default=None,       type=str,         help="Path to ECAL SFs on the fly")
@@ -235,8 +234,6 @@ if __name__ == "__main__" :
         l_et = len(et_binning)
         SFs = SFs.reshape(l_eta,l_et)
 
-        scale = options.scale
-
         jet_energies = jets[:,3]
         l1_jet_energies = jnp.zeros_like(jet_energies)
 
@@ -251,10 +248,10 @@ if __name__ == "__main__" :
         l1_jet_em_energies = jnp.sum(iem[:], axis=1)
 
         if options.v == "HCAL":
-            scale = options.scaleHF * (jets[:,1] >= 3) + options.scale * (jets[:,1] < 3) # Apply separate scale to HF
+            scale = options.scaleB * (jets[:,1] < 1.305) + options.scaleE * ((jets[:,1] >= 1.305) & (jets[:,1] < 3)) + options.scaleF * (jets[:,1] >= 3)
             DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
         elif options.v == "ECAL":
-            scale = options.scaleE * (jets[:,1] >= 1.305) + options.scaleB * (jets[:,1] < 1.305)
+            scale = options.scaleB * (jets[:,1] < 1.305) + options.scaleE * (jets[:,1] >= 1.305)
             DIFF = jnp.abs((l1_jet_energies) - scale*jet_energies)
         # DIFF_2 = jnp.square(DIFF)
         MAPE = jnp.divide(DIFF, scale*jet_energies)
@@ -286,7 +283,7 @@ if __name__ == "__main__" :
     TrainingInfo = {}
     TrainingInfo["Version"] = options.v
     TrainingInfo["LossType"] = "MAPE"
-    TrainingInfo["Target Scale"] = options.scale
+    TrainingInfo["Target Scale"] = "B={}, E={}, F={}".format(options.scaleB, options.scaleE, options.scaleF)
     TrainingInfo["NJets"] = len(jets)
     TrainingInfo["NEpochs"] = nb_epochs
     TrainingInfo["BS"] = bs
