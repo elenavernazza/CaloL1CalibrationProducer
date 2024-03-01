@@ -2,12 +2,19 @@
 # seteos
 
 # source Instructions/MoveToEos.sh JAX_HCAL_17 HCAL
+# source Instructions/MoveToEos.sh JAX_HCAL_20 HCAL
 # source Instructions/MoveToEos.sh JAX_ECAL_11 ECAL
 # source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_17 HCAL
 # source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_17 ECAL
 
 number="$1"
 version="$2"
+if [ -n "$3" ]; then
+    suffix=$3
+else
+    suffix="L1ptNoSatu"
+fi
+
 www='/eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAX/'
 
 mkdir -p "${www}"/"${number}"
@@ -22,8 +29,8 @@ if [ "$version" == "HCAL" ]; then
 
     mkdir -p "${www}"/"${number}"/PerformanceJet
     cp /eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAX/index.php "${www}"/"${number}"/PerformanceJet
-    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlotsL1ptNoSatu/PNGs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
-    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlotsL1ptNoSatu/PDFs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
+    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlots"${suffix}"/PNGs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
+    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlots"${suffix}"/PDFs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
 
 else
 
