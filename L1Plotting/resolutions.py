@@ -66,6 +66,7 @@ cmap = plt.get_cmap('Set1')
 
 # get/create folders
 indir = "/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/"+options.indir
+print(" ### INFO: Input folder", indir)
 outdir = "/data_CMS/cms/motta/CaloL1calibraton/"+options.outdir
 label = options.label
 os.system('mkdir -p '+outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs')

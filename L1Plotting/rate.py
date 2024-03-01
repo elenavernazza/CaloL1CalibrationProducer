@@ -40,6 +40,7 @@ cmap = matplotlib.cm.get_cmap('Set1')
 
 # get/create folders
 indir = "/data_CMS/cms/motta/CaloL1calibraton/L1NTuples/"+options.indir
+print(" ### INFO: Input folder", indir)
 outdir = "/data_CMS/cms/motta/CaloL1calibraton/"+options.outdir
 label = options.label
 O2O = "_O2O" if options.offline else ""
