@@ -4,6 +4,10 @@ ECAL=$1
 HCAL=$2
 re_emu=$3
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+alias cd_launch='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
+alias cd_back='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
+
 #################################################################################
 # TESTING 
 #################################################################################
@@ -43,32 +47,27 @@ python3 comparisonPlotsFast.py --target ele --reco \
 
 if [ "$re_emu" != "NO" ]; then
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-alias cd_launch='cd '"${SCRIPT_DIR}"'/../../L1NtupleLauncher/'
-
 cd_launch
 
 python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
  --outTag GT130XdataRun3Promptv4_CaloParams2023JAX_"${ECAL}"_"${HCAL}"_data \
  --nJobs 151 --queue short --maxEvts 2000 \
  --globalTag 130X_dataRun3_Prompt_v4 --data \
- --caloParams caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_newCalib_cfi
+ --caloParams caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi
 
 python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
  --outTag GT130XdataRun3Promptv4_CaloParams2023JAX_"${ECAL}"_"${HCAL}"_data_reco_json \
  --inJson Cert_Collisions2023_366442_370790_Golden \
  --nJobs 39 --queue short --maxEvts 3000 \
  --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
- --caloParams caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_newCalib_cfi
+ --caloParams caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi
 
 python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO \
     --outTag GT130XdataRun3Promptv4_CaloParams2023JAX_"${ECAL}"_"${HCAL}"_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --globalTag 130X_dataRun3_Prompt_v4 \
     --nJobs 300 --queue short --maxEvts -1 --data --recoFromSKIM \
-    --caloParams caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_newCalib_cfi
-
-alias cd_back='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
+    --caloParams caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi
 
 cd_back
 
