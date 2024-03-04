@@ -46,11 +46,11 @@ python3 ../L1Plotting/comparisonPlots.py  --target jet --reco \
  --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 --thrsFixRate 100 --tag "${suffix}" \
  --indir 2024_02_15_NtuplesV58/"${number}"/NtuplesVnew
 
-python3 ../L1Plotting/rate.py --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_"${dataset_tag}"CaloParams2023v04_noL1Calib_data \
- --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVunc"${suffix}" --target jet --raw --nEvts 100000 --no_plot --offline
+# python3 ../L1Plotting/rate.py --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_"${dataset_tag}"CaloParams2023v04_noL1Calib_data \
+#  --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVunc"${suffix}" --target jet --raw --nEvts 100000 --no_plot --offline
 
-python3 ../L1Plotting/rate.py --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_"${dataset_tag}"CaloParams2023v04_data \
- --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVold"${suffix}" --target jet --raw --nEvts 100000 --no_plot --offline
+# python3 ../L1Plotting/rate.py --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_"${dataset_tag}"CaloParams2023v04_data \
+#  --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVold"${suffix}" --target jet --raw --nEvts 100000 --no_plot --offline
 
 python3 ../L1Plotting/rate.py --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023"${number}"_data \
  --outdir 2024_02_15_NtuplesV58/"${number}"/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --offline --tag "${suffix}"

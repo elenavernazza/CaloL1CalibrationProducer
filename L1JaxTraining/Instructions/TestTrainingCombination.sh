@@ -12,6 +12,9 @@ alias cd_back='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
 # TESTING 
 #################################################################################
 
+python3 SFPlots.py --indir Trainings_2023/JAX_"${ECAL}" --v ECAL
+python3 SFPlots.py --indir Trainings_2023/JAX_"${HCAL}" --v HCAL
+
 python3 ProduceCaloParams.py --name caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_newCalib_cfi \
  --HCAL Trainings_2023/JAX_"${HCAL}"/ScaleFactors_HCAL.csv \
  --HF Trainings_2023/JAX_"${HCAL}"/ScaleFactors_HCAL.csv \

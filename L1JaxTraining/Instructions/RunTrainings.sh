@@ -111,7 +111,82 @@ source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_23 HCALCorr
 python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
     --odir Trainings_2023/JAX_HCAL_24 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 0.9 --scaleE 0.9
 source Instructions/TestsTrainingHCAL.sh JAX_HCAL_24
-source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_24 HCALCorr
+source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_24 HCALCorr # best one so far
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_25 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 0.85 --scaleE 0.85
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_25
+source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_25 HCALCorr # best in terms of turn on but worse resolution in the barrel
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_26 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 0.8 --scaleE 0.8
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_26
+source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_26 HCALCorr # to prove that 0.9 is the best and we can't go down too much with the scale otherwise we would affect HF
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_27 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 0.85 --scaleE 0.85 \
+    --ECALCalib Trainings_2023/JAX_ECAL_11/ScaleFactors_ECAL.csv
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_27
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_27
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_27 HCALCorr
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_27 ECAL
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_27 HCAL HCALCorr
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_28 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 0.9 --scaleE 0.9 \
+    --ECALCalib Trainings_2023/JAX_ECAL_11/ScaleFactors_ECAL.csv
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_28
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_28
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_28 HCALCorr
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_28 ECAL
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_28 HCAL HCALCorr
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_29 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 0.95 --scaleE 0.95 \
+    --ECALCalib Trainings_2023/JAX_ECAL_11/ScaleFactors_ECAL.csv
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_29
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_29
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_29 HCALCorr
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_29 ECAL
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_29 HCAL HCALCorr
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_30 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 1.0 --scaleE 1.0 \
+    --ECALCalib Trainings_2023/JAX_ECAL_11/ScaleFactors_ECAL.csv
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_30
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_30
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_30 HCALCorr
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_30 ECAL
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_30 HCAL HCALCorr
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_31 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 1.0 --scaleE 0.85 \
+    --ECALCalib Trainings_2023/JAX_ECAL_11/ScaleFactors_ECAL.csv
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_31
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_31
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_31 HCALCorr
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_31 ECAL
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_31 HCAL HCALCorr
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_32 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 1.0 --scaleE 0.9 \
+    --ECALCalib Trainings_2023/JAX_ECAL_11/ScaleFactors_ECAL.csv
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_32
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_32
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_32 HCALCorr
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_32 ECAL
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_32 HCAL HCALCorr
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_33 --jetsLim 1000000 --lr 0.5 --bs 4096 --ep 100 --v HCAL --maskHF --scaleB 1.0 --scaleE 0.95 \
+    --ECALCalib Trainings_2023/JAX_ECAL_11/ScaleFactors_ECAL.csv
+source Instructions/TestTrainingCombination.sh ECAL_11 HCAL_33
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_11_HCAL_33
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_11_HCAL_33 HCALCorr
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_33 ECAL
+source Instructions/MoveToEos.sh JAX_ECAL_11_HCAL_33 HCAL HCALCorr
+
+# l'obiettivo è avere una buona risoluzione nel barrel mantenendo le turn on ok
 
 # python3 JaxOptimizerFloor.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
 #     --odir Trainings_2023/JAX_HCAL_18 --jetsLim 10000 --lr 0.5 --bs 512 --ep 10 --v HCAL --maskHF # (adding TT 28 to 1)
@@ -178,6 +253,11 @@ python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_E
     --odir Trainings_2023/JAX_ECAL_11 --jetsLim 1000000 --lr 0.5 --bs 4096 \
     --ep 100 --scaleB 0.95 --scaleE 0.9 --v ECAL # (applying 3_6_9 and new binning)
 source Instructions/TestsTrainingECAL.sh JAX_ECAL_11
+
+python3 JaxOptimizer.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_ECAL_12 --jetsLim 1000000 --lr 0.5 --bs 4096 \
+    --ep 100 --scaleB 0.95 --scaleE 0.9 --v ECAL --maskECAL # (applying 3_6_9 and new binning and fix first energy bin)
+source Instructions/TestsTrainingECAL.sh JAX_ECAL_12 # ECAL_11 is better in any way, the fluctuations don't matter too much
 
 ########################################################################################################################
 # OLD BEST TRAININGS

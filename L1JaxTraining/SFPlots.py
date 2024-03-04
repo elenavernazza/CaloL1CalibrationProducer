@@ -7,8 +7,8 @@ import seaborn as sns
 import mplhep, json, glob
 plt.style.use(mplhep.style.CMS)
 
-min_ = -0.2
-max_ = 2.2
+min_ = -0.1
+max_ = 2.1
 
 def export_legend(legend, filename="legend.png", expand=[-5,-5,5,5]):
     fig  = legend.figure
@@ -18,7 +18,7 @@ def export_legend(legend, filename="legend.png", expand=[-5,-5,5,5]):
     bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
     fig.savefig(filename, dpi="figure", bbox_inches=bbox)
 
-def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers, i_epoch = None):
+def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers, max_=2.1, i_epoch = None):
 
     if i_epoch != None: epoch = '_{}'.format(i_epoch)
     else: epoch = ''
@@ -42,10 +42,21 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers, i_epoch = None):
     # export_legend(legend, savefile)
     # print(savefile)
     
-def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, i_epoch = None):
+def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, max_=2.2, i_epoch = None):
 
     eta_axis = [int(x) for x in eta_binning[eta_binning < 29]] + [int(x+1) for x in eta_binning[eta_binning >= 29]]
-    et_axis = ["{}-{}".format(et_binning[i],et_binning[i+1]) for i in range(0,len(et_binning)-1)]
+    if v_sample == "ECAL":
+        et_axis = []
+        for i in range(0,len(et_binning)-1):
+            if et_binning[i] < 20:
+                if len(et_axis) % 2 == 0:
+                    et_axis.append("{}-{}".format(et_binning[i],et_binning[i+1]))
+                else:
+                    et_axis.append("")
+            else:
+                et_axis.append("{}-{}".format(et_binning[i],et_binning[i+1]))
+    else: 
+        et_axis = ["{}-{}".format(et_binning[i],et_binning[i+1]) for i in range(0,len(et_binning)-1)]
 
     if i_epoch != None: epoch = '_{}'.format(i_epoch)
     else: epoch = ''
@@ -54,9 +65,9 @@ def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, i_epoch = None
 
     im = plt.pcolormesh(eta_binning, et_binning[:-1], SF_matrix, cmap='viridis', edgecolor='black', vmin=min_, vmax=max_)
     ax.set_xticks(eta_binning)
-    ax.set_xticklabels(eta_axis, fontsize=11, rotation=90)
+    ax.set_xticklabels(eta_axis, fontsize=13, rotation=0)
     ax.set_yticks(et_binning[:-1])
-    ax.set_yticklabels(et_axis, fontsize=11, rotation=0)
+    ax.set_yticklabels(et_axis, fontsize=13, rotation=0)
 
     colorbar = plt.colorbar(im, label=str(v_sample+' SFs'))
     nticks = 10
@@ -115,8 +126,9 @@ if __name__ == "__main__" :
     et_binning = [float(i) for i in et_binning]
     et_binning = np.array(et_binning)
 
+    if options.v == "ECAL": max_ = 1.5
     PlotSF(ScaleFactors, et_binning, odir, options.v, eta_binning)
-    PlotSF2D(ScaleFactors, odir, et_binning, eta_binning, options.v)
+    PlotSF2D(ScaleFactors, odir, et_binning, eta_binning, options.v, max_)
 
     testing_en = np.arange(1,256)
     en_binning = np.array(et_binning[1:-1]) + 0.1
@@ -144,6 +156,7 @@ if __name__ == "__main__" :
             ScaleFactorsPhysics[i,ieta-1] = NewSF
     
     PlotSF(ScaleFactorsPhysics, et_binning, odir, options.v, eta_binning, i_epoch="Phys")
+    PlotSF2D(ScaleFactors, odir, et_binning, eta_binning, options.v, max_, i_epoch="Phys")
 
     with open(SF_filename) as f:
         header = f.readlines()[:3]
