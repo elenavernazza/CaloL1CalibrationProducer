@@ -69,27 +69,27 @@ Once the list of files for the three datasets is finalized, copy the list to a t
 - EGamma
 
 ```bash
-dasgoclient --query=="file dataset=/EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO.txt
-dasgoclient --query=="file dataset=/EGamma1/Run2023B-ZElectron-PromptReco-v1/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO.txt
-
-dasgoclient --query=="file dataset=/EGamma0/Run2023C-ZElectron-PromptReco-v4/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO.txt
-dasgoclient --query=="file dataset=/EGamma1/Run2023C-ZElectron-PromptReco-v4/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO.txt
-
 dasgoclient --query=="file dataset=/EGamma0/Run2023D-ZElectron-PromptReco-v2/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt
 dasgoclient --query=="file dataset=/EGamma1/Run2023D-ZElectron-PromptReco-v2/RAW-RECO" >> L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt
+```
+
+Choose the runs you want to keep for the testing (around 150 files for EGamma): here 370774, 370775, 370776.
+```bash
+grep -v -E '370/(774|775|776)' L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt > L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Training.txt
+grep -E '370/(774|775|776)' L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO.txt > L1NtupleLauncher/inputFiles/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Testing.txt
 ```
 
 - JetMET
 
 ```bash
-dasgoclient --query=="file dataset=/JetMET0/Run2023B-PromptReco-v1/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023B-PromptReco-v1__AOD.txt
-dasgoclient --query=="file dataset=/JetMET1/Run2023B-PromptReco-v1/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023B-PromptReco-v1__AOD.txt
-
-dasgoclient --query=="file dataset=/JetMET0/Run2023C-PromptReco-v4/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023C-PromptReco-v4__AOD.txt
-dasgoclient --query=="file dataset=/JetMET1/Run2023C-PromptReco-v4/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023C-PromptReco-v4__AOD.txt
-
 dasgoclient --query=="file dataset=/JetMET0/Run2023D-PromptReco-v2/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt
 dasgoclient --query=="file dataset=/JetMET1/Run2023D-PromptReco-v2/AOD" >> L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt
+```
+
+Choose the runs you want to keep for the testing (around 30 files for Jet): here 370775.
+```bash
+grep -v -E '370/775' L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt > L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD__Training.txt
+grep -E '370/775' L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt > L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD__Testing.txt
 ```
 
 - ZeroBias
@@ -131,18 +131,12 @@ Copy your caloParams_2023_v0_4_noL1Calib_cfi.py to `src/L1Trigger/L1TCalorimeter
 ```bash
 cd L1NtupleLauncher
 voms-proxy-init --rfc --voms cms -valid 192:00
-python submitOnTier3.py --inFileList EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO \
+python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Training \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 1344 --queue short --maxEvts -1 --data --recoFromSKIM
-python submitOnTier3.py --inFileList EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO \
-    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
-    --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 4000 --queue short --maxEvts -1 --data --recoFromSKIM
+    --nJobs 1489 --queue short --maxEvts -1 --data --recoFromSKIM
 ```
 
 ### Re-emulate JetMET
