@@ -92,26 +92,10 @@ grep -v -E '370/775' L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2_
 grep -E '370/775' L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD.txt > L1NtupleLauncher/inputFiles/JetMET__Run2023D-PromptReco-v2__AOD__Testing.txt
 ```
 
-- ZeroBias
+- ZeroBias (around 30 files only for testing)
 
 ```bash
-dasgoclient --query=="file dataset=/EphemeralZeroBias0/Run2023D-v1/RAW" >> L1NtupleLauncher/inputFiles/EphemeralZeroBias__Run2023D-v1__RAW.txt
-```
-
-To check the availability of samples, use:
-
-```bash
-python3 FindAvalibaleFiles.py --sample /EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO
-python3 FindAvalibaleFiles.py --sample /EGamma1/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO
-python3 FindAvalibaleFiles.py --sample /JetMET0/Run2023B-PromptReco-v1/AOD --txt JetMET__Run2023B-PromptReco-v1__AOD
-python3 FindAvalibaleFiles.py --sample /JetMET1/Run2023B-PromptReco-v1/AOD --txt JetMET__Run2023B-PromptReco-v1__AOD
-```
-
-The EraD samples will be used for the performance evaluation (~30 files are enough):
-```bash
-python3 FindAvalibaleFiles.py --sample /EGamma0/Run2023B-ZElectron-PromptReco-v1/RAW-RECO --txt EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO_test # All but took 30
-python3 FindAvalibaleFiles.py --sample /JetMET0/Run2023D-PromptReco-v2/AOD --txt JetMET__Run2023D-PromptReco-v2__AOD # 29
-python3 FindAvalibaleFiles.py --sample /EphemeralZeroBias0/Run2023D-v1/RAW --txt EphemeralZeroBias__Run2023D-v1__RAW_test # All but took 30
+dasgoclient --query=="file dataset=/EphemeralZeroBias0/Run2023D-v1/RAW" >> L1NtupleLauncher/inputFiles/EphemeralZeroBias__Run2023D-v1__RAW__Testing.txt
 ```
 
 </details>
@@ -144,28 +128,13 @@ python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__R
 ```bash
 cd L1NtupleLauncher
 voms-proxy-init --rfc --voms cms -valid 192:00
-python submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__AOD \
-    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
-    --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 5828 --queue short --maxEvts -1 --data --recoFromAOD
-```
-
-<details>
-<summary>Old HCAL inputs without HCAL corrections</summary>
-
-```bash
-cd L1NtupleLauncher
-voms-proxy-init --rfc --voms cms -valid 192:00
-python submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__AOD \
+python submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Training \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi \
     --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 5828 --queue short --maxEvts -1 --data --recoFromAOD
+    --nJobs 3478 --queue short --maxEvts -1 --data --recoFromAOD
 ```
-</details>
 
 <details>
 <summary>Check samples</summary>
@@ -174,30 +143,23 @@ Since many files are on TAPE, some jobs will fail due to error opening the file.
 To only select the good files and eventually resubmit non-finished jobs use:
 
 ```bash
-python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
-python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Training__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
 ```
 ```bash
-python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json
-python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__Training__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
 ```
 
 You can plot the re-emulated samples using:
 
 ```bash
 cd L1Plotting
-python3 resolutions.py --indir EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
- --outdir 2024_02_15_NtuplesV58/TestInput_EGamma2023B --label EGamma_data_reco --reco --nEvts 50000 --target ele \
+python3 resolutions.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Training__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+ --outdir 2024_03_05_NtuplesV59/TestInput_EGamma2023D --label EGamma_data_reco --reco --nEvts 50000 --target ele \
  --raw --LooseEle --do_EoTot --tag _LooseEle_50K_Raw
 ```
 ```bash
-python3 resolutions.py --indir JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
- --outdir 2024_02_15_NtuplesV58/TestInput_JetMET2023B --label Jet_data_reco --reco --nEvts 50000 --target jet \
- --raw --PuppiJet --jetPtcut 30 --do_HoTot --tag _HCALCorr_PuppiJet_50K_Pt30_Raw
-```
-```bash
-python3 resolutions.py --indir JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
- --outdir 2024_02_15_NtuplesV58/TestInput_JetMET2023B --label Jet_data_reco --reco --nEvts 50000 --target jet \
+python3 resolutions.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Training__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+ --outdir 2024_03_05_NtuplesV59/TestInput_JetMET2023D --label Jet_data_reco --reco --nEvts 50000 --target jet \
  --raw --PuppiJet --jetPtcut 30 --do_HoTot --tag _PuppiJet_50K_Pt30_Raw
 ```
 
@@ -220,88 +182,23 @@ Some selections are applied:
 
 ```bash
 cd L1NtupleReader
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023B_LooseEle_EoTot80_Cluster \
-    --target reco --type ele --chunk_size 5000 \
-    --queue short \
-    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --ClusterFilter
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023C_LooseEle_EoTot80_Cluster \
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Training__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_03_05_NtuplesV59/EGamma_Run2023D_LooseEle_EoTot80_Cluster \
     --target reco --type ele --chunk_size 5000 \
     --queue short \
     --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --ClusterFilter
 ```
-
-<details>
-<summary>Other ECAL inputs that have been tested</summary>
-
-```bash
-cd L1NtupleReader
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023B_LooseEle_EoTot80 \
-    --target reco --type ele --chunk_size 5000 \
-    --queue short \
-    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023C_LooseEle_EoTot80 \
-    --target reco --type ele --chunk_size 5000 \
-    --queue short \
-    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching
-```
-
-```bash
-cd L1NtupleReader
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023B-ZElectron-PromptReco-v1__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023B_LooseEle_EoTot80_CD3x3 \
-    --target reco --type ele --chunk_size 5000 \
-    --queue short \
-    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --sizeCD 3
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EGamma__Run2023C-ZElectron-PromptReco-v4__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/EGamma_Run2023C_LooseEle_EoTot80_CD3x3 \
-    --target reco --type ele --chunk_size 5000 \
-    --queue short \
-    --ecalcut 0.80 --applyCut_3_6_9 True --LooseEle --matching --sizeCD 3
-```
-
-</details>
 
 ### Read Jet (9x9 chunky donut)
 
 ```bash
 cd L1NtupleReader
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70 \
+python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__Training__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70 \
     --target reco --type jet --chunk_size 5000 \
     --queue short \
     --hcalcut 0.70 --lJetPtCut 30 --PuppiJet --matching
 ```
-
-<details>
-<summary>Other HCAL inputs that have been tested</summary>
-
-```bash
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt50_HoTot70 \
-    --target reco --type jet --chunk_size 5000 \
-    --queue short \
-    --hcalcut 0.70 --lJetPtCut 50 --PuppiJet --matching
-```
-```bash
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_BarrelEndcap_Pt30_HoTot70 \
-    --target reco --type jet --chunk_size 5000 \
-    --queue short \
-    --hcalcut 0.70 --lJetPtCut 30 --PuppiJet --matching --etacut 28
-```
-```bash
-python3 batchSubmitOnTier3.py --indir /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70 \
-    --target reco --type jet --chunk_size 5000 \
-    --queue short \
-    --hcalcut 0.70 --lJetPtCut 30 --PuppiJet --matching
-```
-
-</details>
 
 ## 3. Train the model and extract the Scale Factors
 
@@ -309,11 +206,9 @@ Before training the model, check the distribution of the input towers with:
 
 ```bash
 cd L1JaxTraining
-python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
+python3 TowersJetsCounter.py --indir 2024_03_05_NtuplesV59/EGamma_Run2023D_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
     --odir Trainings_2023/TestInputEGamma_Cluster --jetsLim 1000000 --v ECAL
-python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
-    --odir Trainings_2023/TestInputJetMET_HCALCorr --jetsLim 1000000 --v HCAL
-python3 TowersJetsCounter.py --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+python3 TowersJetsCounter.py --indir 2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
     --odir Trainings_2023/TestInputJetMET --jetsLim 1000000 --v HCAL
 ```
 
@@ -321,13 +216,13 @@ If everything looks good, proceed with the calibration. The full list of trainin
 
 ```bash
 python3 JaxOptimizer.py \
-    --indir 2024_02_15_NtuplesV58/EGamma_Run2023*_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
+    --indir 2024_03_05_NtuplesV59/EGamma_Run2023D_LooseEle_EoTot80_Cluster/GoodNtuples/tensors \
     --odir Trainings_2023/JAX_ECAL_X --jetsLim 1000000 --lr 0.5 --bs 4096 \
     --ep 100 --scaleB 0.95 --scaleE 0.9 --v ECAL
 ```
 ```bash
 python3 JaxOptimizer.py \
-    --indir 2024_02_15_NtuplesV58/JetMET_Run2023B_HCALCorr_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --indir 2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
     --odir Trainings_2023/JAX_HCAL_Y --jetsLim 1000000 --lr 0.5 --bs 4096 \
     --ep 100 --v HCAL --maskHF
 ```
@@ -571,54 +466,54 @@ source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_Y
 cd L1Plotting
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVuncL1pt --target ele --raw --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVuncL1pt --target ele --raw --nEvts 100000 --no_plot
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVoldL1pt --target ele --raw --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVoldL1pt --target ele --raw --nEvts 100000 --no_plot
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023JAX_ECAL_X_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL_X/NtuplesVnew --target ele --raw --nEvts 100000 --no_plot --tag L1pt
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL_X/NtuplesVnew --target ele --raw --nEvts 100000 --no_plot --tag L1pt
 
 python3 turnOn.py \
     --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVuncL1pt --reco --target ele --raw --LooseEle --nEvts 100000
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVuncL1pt --reco --target ele --raw --LooseEle --nEvts 100000
 python3 turnOn.py \
     --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVoldL1pt --reco --target ele --raw --LooseEle --nEvts 100000
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVoldL1pt --reco --target ele --raw --LooseEle --nEvts 100000
 python3 turnOn.py \
     --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023JAX_ECAL_X_data_reco_json \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL_X/NtuplesVnew --reco --target ele --raw --LooseEle --nEvts 100000 --tag L1pt
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL_X/NtuplesVnew --reco --target ele --raw --LooseEle --nEvts 100000 --tag L1pt
 
 python3 resolutions.py \
     --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVuncL1pt --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVuncL1pt --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot
 python3 resolutions.py \
     --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVoldL1pt --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVoldL1pt --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot
 python3 resolutions.py \
     --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__GT130XdataRun3Promptv4_CaloParams2023JAX_ECAL_X_data_reco_json \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL_X/NtuplesVnew --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot --tag L1pt
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL_X/NtuplesVnew --reco --target ele --raw --LooseEle --nEvts 100000 --no_plot --tag L1pt
 
 python3 comparisonPlots.py \
-    --indir 2024_02_15_NtuplesV58/JAX_ECAL_X/NtuplesVnew  --target ele --reco \
-    --old 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVoldL1pt \
-    --unc 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVuncL1pt \
+    --indir 2024_03_05_NtuplesV59/JAX_ECAL_X/NtuplesVnew  --target ele --reco \
+    --old 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVoldL1pt \
+    --unc 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVuncL1pt \
     --thrsFixRate 10 --thrsFixRate 12 --thrsFixRate 20 --thrsFixRate 36 --tag L1pt
 
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVuncL1pt --target ele --raw --nEvts 100000 --no_plot --offline
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVuncL1pt --target ele --raw --nEvts 100000 --no_plot --offline
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL/NtuplesVoldL1pt --target ele --raw --nEvts 100000 --no_plot --offline
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL/NtuplesVoldL1pt --target ele --raw --nEvts 100000 --no_plot --offline
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023JAX_ECAL_X_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_ECAL_X/NtuplesVnew --target ele --raw --nEvts 100000 --no_plot --offline --tag L1pt
+    --outdir 2024_03_05_NtuplesV59/JAX_ECAL_X/NtuplesVnew --target ele --raw --nEvts 100000 --no_plot --offline --tag L1pt
 
 python3 comparisonPlots.py \
-    --indir 2024_02_15_NtuplesV58/JAX_ECAL_X/NtuplesVnew  --target ele --reco \
-    --old 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1pt \
-    --unc 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1pt \
+    --indir 2024_03_05_NtuplesV59/JAX_ECAL_X/NtuplesVnew  --target ele --reco \
+    --old 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1pt \
+    --unc 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1pt \
     --thrsFixRate 20 --thrsFixRate 30 --thrsFixRate 40 --tag L1pt --offline --doResponse False --doResolution False
 ```
 </details>
@@ -630,54 +525,54 @@ python3 comparisonPlots.py \
 cd L1Plotting
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --tag L1ptNoSatu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --tag L1ptNoSatu
 
 python3 turnOn.py \
     --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
 python3 turnOn.py \
     --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
 python3 turnOn.py \
     --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --nEvts 100000 --tag L1ptNoSatu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --nEvts 100000 --tag L1ptNoSatu
 
 python3 resolutions.py \
     --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
 python3 resolutions.py \
     --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
 python3 resolutions.py \
     --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --tag L1ptNoSatu --no_Satu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --tag L1ptNoSatu --no_Satu
 
 python3 comparisonPlots.py \
-    --indir 2024_02_15_NtuplesV58/JAX_HCAL_Y/NtuplesVnew  --target jet --reco \
-    --old 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1ptNoSatu \
-    --unc 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1ptNoSatu \
+    --indir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew  --target jet --reco \
+    --old 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu \
+    --unc 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu \
     --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 --thrsFixRate 100 --tag L1ptNoSatu
 
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot --offline
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot --offline
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023v04_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot --offline
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot --offline
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__Run369870__RAW__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data \
-    --outdir 2024_02_15_NtuplesV58/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --offline --tag L1ptNoSatu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --offline --tag L1ptNoSatu
 
 python3 comparisonPlots.py \
-    --indir 2024_02_15_NtuplesV58/JAX_HCAL_Y/NtuplesVnew  --target jet --reco \
-    --old 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVoldL1ptNoSatu \
-    --unc 2024_02_15_NtuplesV58/JAX_HCAL/NtuplesVuncL1ptNoSatu \
+    --indir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew  --target jet --reco \
+    --old 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu \
+    --unc 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu \
     --thrsFixRate 60 --thrsFixRate 70 --thrsFixRate 80 --tag L1ptNoSatu --offline --doResponse False --doResolution False
 ```
 </details>
