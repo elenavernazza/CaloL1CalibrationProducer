@@ -46,7 +46,7 @@ do_move = input(f" ### Do you want to move the good files to {indir}/GoodNtuples
 os.system(f'mkdir -p {indir}/GoodNtuples')
 if do_move == "y":
     for i_good_log in good_log:
-        cmd = f'mv {indir}/filelist_{i_good_log}.txt {indir}/secondaryFilelist_{i_good_log}.txt {indir}/Ntuple_{i_good_log}*.root {indir}/log_{i_good_log}.txt {indir}/GoodNtuples'
+        cmd = f'mv {indir}/filelist_{i_good_log}.txt {indir}/secondaryFilelist_{i_good_log}.txt {indir}/Ntuple_{i_good_log}_*.root {indir}/Ntuple_{i_good_log}.root {indir}/log_{i_good_log}.txt {indir}/GoodNtuples'
         print(cmd)
         os.system(cmd)
 
