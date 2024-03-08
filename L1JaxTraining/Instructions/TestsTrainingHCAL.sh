@@ -27,16 +27,16 @@ python3 ProduceCaloParams.py --name caloParams_2023_"${number}"_newCalib_cfi \
 # TESTING PLOTS
 #################################################################################
 
-python3 RDF_Resolution.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_Resolution.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_"${number}"_newCalib_cfi.py --outdir Trainings_2023/"${number}"/NtuplesVnew --no_Satu
 
-# python3 RDF_Resolution.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+# python3 RDF_Resolution.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
 #  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 \
 #  --HCALcalib --caloParam caloParams_2023_v0_4_cfi.py \
 #  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVold --no_Satu
 
-# python3 RDF_Resolution.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+# python3 RDF_Resolution.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
 #  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 \
 #  --HCALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
 #  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVunc --no_Satu
@@ -53,35 +53,35 @@ if [ "$re_emu" != "NO" ]; then
 
 cd_launch
 
-# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
+# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
 #     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
 #     --nJobs 151 --queue short --maxEvts 2000 \
 #     --globalTag 130X_dataRun3_Prompt_v4 --data \
 #     --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
+# python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
 #     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data \
 #     --nJobs 151 --queue short --maxEvts 2000 \
 #     --globalTag 130X_dataRun3_Prompt_v4 --data \
 #     --caloParams caloParams_2023_v0_4_cfi
-python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__Run369870__RAW \
+python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
  --outTag GT130XdataRun3Promptv4_CaloParams2023"${number}"_data \
  --nJobs 151 --queue short --maxEvts 2000 \
  --globalTag 130X_dataRun3_Prompt_v4 --data \
  --caloParams caloParams_2023_"${number}"_newCalib_cfi
 
-# python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+# python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
 #     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
 #     --inJson Cert_Collisions2023_366442_370790_Golden \
 #     --nJobs 39 --queue short --maxEvts 3000 \
 #     --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
 #     --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-# python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+# python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
 #     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json \
 #     --inJson Cert_Collisions2023_366442_370790_Golden \
 #     --nJobs 39 --queue short --maxEvts 3000 \
 #     --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
 #     --caloParams caloParams_2023_v0_4_cfi
-python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
  --outTag GT130XdataRun3Promptv4_CaloParams2023"${number}"_data_reco_json \
  --inJson Cert_Collisions2023_366442_370790_Golden \
  --nJobs 39 --queue short --maxEvts 3000 \

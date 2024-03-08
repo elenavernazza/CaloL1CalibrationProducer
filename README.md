@@ -338,21 +338,32 @@ python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/EG
 #### Testing
 
 ```bash
+cd L1NtupleLauncher
+voms-proxy-init --rfc --voms cms -valid 192:00
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
+    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
+    --inJson Cert_Collisions2023_366442_370790_Golden \
+    --nJobs 39 --queue short --maxEvts 3000 \
+    --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
+    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
+```
+
+```bash
 cd L1JaxTraining
 python3 SFPlots.py --indir Trainings_2023/JAX_HCAL_Y
 python3 ProduceCaloParams.py --name caloParams_2023_JAX_HCAL_Y_newCalib_cfi \
     --HCAL ./Trainings_2023/JAX_HCAL_Y/ScaleFactors_HCAL.csv --HF ./Trainings_2023/JAX_HCAL_Y/ScaleFactors_HCAL.csv \
     --base caloParams_2023_v0_4_noL1Calib_cfi.py
 
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_v0_4_cfi.py \
  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVold --no_Satu
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVunc --no_Satu
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_JAX_HCAL_Y_newCalib_cfi.py \
  --outdir Trainings_2023/JAX_HCAL_Y/NtuplesVnew --no_Satu
@@ -384,19 +395,19 @@ python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testi
     --globalTag 130X_dataRun3_Prompt_v4 --data \
     --caloParams caloParams_2023_JAX_HCAL_Y_newCalib_cfi
 
-python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --nJobs 39 --queue short --maxEvts 3000 \
     --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --nJobs 39 --queue short --maxEvts 3000 \
     --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
     --caloParams caloParams_2023_v0_4_cfi
-python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
     --outTag GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --nJobs 39 --queue short --maxEvts 3000 \
@@ -407,8 +418,8 @@ python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079_
 #### Select good files
 
 ```bash
-python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
-python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json
 ```
 
 <!-- #### HCAL corrections
@@ -440,13 +451,13 @@ python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__R
     --nJobs 300 --queue short --maxEvts -1 --data --recoFromSKIM \
     --caloParams caloParams_2023_v0_4_cfi
 
-python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
     --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --nJobs 39 --queue short --maxEvts 3000 \
     --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-python3 submitOnTier3.py --inFileList JetMET__Run2023B-PromptReco-v1__Run367079__AOD \
+python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
     --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
     --nJobs 39 --queue short --maxEvts 3000 \
@@ -540,23 +551,23 @@ python3 rate.py \
     --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --tag L1ptNoSatu
 
 python3 turnOn.py \
-    --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
     --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
 python3 turnOn.py \
-    --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
+    --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
     --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
 python3 turnOn.py \
-    --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
+    --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
     --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --nEvts 100000 --tag L1ptNoSatu
 
 python3 resolutions.py \
-    --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+    --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
     --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
 python3 resolutions.py \
-    --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
+    --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
     --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
 python3 resolutions.py \
-    --indir JetMET__Run2023B-PromptReco-v1__Run367079__AOD__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
+    --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
     --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --tag L1ptNoSatu --no_Satu
 
 python3 comparisonPlots.py \

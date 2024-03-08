@@ -243,7 +243,7 @@ if options.doResponse == True:
             name = 'EoTot'
 
         for i in range(len(Bins)-1):
-            print(" ### DEBUG ", "pt_resp_"+bins+str(Bins[i])+"to"+str(Bins[i+1]))
+            # print(" ### DEBUG ", "pt_resp_"+bins+str(Bins[i])+"to"+str(Bins[i+1]))
             Bins_resp_unCalib = file_unCalib.Get("pt_resp_"+bins+str(Bins[i])+"to"+str(Bins[i+1]))
             Bins_resp_oldCalib = file_oldCalib.Get("pt_resp_"+bins+str(Bins[i])+"to"+str(Bins[i+1]))
             Bins_resp_newCalib = file_newCalib.Get("pt_resp_"+bins+str(Bins[i])+"to"+str(Bins[i+1]))
@@ -504,18 +504,19 @@ if options.doRate == True:
 
                     thrNewCalib = 0
                     for i in range(1,240):
-                        if rate_newCalib.GetBinContent(i) < rateOldCalibAtThr:
+                        if rate_newCalib.GetBinContent(i) <= rateOldCalibAtThr:
                             thrNewCalib = rate_newCalib.GetBinLowEdge(i-1)
                             break
 
                     thrUnCalib = 0
                     for i in range(1,240):
-                        if rate_unCalib.GetBinContent(i) < rateOldCalibAtThr:
+                        if rate_unCalib.GetBinContent(i) <= rateOldCalibAtThr:
                             thrUnCalib = rate_unCalib.GetBinLowEdge(i-1)
                             break
                     
                     if thrUnCalib == 0 or thrNewCalib == 0: continue
 
+                    # print(" ### DEBUG: Thersholds = ", thrUnCalib, thr, thrNewCalib)
                     turnon_unCalib  = file_turnon_unCalib.Get("divide_passing"+er_label+'_'+str(int(thrUnCalib))+"_by_total"+er_label)
                     turnon_oldCalib = file_turnon_oldCalib.Get("divide_passing"+er_label+'_'+str(int(thr))+"_by_total"+er_label)
                     turnon_newCalib = file_turnon_newCalib.Get("divide_passing"+er_label+'_'+str(int(thrNewCalib))+"_by_total"+er_label)

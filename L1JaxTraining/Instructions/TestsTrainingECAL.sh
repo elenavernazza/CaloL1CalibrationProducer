@@ -5,7 +5,7 @@ number=$1
 re_emu=$2
 SCRIPT_DIR_ECAL=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 alias cd_launch_ECAL='cd '"${SCRIPT_DIR_ECAL}"'/../../L1NtupleLauncher/'
-alias cd_back_ECAL='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
+alias cd_back_ECAL='cd '"${SCRIPT_DIR_ECAL}"'/../../L1JaxTraining/'
 
 #################################################################################
 # TRAINING 
