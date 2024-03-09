@@ -19,15 +19,15 @@ alias cd_back='cd '"${SCRIPT_DIR}"'/../../L1JaxTraining/'
 python3 SFPlots.py --indir Trainings_2023/"${number}" --v HCAL
 
 python3 ProduceCaloParams.py --name caloParams_2023_"${number}"_newCalib_cfi \
- --HCAL Trainings_2023/"${number}"/ScaleFactors_HCAL.csv \
- --HF Trainings_2023/"${number}"/ScaleFactors_HCAL.csv \
+ --HCAL Trainings_2023/"${number}"/ScaleFactors_HCAL_Phys.csv \
+ --HF Trainings_2023/"${number}"/ScaleFactors_HCAL_Phys.csv \
  --base caloParams_2023_v0_4_cfi.py
 
 #################################################################################
 # TESTING PLOTS
 #################################################################################
 
-python3 RDF_Resolution.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
  --HCALcalib --caloParam caloParams_2023_"${number}"_newCalib_cfi.py --outdir Trainings_2023/"${number}"/NtuplesVnew --no_Satu
 
@@ -41,7 +41,7 @@ python3 RDF_Resolution.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__
 #  --HCALcalib --caloParam caloParams_2023_v0_4_noL1Calib_cfi.py \
 #  --outdir Trainings_2023/JAX_HCAL_0/NtuplesVunc --no_Satu
 
-python3 comparisonPlots.py --target jet --reco --do_HoTot \
+python3 comparisonPlotsFast.py --target jet --reco --do_HoTot \
  --old Trainings_2023/JAX_HCAL_0/NtuplesVold --unc Trainings_2023/JAX_HCAL_0/NtuplesVunc \
  --indir Trainings_2023/"${number}"/NtuplesVnew
 

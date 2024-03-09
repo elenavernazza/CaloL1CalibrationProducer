@@ -346,6 +346,7 @@ python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testi
     --nJobs 39 --queue short --maxEvts 3000 \
     --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
     --caloParams caloParams_2023_v0_4_noL1Calib_cfi
+python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
 ```
 
 ```bash
@@ -380,27 +381,11 @@ python3 comparisonPlotsFast.py --target jet --reco \
 cd L1NtupleLauncher
 voms-proxy-init --rfc --voms cms -valid 192:00
 python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
-    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-    --nJobs 151 --queue short --maxEvts 2000 \
-    --globalTag 130X_dataRun3_Prompt_v4 --data \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
-    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data \
-    --nJobs 151 --queue short --maxEvts 2000 \
-    --globalTag 130X_dataRun3_Prompt_v4 --data \
-    --caloParams caloParams_2023_v0_4_cfi
-python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
     --outTag GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data \
     --nJobs 151 --queue short --maxEvts 2000 \
     --globalTag 130X_dataRun3_Prompt_v4 --data \
     --caloParams caloParams_2023_JAX_HCAL_Y_newCalib_cfi
 
-python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
-    --outTag GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --nJobs 39 --queue short --maxEvts 3000 \
-    --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
 python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
     --outTag GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json \
     --inJson Cert_Collisions2023_366442_370790_Golden \
@@ -418,52 +403,8 @@ python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testi
 #### Select good files
 
 ```bash
-python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json
 python3 resubmit_Unfinished.py /data_CMS/cms/motta/CaloL1calibraton/L1NTuples/JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json
 ```
-
-<!-- #### HCAL corrections
-
-```bash
-cd L1NtupleLauncher
-voms-proxy-init --rfc --voms cms -valid 192:00
-python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
-    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data \
-    --nJobs 151 --queue short --maxEvts 2000 \
-    --globalTag 130X_dataRun3_Prompt_v4 --data \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-python3 submitOnTier3.py --inFileList EphemeralZeroBias__Run2023D-v1__RAW__Testing \
-    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_data \
-    --nJobs 151 --queue short --maxEvts 2000 \
-    --globalTag 130X_dataRun3_Prompt_v4 --data \
-    --caloParams caloParams_2023_v0_4_cfi
-
-python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO \
-    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 300 --queue short --maxEvts -1 --data --recoFromSKIM \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-python submitOnTier3.py --inFileList EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO \
-    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --globalTag 130X_dataRun3_Prompt_v4 \
-    --nJobs 300 --queue short --maxEvts -1 --data --recoFromSKIM \
-    --caloParams caloParams_2023_v0_4_cfi
-
-python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
-    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_noL1Calib_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --nJobs 39 --queue short --maxEvts 3000 \
-    --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
-    --caloParams caloParams_2023_v0_4_noL1Calib_cfi
-python3 submitOnTier3.py --inFileList JetMET__Run2023D-PromptReco-v2__AOD__Testing \
-    --outTag GT130XdataRun3Promptv4_HCALCorr_CaloParams2023v04_data_reco_json \
-    --inJson Cert_Collisions2023_366442_370790_Golden \
-    --nJobs 39 --queue short --maxEvts 3000 \
-    --globalTag 130X_dataRun3_Prompt_v4 --data --recoFromAOD \
-    --caloParams caloParams_2023_v0_4_cfi
-``` -->
 
 </details>
 

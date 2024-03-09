@@ -15,10 +15,10 @@ else
     suffix="L1ptNoSatu"
 fi
 
-www='/eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAX/'
+www='/eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAXV1/'
 
 mkdir -p "${www}"/"${number}"
-cp /eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAX/index.php "${www}"/"${number}"
+cp /eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAXV1/index.php "${www}"/"${number}"
 
 if [ "$version" == "HCAL" ]; then
 
@@ -28,9 +28,9 @@ if [ "$version" == "HCAL" ]; then
     cp Trainings_2023/"${number}"/ScaleFactors_HCAL_Phys.csv "${www}"/"${number}"
 
     mkdir -p "${www}"/"${number}"/PerformanceJet
-    cp /eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAX/index.php "${www}"/"${number}"/PerformanceJet
-    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlots"${suffix}"/PNGs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
-    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlots"${suffix}"/PDFs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
+    cp /eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAXV1/index.php "${www}"/"${number}"/PerformanceJet
+    cp /data_CMS/cms/motta/CaloL1calibraton/2024_03_05_NtuplesV59/"${number}"/NtuplesVnew/PerformancePlots"${suffix}"/PNGs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
+    cp /data_CMS/cms/motta/CaloL1calibraton/2024_03_05_NtuplesV59/"${number}"/NtuplesVnew/PerformancePlots"${suffix}"/PDFs/comparisons__jet/* "${www}"/"${number}"/PerformanceJet
 
 else
 
@@ -40,8 +40,8 @@ else
     cp Trainings_2023/"${number}"/ScaleFactors_ECAL_Phys.csv "${www}"/"${number}"
 
     mkdir -p "${www}"/"${number}"/PerformanceEle
-    cp /eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAX/index.php "${www}"/"${number}"/PerformanceEle
-    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlotsL1pt/PNGs/comparisons__ele/* "${www}"/"${number}"/PerformanceEle
-    cp /data_CMS/cms/motta/CaloL1calibraton/2024_02_15_NtuplesV58/"${number}"/NtuplesVnew/PerformancePlotsL1pt/PDFs/comparisons__ele/* "${www}"/"${number}"/PerformanceEle
+    cp /eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAXV1/index.php "${www}"/"${number}"/PerformanceEle
+    cp /data_CMS/cms/motta/CaloL1calibraton/2024_03_05_NtuplesV59/"${number}"/NtuplesVnew/PerformancePlotsL1pt/PNGs/comparisons__ele/* "${www}"/"${number}"/PerformanceEle
+    cp /data_CMS/cms/motta/CaloL1calibraton/2024_03_05_NtuplesV59/"${number}"/NtuplesVnew/PerformancePlotsL1pt/PDFs/comparisons__ele/* "${www}"/"${number}"/PerformanceEle
 
 fi

@@ -24,25 +24,27 @@ def AddText(plot_list):
 
 def PlotLoss(TrainLoss, TestLoss, TrainResp, TestResp, odirLoss, i):
     
-    TrainLoss = np.load(TrainLoss)['arr_0']
-    TestLoss = np.load(TestLoss)['arr_0']
-    bins = np.linspace(0,15,31)
-    fig, axs = plt.subplots(2, 1, figsize=(12,12))
-    axs[0].hist(TrainLoss, color='red', linewidth=2, histtype='step', label='Train: Mean = {:.3f}'.format(np.mean(TrainLoss)), bins=bins, density=True)
-    axs[0].hist(TestLoss, color='blue', linewidth=2, histtype='step', label='Test: Mean = {:.3f}'.format(np.mean(TestLoss)), bins=bins, density=True)
-    axs[0].set_ylabel('A.U.')
-    axs[0].set_xlabel('Loss')
-    axs[0].set_yscale('log')
-    axs[0].legend()
+    # TrainLoss = np.load(TrainLoss)['arr_0']
+    # TestLoss = np.load(TestLoss)['arr_0']
+    # bins = np.linspace(0,15,31)
+    fig, axs = plt.subplots(1, 1, figsize=(10,10))
+    # axs[0].hist(TrainLoss, color='red', linewidth=2, histtype='step', label='Train: Mean = {:.3f}'.format(np.mean(TrainLoss)), bins=bins, density=True)
+    # axs[0].hist(TestLoss, color='blue', linewidth=2, histtype='step', label='Test: Mean = {:.3f}'.format(np.mean(TestLoss)), bins=bins, density=True)
+    # axs[0].set_ylabel('A.U.')
+    # axs[0].set_xlabel('Loss')
+    # axs[0].set_yscale('log')
+    # axs[0].legend()
 
     TrainResp = np.load(TrainResp)['arr_0']
     TestResp = np.load(TestResp)['arr_0']
-    bins = np.linspace(0,5,51)
-    axs[1].hist(TrainResp, color='red', linewidth=2, histtype='step', label='Train: Std = {:.3f}'.format(np.std(TrainResp)), bins=bins, density=True)
-    axs[1].hist(TestResp, color='blue', linewidth=2, histtype='step', label='Test: Std = {:.3f}'.format(np.std(TestResp)), bins=bins, density=True)
-    axs[1].set_ylabel('A.U.')
-    axs[1].set_xlabel('Response')
-    axs[1].legend()
+    bins = np.linspace(0,3,100)
+    text1 = 'Train: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TrainResp), np.mean(TrainResp), np.std(TrainResp)/np.mean(TrainResp))
+    text2 = 'Test: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TestResp), np.mean(TestResp), np.std(TestResp)/np.mean(TestResp))
+    axs.hist(TrainResp, color='red', linewidth=2, histtype='step', label=text1, bins=bins, density=True)
+    axs.hist(TestResp, color='blue', linewidth=2, histtype='step', label=text2, bins=bins, density=True)
+    axs.set_ylabel('A.U.')
+    axs.set_xlabel('Response')
+    axs.legend()
 
     savefile = odirLoss + '/Loss_{}'.format(i)
     plt.savefig(savefile+'.png')
