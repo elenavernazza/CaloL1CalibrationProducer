@@ -120,15 +120,15 @@ if __name__ == "__main__" :
             print(cmd)
             os.system(cmd)
 
-    plot_list = glob.glob(odirSFs + '/Calib_vs_Eta_HCAL*.png')
+    plot_list = glob.glob(odirSFs + '/Calib_vs_Eta_' + options.v + '*.png')
     AddText(plot_list)
     plot_map = list(map(lambda plot: imageio.imread(plot), plot_list))
-    imageio.v2.mimsave(indir+'/History/Calib_vs_Eta_HCAL.gif', plot_map, format='GIF', duration=500)
+    imageio.v2.mimsave(indir+'/History/Calib_vs_Eta_' + options.v + '.gif', plot_map, format='GIF', duration=500)
 
-    plot_list = glob.glob(odirSFs + '/SFs_2D_HCAL*.png')
+    plot_list = glob.glob(odirSFs + '/SFs_2D_' + options.v + '*.png')
     AddText(plot_list)
     plot_map = list(map(lambda plot: imageio.imread(plot), plot_list))
-    imageio.v2.mimsave(indir+'/History/SFs_2D_HCAL.gif', plot_map, format='GIF', duration=500)
+    imageio.v2.mimsave(indir+'/History/SFs_2D_' + options.v + '.gif', plot_map, format='GIF', duration=500)
 
     if options.loss:
         plot_list = glob.glob(odirLoss + '/Loss*.png')

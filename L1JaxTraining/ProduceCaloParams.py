@@ -59,10 +59,10 @@ if options.ECAL:
     f_ECAL = options.ECAL
     with open(f_ECAL) as f:
         for i, line in enumerate(f.readlines()):
-            if i == 0:
-                et_binning = line.split("[0 ,")[1].split("]")[0]
+            if i == 2:
+                et_binning = line.split("[0 ,")[1].split(",128]")[0]
                 first_part = "    layer1ECalScaleETBins = cms.vint32([ "
-                last_part = "]),\n"
+                last_part = ",256]),\n"
                 New_Lines.append(first_part + et_binning + last_part)
                 New_Lines.append("    layer1ECalScaleFactors = cms.vdouble([\n")
             if '#' in line: continue
@@ -80,10 +80,10 @@ if options.HCAL:
     with open(f_HCAL) as f:
         first_line = True
         for i, line in enumerate(f.readlines()):
-            if i == 0:
-                et_binning = line.split("[0 ,")[1].split("]")[0]
+            if i == 2:
+                et_binning = line.split("[0 ,")[1].split(",128]")[0]
                 first_part = "    layer1HCalScaleETBins = cms.vint32([ "
-                last_part = "]),\n"
+                last_part = ",256]),\n"
                 New_Lines.append(first_part + et_binning + last_part)
                 New_Lines.append("    layer1HCalScaleFactors = cms.vdouble([\n")
             if '#' in line: continue
@@ -116,10 +116,10 @@ if options.HF:
     with open(f_HF) as f:
         first_line = True
         for i, line in enumerate(f.readlines()):
-            if i == 0:
-                et_binning = line.split("[0 ,")[1].split("]")[0]
+            if i == 2:
+                et_binning = line.split("[0 ,")[1].split(",128]")[0]
                 first_part = "    layer1HFScaleETBins = cms.vint32([ "
-                last_part = "]),\n"
+                last_part = ",256]),\n"
                 New_Lines.append(first_part + et_binning + last_part)
                 New_Lines.append("    layer1HFScaleFactors = cms.vdouble([\n")
             if '#' in line: continue

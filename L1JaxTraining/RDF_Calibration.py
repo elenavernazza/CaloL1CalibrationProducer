@@ -52,10 +52,10 @@ ROOT.gInterpreter.Declare("""
                     string value;
                     while (line.find(",") != string::npos) {
                         value = line.substr(0, line.find(","));
-                        layer1ScaleETBins.push_back((double)convert(value)); // from GeV to iEt
+                        layer1ScaleETBins.push_back((double)convert(value)*2.); // from GeV to iEt
                         line.erase(0, line.find(",") + 1);
                     }
-                    layer1ScaleETBins.push_back((double)convert(line)); // from GeV to iEt
+                    layer1ScaleETBins.push_back((double)convert(line)*2.); // from GeV to iEt
                     break;
                 }
             }

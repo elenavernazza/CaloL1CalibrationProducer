@@ -39,6 +39,7 @@ if __name__ == "__main__" :
     parser.add_option("--scaleE",                 dest="scaleE",                 default=1.,         type=float,       help="Target scale Endcap")
     parser.add_option("--scaleB",                 dest="scaleB",                 default=1.,         type=float,       help="Target scale Barrel")
     parser.add_option("--ECALCalib",              dest="ECALCalib",              default=None,       type=str,         help="Path to ECAL SFs on the fly")
+    parser.add_option("--MSPE",                   dest="MSPE",                   default=None,    action='store_true', help="Use Mean Squared Percentage Error instead of MAPE")
     (options, args) = parser.parse_args()
     print(options)
 
@@ -129,13 +130,12 @@ if __name__ == "__main__" :
 
     if options.v == "HCAL":
         eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
-        en_binning  = [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
+        en_binning  = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 256]
     elif options.v == "ECAL":
         eta_binning = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
-        en_binning  = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 256]
-    # et_binning  = [i for i in range(1,101)]
+        en_binning  = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 256]
     eta_binning = jnp.array(eta_binning)
-    et_binning = jnp.array(en_binning) + 0.1 # this shift allows to have et = 1 in the first bin
+    et_binning = jnp.array(en_binning)
     print(" ### INFO: Eta binning = ", eta_binning)
     print(" ### INFO: Energy binning = ", et_binning)
     l_eta = len(eta_binning)
@@ -144,24 +144,24 @@ if __name__ == "__main__" :
     SFs = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.v == 'HCAL':
         # Apply ZS to ieta <= 15 and iet == 1
-        SFs = jnp.where((eta_binning[:, None] <= 15) & (et_binning[None, :] == 1 + 0.1), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] <= 15) & (et_binning[None, :] == 2), 0, SFs)
         print(" ### INFO: Zero Suppression applied to ieta <= 15, et == 1")
     if options.v == 'ECAL':
         # Apply ZS to 3_6_9 region
-        SFs = jnp.where((eta_binning[:, None] == 26) & (et_binning[None, :] <= 6 + 0.1), 0, SFs)
-        SFs = jnp.where((eta_binning[:, None] == 27) & (et_binning[None, :] <= 12 + 0.1), 0, SFs)
-        SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 18 + 0.1), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] == 26) & (et_binning[None, :] <= 6), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] == 27) & (et_binning[None, :] <= 12), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 18), 0, SFs)
         print(" ### INFO: Zero Suppression applied to TT 26 (iEt<=6),27 (iEt<=12), 28 (iEt<=18)")
     if options.maskHF:
-        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7 + 0.1), 0, SFs)
-        SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 1 + 0.1), 1, SFs)
+        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 1, SFs)
         print(" ### INFO: Zero Suppression applied HF for iEt <= 3.5 GeV")
     SFs_flat = SFs.ravel()
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.maskHF:
-        mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7 + 0.1), 0, mask)
-        mask = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 1 + 0.1), 0, mask)
+        mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7), 0, mask)
+        mask = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 0, mask)
         print(" ### INFO: Masking applied HF for iEt <= 3.5 GeV")
     # mask_eta = 28
     # print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
@@ -249,14 +249,20 @@ if __name__ == "__main__" :
 
         if options.v == "HCAL":
             scale = options.scaleB * (jets[:,1] < 1.305) + options.scaleE * ((jets[:,1] >= 1.305) & (jets[:,1] < 3)) + options.scaleF * (jets[:,1] >= 3)
-            DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
+            if options.MSPE:
+                LOSS = jnp.square(jnp.divide((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies, scale*jet_energies))
+            else:
+                DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
+                LOSS = jnp.divide(DIFF, scale*jet_energies)
         elif options.v == "ECAL":
             scale = options.scaleB * (jets[:,1] < 1.305) + options.scaleE * (jets[:,1] >= 1.305)
-            DIFF = jnp.abs((l1_jet_energies) - scale*jet_energies)
-        # DIFF_2 = jnp.square(DIFF)
-        MAPE = jnp.divide(DIFF, scale*jet_energies)
-        MAPE_s = jnp.divide(jnp.sum(MAPE), len(jets))
-        return MAPE_s
+            if options.MSPE:
+                LOSS = jnp.square(jnp.divide((l1_jet_energies) - scale*jet_energies, scale*jet_energies))
+            else:
+                DIFF = jnp.abs((l1_jet_energies) - scale*jet_energies)
+                LOSS = jnp.divide(DIFF, scale*jet_energies)
+        LOSS_s = jnp.divide(jnp.sum(LOSS), len(jets))
+        return LOSS_s
 
     def ReadECALScaleFactors(ECAL_SFs_name, cols=28):
         ECAL_SFs = np.loadtxt(open(ECAL_SFs_name, "rb"), delimiter=',', usecols=range(0,cols))
@@ -321,7 +327,7 @@ if __name__ == "__main__" :
 
         if options.ECALCalib:
             ECAL_SFs, ECAL_eta_binning, ECAL_en_binning = ReadECALScaleFactors(options.ECALCalib)
-            ECAL_et_binning = jnp.array(ECAL_en_binning[:1]) + 0.1
+            ECAL_et_binning = jnp.array(ECAL_en_binning[:1])
 
             def CalibrateIem (iem, ietas_idx):
                 iem_idx = np.digitize(iem, ECAL_et_binning)

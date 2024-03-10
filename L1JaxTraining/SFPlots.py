@@ -45,18 +45,7 @@ def PlotSF (SF_matrix, bins, odir, v_sample, eta_towers, max_=2.1, i_epoch = Non
 def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, max_=2.2, i_epoch = None):
 
     eta_axis = [int(x) for x in eta_binning[eta_binning < 29]] + [int(x+1) for x in eta_binning[eta_binning >= 29]]
-    if v_sample == "ECAL":
-        et_axis = []
-        for i in range(0,len(et_binning)-1):
-            if et_binning[i] < 20:
-                if len(et_axis) % 2 == 0:
-                    et_axis.append("{}-{}".format(et_binning[i],et_binning[i+1]))
-                else:
-                    et_axis.append("")
-            else:
-                et_axis.append("{}-{}".format(et_binning[i],et_binning[i+1]))
-    else: 
-        et_axis = ["{}-{}".format(et_binning[i],et_binning[i+1]) for i in range(0,len(et_binning)-1)]
+    et_axis = ["<{}".format(int(et_binning[i])) for i in range(1,len(et_binning))]
 
     if i_epoch != None: epoch = '_{}'.format(i_epoch)
     else: epoch = ''
@@ -67,7 +56,7 @@ def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, max_=2.2, i_ep
     ax.set_xticks(eta_binning)
     ax.set_xticklabels(eta_axis, fontsize=13, rotation=0)
     ax.set_yticks(et_binning[:-1])
-    ax.set_yticklabels(et_axis, fontsize=13, rotation=0)
+    ax.set_yticklabels(et_axis, fontsize=9, rotation=0)
 
     colorbar = plt.colorbar(im, label=str(v_sample+' SFs'))
     nticks = 10
@@ -75,7 +64,7 @@ def PlotSF2D (SF_matrix, odir, et_binning, eta_binning, v_sample, max_=2.2, i_ep
     # colorbar.ax.tick_params(which='minor', width=0, length=0)
     plt.tick_params(which='both', width=0, length=0)
 
-    plt.ylabel(f'$Et$ $[GeV]$')
+    plt.ylabel(f'$Et$ $[0.5\;GeV]$')
     plt.xlabel(f'$i\eta$')
     savefile = odir + '/SFs_2D_'+v_sample+epoch
     plt.savefig(savefile+'.png')
@@ -100,12 +89,7 @@ if __name__ == "__main__" :
     (options, args) = parser.parse_args()
     print(options)
  
-    # Definition of the trained model
-    # indir = '/data_CMS/cms/motta/CaloL1calibraton/' + options.indir + '/' + options.v + 'training' + options.tag
     indir = options.indir
-    # Definition of output folder 
-    # odir = modeldir + '/SFs_' + str(options.energystep) + 'iEt' + '/SFplots'
-    # os.system('mkdir -p '+ odir)
     odir = options.indir
 
     #######################################################
@@ -131,7 +115,7 @@ if __name__ == "__main__" :
     PlotSF2D(ScaleFactors, odir, et_binning, eta_binning, options.v, max_)
 
     testing_en = np.arange(1,256)
-    en_binning = np.array(et_binning[1:-1]) + 0.1
+    en_binning = np.array(et_binning[1:-1])
     testing_en_idx = np.digitize(testing_en, en_binning)
     for ieta in eta_binning[:-1]:
         for i in np.arange(1,256):
