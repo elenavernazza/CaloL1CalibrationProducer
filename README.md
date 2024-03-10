@@ -483,55 +483,55 @@ python3 comparisonPlots.py \
 cd L1Plotting
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__RAW__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatuHighPU --target jet --raw --nEvts 100000 --no_plot
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__RAW__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatuHighPU --target jet --raw --nEvts 100000 --no_plot
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__RAW__Testing__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --tag L1ptNoSatu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --tag L1ptNoSatuHighPU
 
 python3 turnOn.py \
     --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatuHighPU --reco --target jet --raw --PuppiJet --nEvts 100000
 python3 turnOn.py \
     --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --nEvts 100000
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatuHighPU --reco --target jet --raw --PuppiJet --nEvts 100000
 python3 turnOn.py \
     --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --nEvts 100000 --tag L1ptNoSatu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --nEvts 100000 --tag L1ptNoSatuHighPU
 
 python3 resolutions.py \
     --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatuHighPU --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
 python3 resolutions.py \
     --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data_reco_json/GoodNtuples \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatuHighPU --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --no_Satu
 python3 resolutions.py \
     --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data_reco_json \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --tag L1ptNoSatu --no_Satu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --reco --target jet --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot --tag L1ptNoSatuHighPU --no_Satu
 
 python3 comparisonPlots.py \
     --indir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew  --target jet --reco \
-    --old 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu \
-    --unc 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu \
-    --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 --thrsFixRate 100 --tag L1ptNoSatu
+    --old 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatuHighPU \
+    --unc 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatuHighPU \
+    --thrsFixRate 40 --thrsFixRate 60 --thrsFixRate 80 --thrsFixRate 100 --tag L1ptNoSatuHighPU
 
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__RAW__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot --offline
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatuHighPU --target jet --raw --nEvts 100000 --no_plot --offline
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__RAW__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_data \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu --target jet --raw --nEvts 100000 --no_plot --offline
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatuHighPU --target jet --raw --nEvts 100000 --no_plot --offline
 python3 rate.py \
     --indir EphemeralZeroBias__Run2023D-v1__RAW__Testing__GT130XdataRun3Promptv4_CaloParams2023JAX_HCAL_Y_data \
-    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --offline --tag L1ptNoSatu
+    --outdir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew --target jet --raw --nEvts 100000 --no_plot --offline --tag L1ptNoSatuHighPU
 
 python3 comparisonPlots.py \
     --indir 2024_03_05_NtuplesV59/JAX_HCAL_Y/NtuplesVnew  --target jet --reco \
-    --old 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatu \
-    --unc 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatu \
-    --thrsFixRate 60 --thrsFixRate 70 --thrsFixRate 80 --tag L1ptNoSatu --offline --doResponse False --doResolution False
+    --old 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVoldL1ptNoSatuHighPU \
+    --unc 2024_03_05_NtuplesV59/JAX_HCAL/NtuplesVuncL1ptNoSatuHighPU \
+    --thrsFixRate 60 --thrsFixRate 70 --thrsFixRate 80 --tag L1ptNoSatuHighPU --offline --doResponse False --doResolution False
 ```
 </details>
 

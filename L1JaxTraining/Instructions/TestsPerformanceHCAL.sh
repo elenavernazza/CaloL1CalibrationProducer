@@ -5,7 +5,7 @@ if [ -n "$2" ]; then
     suffix=$2
     dataset_tag="${suffix}_"
 else
-    suffix="L1ptNoSatu"
+    suffix="L1ptNoSatuHighPU"
     dataset_tag=""
 fi
 
