@@ -18,3 +18,6 @@ L1JaxTraining/test/
 L1Plotting/TestPlotting/
 caloParams/caloParams_2023_v56*_cfi.py
 caloParams/caloParams_2023_JAX*_newCalib_cfi.py
+L1JaxTraining/Trainings_2023/*
+L1JaxTraining/Test*
+L1NtupleLauncher/HCALResponseCorrections/

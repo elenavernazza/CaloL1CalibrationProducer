@@ -31,7 +31,8 @@ if __name__ == "__main__" :
     parser.add_option("--bs",                     dest="bs",                     default=1,          type=int,         help="Batch size")
     parser.add_option("--lr",                     dest="lr",                     default=0.001,      type=float,       help="Learning rate")
     parser.add_option("--ep",                     dest="ep",                     default=5,          type=int,         help="Number of epochs")
-    parser.add_option("--mask",                   dest="mask",                   default=False,   action='store_true', help="Mask low energy SFs")
+    parser.add_option("--Test1",                  dest="Test1",                  default=False,   action='store_true', help="Test constrain HCAL SFs by hand")
+    parser.add_option("--maskLE",                 dest="maskLE",                 default=False,      type=int,         help="Mask HCAL low energy SFs")
     parser.add_option("--maskHF",                 dest="maskHF",                 default=False,   action='store_true', help="Mask HF for iEt <= 3.5 GeV")
     parser.add_option("--test",                   dest="test",                   default=0.1,        type=float,       help="Testing fraction")
     parser.add_option("--norm",                   dest="norm",                   default=False,   action='store_true', help="Normalize by number of towers in each bin")
@@ -157,6 +158,13 @@ if __name__ == "__main__" :
         SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7), 0, SFs)
         SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 1, SFs)
         print(" ### INFO: Zero Suppression applied HF for iEt <= 3.5 GeV")
+    elif options.maskLE:
+        SFs = jnp.where((eta_binning[:, None] <= 28) & (et_binning[None, :] <= options.maskLE), 1, SFs)
+        print(" ### INFO: Set HCAL Low Energy SFs to 1 up to {} iEt".format(options.maskLE))
+    elif options.Test1:
+        SFs = jnp.where((eta_binning[:, None] > 15) & (eta_binning[:, None] <= 28) & (et_binning[None, :] == 2), 1, SFs)
+        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] == 2), 0, SFs)
+        print(" ### INFO: Constrain SFs for iEt = 1 (0 for ieta < 16, 1 for 16 <= ieta <= 28, 0 for ieta > 28)")
     SFs_flat = SFs.ravel()
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
@@ -164,11 +172,13 @@ if __name__ == "__main__" :
         mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7), 0, mask)
         mask = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 0, mask)
         print(" ### INFO: Masking applied HF for iEt <= 3.5 GeV")
-    # mask_eta = 28
-    # print(" ### INFO: Masking applied to eta > {}".format(mask_eta))
-    # eta_binning_reshaped = jnp.expand_dims(eta_binning, axis=1)
-    # eta_binning_reshaped = jnp.tile(eta_binning_reshaped, (1, len(et_binning)))
-    # mask = jnp.where(eta_binning_reshaped > mask_eta, 0, mask)
+    elif options.maskLE:
+        mask = jnp.where((eta_binning[:, None] <= 28) & (et_binning[None, :] <= options.maskLE), 0, mask)
+        print(" ### INFO: Masking HCAL Low Energy SFs up to {} iEt".format(options.maskLE))
+    elif options.Test1:
+        mask = jnp.where((eta_binning[:, None] > 15) & (eta_binning[:, None] <= 28) & (et_binning[None, :] == 2), 0, mask)
+        mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] == 2), 0, mask)
+        print(" ### INFO: Masking SFs for iEt = 1 (0 for ieta < 16, 1 for 16 <= ieta <= 28, 0 for ieta > 28)")
     mask = mask.ravel()
 
     # Samples for training
@@ -296,7 +306,6 @@ if __name__ == "__main__" :
     TrainingInfo["BS"] = bs
     TrainingInfo["LR"] = lr
     TrainingInfo["TestingFraction"] = options.test
-    TrainingInfo["Masking"] = options.mask
     TrainingInfo["Normalization"] = options.norm
 
     LossHistory = {}
