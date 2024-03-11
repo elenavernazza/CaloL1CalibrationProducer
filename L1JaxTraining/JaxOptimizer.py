@@ -73,7 +73,7 @@ if __name__ == "__main__" :
     elif options.jetsLim:
         training_stat = 0
         for ifile in range(0, len(list_towers_files)):
-            # print("Reading file {}, {}".format(ifile, training_stat))
+            # print("Reading file {}, {}".format(list_towers_files[ifile], training_stat))
             x = jnp.load(list_towers_files[ifile], allow_pickle=True)['arr_0']
             y = jnp.load(list_jets_files[ifile], allow_pickle=True)['arr_0']
             if training_stat + len(y) > options.jetsLim:
@@ -97,6 +97,7 @@ if __name__ == "__main__" :
             list_train_jets.append(y)
             training_stat += len(y)
 
+    # breakpoint()
     X = jnp.concatenate(list_train_towers)
     Y = jnp.concatenate(list_train_jets)
 
@@ -248,14 +249,14 @@ if __name__ == "__main__" :
         l1_jet_em_energies = jnp.sum(iem[:], axis=1)
 
         if options.v == "HCAL":
-            scale = options.scaleB * (jets[:,1] < 1.305) + options.scaleE * ((jets[:,1] >= 1.305) & (jets[:,1] < 3)) + options.scaleF * (jets[:,1] >= 3)
+            scale = options.scaleB * (np.abs(jets[:,1]) < 1.305) + options.scaleE * ((np.abs(jets[:,1]) >= 1.305) & (np.abs(jets[:,1]) < 3)) + options.scaleF * (np.abs(jets[:,1]) >= 3)
             if options.MSPE:
                 LOSS = jnp.square(jnp.divide((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies, scale*jet_energies))
             else:
                 DIFF = jnp.abs((l1_jet_energies + l1_jet_em_energies) - scale*jet_energies)
                 LOSS = jnp.divide(DIFF, scale*jet_energies)
         elif options.v == "ECAL":
-            scale = options.scaleB * (jets[:,1] < 1.305) + options.scaleE * (jets[:,1] >= 1.305)
+            scale = options.scaleB * (np.abs(jets[:,1]) < 1.305) + options.scaleE * (np.abs(jets[:,1]) >= 1.305)
             if options.MSPE:
                 LOSS = jnp.square(jnp.divide((l1_jet_energies) - scale*jet_energies, scale*jet_energies))
             else:
@@ -349,6 +350,25 @@ if __name__ == "__main__" :
         calib = iem;            test_calib = test_iem
         uncalib = ihad;         test_uncalib = test_ihad
 
+    # if True:
+    #     L1Energy = np.sum(uncalib, axis=1) + np.sum(calib, axis=1)
+    #     JetEnergy = jets[:, 3]
+    #     Response = np.array(L1Energy/JetEnergy)
+    #     fig, ax = plt.subplots(1, 1, figsize=(10,10))
+    #     bins_res = np.linspace(0,3,200)
+    #     eta = np.array(np.abs(jets[:,1]))
+    #     plt.hist(Response[(eta < 1.305)], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='blue', label='Barrel')
+    #     plt.hist(Response[(eta >= 1.305) & (eta < 3)], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='green', label='Endcap')
+    #     plt.hist(Response[(eta >= 3)], bins=bins_res, histtype='step', stacked=True, linewidth=2, color='purple', label='Forward')
+    #     plt.xlabel(r'Response')
+    #     plt.ylabel('Entries')
+    #     plt.grid(linestyle='dotted')
+    #     plt.legend()
+    #     savefile = odir + '/InputResponseSplit'
+    #     plt.savefig(savefile+'.png')
+    #     plt.savefig(savefile+'.pdf')
+    #     print(savefile)
+
     # print(LossFunction(ietas_idx, calib_idx, calib, uncalib, jets, SFs_flat))
 
     for ep in range(nb_epochs):
@@ -364,10 +384,28 @@ if __name__ == "__main__" :
             loss_value = float(LossFunction(ietas_idx[i:i+bs], calib_idx[i:i+bs], calib[i:i+bs], uncalib[i:i+bs], jets[i:i+bs], SFs_flat))
             if i%1000 == 0: print("Looped over {} jets: Loss = {:.4f}".format(i, loss_value))
         # save loss history
-        np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_idx, calib_idx, calib, uncalib, jets, SFs_flat))
         LossHistory[ep] = float(LossFunction(ietas_idx, calib_idx, calib, uncalib, jets, SFs_flat))
-        np.savez(history_dir+"/TestResp_{}".format(ep), ComputeResponse(test_ietas_idx, test_calib_idx, test_calib, test_uncalib, test_jets, SFs_flat))
         TestLossHistory[ep] = float(LossFunction(test_ietas_idx, test_calib_idx, test_calib, test_uncalib, test_jets, SFs_flat))
+        np.savez(history_dir+"/TrainResp_{}".format(ep), ComputeResponse(ietas_idx, calib_idx, calib, uncalib, jets, SFs_flat))
+        np.savez(history_dir+"/TrainRespB_{}".format(ep), \
+                ComputeResponse(ietas_idx[(np.abs(jets[:,1]) < 1.305)], calib_idx[(np.abs(jets[:,1]) < 1.305)], \
+                                calib[(np.abs(jets[:,1]) < 1.305)], uncalib[(np.abs(jets[:,1]) < 1.305)], jets[(np.abs(jets[:,1]) < 1.305)], SFs_flat))
+        np.savez(history_dir+"/TrainRespE_{}".format(ep), \
+                ComputeResponse(ietas_idx[(np.abs(jets[:,1]) >= 1.305) & (np.abs(jets[:,1]) < 3)], calib_idx[(np.abs(jets[:,1]) >= 1.305) & (np.abs(jets[:,1]) < 3)], \
+                                calib[(np.abs(jets[:,1]) >= 1.305) & (np.abs(jets[:,1]) < 3)], uncalib[(np.abs(jets[:,1]) >= 1.305) & (np.abs(jets[:,1]) < 3)], jets[(np.abs(jets[:,1]) >= 1.305) & (np.abs(jets[:,1]) < 3)], SFs_flat))
+        np.savez(history_dir+"/TrainRespF_{}".format(ep), \
+                ComputeResponse(ietas_idx[(np.abs(jets[:,1]) >= 3)], calib_idx[(np.abs(jets[:,1]) >= 3)], \
+                                calib[(np.abs(jets[:,1]) >= 3)], uncalib[(np.abs(jets[:,1]) >= 3)], jets[(np.abs(jets[:,1]) >= 3)], SFs_flat))
+        np.savez(history_dir+"/TestResp_{}".format(ep), ComputeResponse(test_ietas_idx, test_calib_idx, test_calib, test_uncalib, test_jets, SFs_flat))
+        np.savez(history_dir+"/TestRespB_{}".format(ep), \
+                ComputeResponse(test_ietas_idx[(np.abs(test_jets[:,1]) < 1.305)], test_calib_idx[(np.abs(test_jets[:,1]) < 1.305)], \
+                                test_calib[(np.abs(test_jets[:,1]) < 1.305)], test_uncalib[(np.abs(test_jets[:,1]) < 1.305)], test_jets[(np.abs(test_jets[:,1]) < 1.305)], SFs_flat))
+        np.savez(history_dir+"/TestRespE_{}".format(ep), \
+                ComputeResponse(test_ietas_idx[(np.abs(test_jets[:,1]) >= 1.305) & (np.abs(test_jets[:,1]) < 3)], test_calib_idx[(np.abs(test_jets[:,1]) >= 1.305) & (np.abs(test_jets[:,1]) < 3)], \
+                                test_calib[(np.abs(test_jets[:,1]) >= 1.305) & (np.abs(test_jets[:,1]) < 3)], test_uncalib[(np.abs(test_jets[:,1]) >= 1.305) & (np.abs(test_jets[:,1]) < 3)], test_jets[(np.abs(test_jets[:,1]) >= 1.305) & (np.abs(test_jets[:,1]) < 3)], SFs_flat))
+        np.savez(history_dir+"/TestRespF_{}".format(ep), \
+                ComputeResponse(test_ietas_idx[(np.abs(test_jets[:,1]) >= 3)], test_calib_idx[(np.abs(test_jets[:,1]) >= 3)], \
+                                test_calib[(np.abs(test_jets[:,1]) >= 3)], test_uncalib[(np.abs(test_jets[:,1]) >= 3)], test_jets[(np.abs(test_jets[:,1]) >= 3)], SFs_flat))
         SFs = SFs_flat.reshape(len(eta_binning),len(et_binning))
         SFs_inv = np.transpose(SFs)
         SFOutFile = history_dir+'/ScaleFactors_{}_{}.csv'.format(options.v, ep)

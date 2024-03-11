@@ -27,22 +27,22 @@ python3 ProduceCaloParams.py --name caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys
  --ECAL Trainings_2023/JAX_"${ECAL}"/ScaleFactors_ECAL_Phys.csv \
  --base caloParams_2023_v0_4_cfi.py
 
-# plot Jet
-python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
- --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
- --HCALcalib --caloParam caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi.py --outdir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew --no_Satu
-python3 comparisonPlotsFast.py --target jet --reco --do_HoTot \
- --old Trainings_2023/JAX_HCAL_0/NtuplesVold --unc Trainings_2023/JAX_HCAL_0/NtuplesVunc \
- --indir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew
+# # plot Jet
+# python3 RDF_ResolutionFast.py --indir JetMET__Run2023D-PromptReco-v2__AOD__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target jet --do_HoTot --raw --PuppiJet --jetPtcut 30 --nEvts 100000 --no_plot \
+#  --HCALcalib --caloParam caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi.py --outdir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew --no_Satu
+# python3 comparisonPlotsFast.py --target jet --reco --do_HoTot \
+#  --old Trainings_2023/JAX_HCAL_0/NtuplesVold --unc Trainings_2023/JAX_HCAL_0/NtuplesVunc \
+#  --indir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew
 
-# plot EGamma
-python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
- --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
- --ECALcalib --caloParam caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi.py --outdir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew 
-python3 comparisonPlotsFast.py --target ele --reco \
- --old Trainings_2023/JAX_ECAL_0/NtuplesVold --unc Trainings_2023/JAX_ECAL_0/NtuplesVunc \
- --do_HoTot --doRate False --doTurnOn False \
- --indir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew
+# # plot EGamma
+# python3 RDF_ResolutionFast.py --indir EGamma__Run2023D-ZElectron-PromptReco-v2__RAW-RECO__Testing__GT130XdataRun3Promptv4_CaloParams2023v04_noL1Calib_data_reco_json/GoodNtuples \
+#  --reco --target ele --do_EoTot --raw --LooseEle --nEvts 100000 --no_plot \
+#  --ECALcalib --caloParam caloParams_2023_JAX_"${ECAL}"_"${HCAL}"_Phys_newCalib_cfi.py --outdir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew 
+# python3 comparisonPlotsFast.py --target ele --reco \
+#  --old Trainings_2023/JAX_ECAL_0/NtuplesVold --unc Trainings_2023/JAX_ECAL_0/NtuplesVunc \
+#  --do_HoTot --doRate False --doTurnOn False \
+#  --indir Trainings_2023/FullCalib/JAX_"${ECAL}"_"${HCAL}"/NtuplesVnew
 
 #################################################################################
 # RE-EMULATION 

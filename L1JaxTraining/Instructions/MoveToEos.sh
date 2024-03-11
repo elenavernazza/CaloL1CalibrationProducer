@@ -12,7 +12,7 @@ version="$2"
 if [ -n "$3" ]; then
     suffix=$3
 else
-    suffix="L1ptNoSatu"
+    suffix="L1ptNoSatuHighPU"
 fi
 
 www='/eos/home-e/evernazz/www/L1Trigger/PerformancePlots/JAXV1/'

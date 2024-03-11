@@ -51,6 +51,43 @@ def PlotLoss(TrainLoss, TestLoss, TrainResp, TestResp, odirLoss, i):
     plt.savefig(savefile+'.pdf')
     print(savefile)
 
+def PlotRespSplit(TrainRespB, TestRespB, TrainRespE, TestRespE, TrainRespF, TestRespF, odirLoss, i):
+    fig, axs = plt.subplots(1, 3, figsize=(30,10))
+    TrainRespB = np.load(TrainRespB)['arr_0']
+    TrainRespE = np.load(TrainRespE)['arr_0']
+    TrainRespF = np.load(TrainRespF)['arr_0']
+    TestRespB = np.load(TestRespB)['arr_0']
+    TestRespE = np.load(TestRespE)['arr_0']
+    TestRespF = np.load(TestRespF)['arr_0']
+    bins = np.linspace(0,3,100)
+    text1 = 'Train: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TrainRespB), np.mean(TrainRespB), np.std(TrainRespB)/np.mean(TrainRespB))
+    text2 = 'Test: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TestRespB), np.mean(TestRespB), np.std(TestRespB)/np.mean(TestRespB))
+    axs[0].hist(TrainRespB, color='red', linewidth=2, histtype='step', label=text1, bins=bins, density=True)
+    axs[0].hist(TestRespB, color='blue', linewidth=2, histtype='step', label=text2, bins=bins, density=True)
+    axs[0].set_ylabel('A.U.')
+    axs[0].set_xlabel('Response')
+    axs[0].legend(title='Barrel', loc='upper right')
+    text1 = 'Train: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TrainRespE), np.mean(TrainRespE), np.std(TrainRespE)/np.mean(TrainRespE))
+    text2 = 'Test: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TestRespE), np.mean(TestRespE), np.std(TestRespE)/np.mean(TestRespE))
+    axs[1].hist(TrainRespE, color='red', linewidth=2, histtype='step', label=text1, bins=bins, density=True)
+    axs[1].hist(TestRespE, color='blue', linewidth=2, histtype='step', label=text2, bins=bins, density=True)
+    axs[1].set_ylabel('A.U.')
+    axs[1].set_xlabel('Response')
+    axs[1].legend(title='Endcap', loc='upper right')
+    text1 = 'Train: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TrainRespF), np.mean(TrainRespF), np.std(TrainRespF)/np.mean(TrainRespF))
+    text2 = 'Test: {:.3f}/{:.3f} = {:.3f}'.format(np.std(TestRespF), np.mean(TestRespF), np.std(TestRespF)/np.mean(TestRespF))
+    axs[2].hist(TrainRespF, color='red', linewidth=2, histtype='step', label=text1, bins=bins, density=True)
+    axs[2].hist(TestRespF, color='blue', linewidth=2, histtype='step', label=text2, bins=bins, density=True)
+    axs[2].set_ylabel('A.U.')
+    axs[2].set_xlabel('Response')
+    axs[2].legend(title='Forward', loc='upper right')
+
+    savefile = odirLoss + '/RespSplit_{}'.format(i)
+    plt.savefig(savefile+'.png')
+    plt.savefig(savefile+'.pdf')
+    print(savefile)
+
+
 if __name__ == "__main__" :
 
     from optparse import OptionParser
@@ -101,6 +138,13 @@ if __name__ == "__main__" :
             TrainResp = indir+'/History/TrainResp_{}.npz'.format(i)
             TestResp = indir+'/History/TestResp_{}.npz'.format(i)
             PlotLoss(TrainLoss, TestLoss, TrainResp, TestResp, odirLoss, i)
+            TrainRespB = indir+'/History/TrainRespB_{}.npz'.format(i)
+            TestRespB = indir+'/History/TestRespB_{}.npz'.format(i)
+            TrainRespE = indir+'/History/TrainRespE_{}.npz'.format(i)
+            TestRespE = indir+'/History/TestRespE_{}.npz'.format(i)
+            TrainRespF = indir+'/History/TrainRespF_{}.npz'.format(i)
+            TestRespF = indir+'/History/TestRespF_{}.npz'.format(i)
+            PlotRespSplit(TrainRespB, TestRespB, TrainRespE, TestRespE, TrainRespF, TestRespF, odirLoss, i)
 
         if options.perf:
             caloname = "/History/caloParams_2023_JAX{}_{}_newCalib_cfi".format(indir, i)
@@ -135,6 +179,10 @@ if __name__ == "__main__" :
         AddText(plot_list)
         plot_map = list(map(lambda plot: imageio.imread(plot), plot_list))
         imageio.v2.mimsave(indir+'/History/Loss.gif', plot_map, format='GIF', duration=500)
+        plot_list = glob.glob(odirLoss + '/RespSplit*.png')
+        AddText(plot_list)
+        plot_map = list(map(lambda plot: imageio.imread(plot), plot_list))
+        imageio.v2.mimsave(indir+'/History/RespSplit.gif', plot_map, format='GIF', duration=500)
 
     if options.perf:
         plot_list = glob.glob(odirPerf + '/PerformancePlots*/PNGs/comparisons__jet/response_inclusive_res__jet.png')
