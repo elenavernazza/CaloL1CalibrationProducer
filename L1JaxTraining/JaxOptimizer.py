@@ -155,7 +155,7 @@ if __name__ == "__main__" :
         SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 18), 0, SFs)
         print(" ### INFO: Zero Suppression applied to TT 26 (iEt<=6),27 (iEt<=12), 28 (iEt<=18)")
     if options.maskHF:
-        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7), 0, SFs)
+        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 8), 0, SFs)
         SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 1, SFs)
         print(" ### INFO: Zero Suppression applied HF for iEt <= 3.5 GeV")
     elif options.maskLE:
@@ -169,7 +169,7 @@ if __name__ == "__main__" :
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.maskHF:
-        mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 7), 0, mask)
+        mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 8), 0, mask)
         mask = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 0, mask)
         print(" ### INFO: Masking applied HF for iEt <= 3.5 GeV")
     elif options.maskLE:

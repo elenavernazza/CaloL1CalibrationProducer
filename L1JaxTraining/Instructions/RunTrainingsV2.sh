@@ -172,7 +172,20 @@ source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_56
 source Instructions/TestsPerformanceECAL.sh JAX_ECAL_19_HCAL_56
 source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_19_HCAL_56
 
+# Test for Santeri
+python3 JaxOptimizer.py --indir 2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_57 --jetsLim 1000000 --lr 1 --bs 4096 --ep 50 --v HCAL \
+    --ECALCalib Trainings_2023/JAX_ECAL_19/ScaleFactors_ECAL_Phys.csv --maskHF
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_57
+source Instructions/TestTrainingCombination.sh ECAL_19 HCAL_57
+python3 PlotHistory.py --indir Trainings_2023/JAX_HCAL_57 --v HCAL --loss
+source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_57
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_19_HCAL_57
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_19_HCAL_57
 
+# Test 6: Use MAPE*alpha + (1-alpha)*STD as loss (alpha = 0.5)
+# Plot MAPE for uncalib and STD for uncalib and understand if they have the same magnitude
+# If not, divide by the mean of the distribution
 
 ########################################################################################################################
 # TEST ECAL 
