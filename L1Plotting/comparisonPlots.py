@@ -151,6 +151,7 @@ x_label_response = r'$E_{T}^{%s, L1} / p_{T}^{%s, %s}$' % (part_name,part_name, 
 y_label_response = 'Entries'
 
 y_label_resolution  = 'Energy resolution'
+y_label_fwhm  = 'FWHM / mean'
 y_label_scale       = 'Energy scale (Mean)'
 y_label_scale_max   = 'Energy scale (Maximum)'
 y_lim_scale = (0.5,1.5)
@@ -335,7 +336,7 @@ if options.doResolution == True:
 
         X_r_uncalib, X_s_uncalib = [], []
 
-        for quantity in ['resol', 'scale', 'scale_max']:
+        for quantity in ['resol', 'scale', 'scale_max', 'fwhm']:
 
             if var == 'Pt':
                 x_label = x_label_pt
@@ -361,6 +362,15 @@ if options.doResolution == True:
                 if var == "Pt" and target == "jet": regions = ["", "_barrel", "_endcap", "_forward"]
                 elif var == "Pt" and target == "ele": regions = ["", "_barrel", "_endcap"]
                 else: regions = [""]
+
+            if quantity == 'fwhm': 
+                y_label = y_label_fwhm
+                y_lim = None
+                name_y = 'fwhm'
+                if var == "Pt" and target == "jet": regions = ["", "_barrel", "_endcap", "_forward"]
+                elif var == "Pt" and target == "ele": regions = ["", "_barrel", "_endcap"]
+                else: regions = [""]
+
             if quantity == 'scale': 
                 y_label = y_label_scale
                 y_lim = y_lim_scale
@@ -384,16 +394,19 @@ if options.doResolution == True:
                 X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_unCalib)
                 ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NoCalibLabel, ls='None', lw=2, marker='o', color='black', zorder=0)
                 if quantity == 'resol' and region == '': X_r_uncalib = X; Y_r_uncalib = Y
+                if quantity == 'fwhm' and region == '': X_r_uncalib = X; Y_r_uncalib = Y
                 if quantity == 'scale' and region == '': X_s_uncalib = X; Y_s_uncalib = Y
                 Ymax = max(Y)
                 X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_oldCalib)
                 ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=OldCalibLabel, ls='None', lw=2, marker='o', color='red', zorder=1)
                 if quantity == 'resol' and region == '': X_r_oldcalib = X; Y_r_oldcalib = Y
+                if quantity == 'fwhm' and region == '': X_r_oldcalib = X; Y_r_oldcalib = Y
                 if quantity == 'scale' and region == '': X_s_oldcalib = X; Y_s_oldcalib = Y
                 Ymax = max(Ymax, max(Y))
                 X,Y,X_err,Y_err = GetArraysFromHisto(Bins_resol_newCalib)
                 ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=NewCalibLabel, ls='None', lw=2, marker='o', color='green', zorder=2)
                 if quantity == 'resol' and region == '': X_r_newcalib = X; Y_r_newcalib = Y
+                if quantity == 'fwhm' and region == '': X_r_newcalib = X; Y_r_newcalib = Y
                 if quantity == 'scale' and region == '': X_s_newcalib = X; Y_s_newcalib = Y
                 Ymax = max(Ymax, max(Y))
                 if var == 'Eta': AddRectangles(ax,Ymax)
