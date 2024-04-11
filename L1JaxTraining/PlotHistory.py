@@ -5,7 +5,7 @@ from SFPlots import PlotSF, PlotSF2D
 
 from PIL import Image, ImageDraw, ImageFont
 
-def add_text_overlay(image, text, position=(1, 1), font_size=30, text_color=(0, 0, 0)):
+def add_text_overlay(image, text, position=(178,80), font_size=40, text_color=(0, 0, 0)):
     # Convert the image to RGB mode if it's in a different mode (e.g., RGBA)
     image = image.convert("RGBA")
     draw = ImageDraw.Draw(image)
@@ -13,12 +13,12 @@ def add_text_overlay(image, text, position=(1, 1), font_size=30, text_color=(0, 
     draw.text(position, text, fill=text_color, font=font)
     return image
 
-def AddText(plot_list):
+def AddText(plot_list, position=(178,80)):
     plot_list_counter = []
     for i, plot in enumerate(plot_list):
         image = Image.open(plot)
         iterator_text = "Epoch {}".format(i)
-        image_with_overlay = add_text_overlay(image, iterator_text)
+        image_with_overlay = add_text_overlay(image, iterator_text, position=position)
         image_with_overlay.save(plot)
         plot_list_counter.append(image_with_overlay)
 
@@ -130,7 +130,8 @@ if __name__ == "__main__" :
 
         et_binning = header.split(',')
         et_binning = [float(i) for i in et_binning]
-        PlotSF2D(ScaleFactors, odirSFs, et_binning, eta_binning, options.v, i_epoch=i)
+        if options.v == "ECAL": max_ = 1.5
+        PlotSF2D(ScaleFactors, odirSFs, et_binning, eta_binning, options.v, max_, i_epoch=i)
 
         if options.loss:
             TrainLoss = indir+'/History/TrainLoss_{}.npz'.format(i)

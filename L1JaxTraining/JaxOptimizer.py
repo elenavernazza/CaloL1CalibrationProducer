@@ -144,6 +144,17 @@ if __name__ == "__main__" :
     l_et = len(et_binning)
 
     SFs = jnp.ones(shape=(len(eta_binning),len(et_binning)))
+    if options.maskHF:
+        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 8), 0, SFs)
+        # SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 1, SFs)
+        print(" ### INFO: Zero Suppression applied HF for iEt <= 3.5 GeV")
+    if options.maskLE:
+        SFs = jnp.where((eta_binning[:, None] <= 28) & (et_binning[None, :] <= options.maskLE), 1, SFs)
+        print(" ### INFO: Set HCAL Low Energy SFs to 1 up to {} iEt".format(options.maskLE))
+    if options.Test1:
+        SFs = jnp.where((eta_binning[:, None] > 15) & (eta_binning[:, None] <= 28) & (et_binning[None, :] == 2), 1, SFs)
+        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] == 2), 0, SFs)
+        print(" ### INFO: Constrain SFs for iEt = 1 (0 for ieta < 16, 1 for 16 <= ieta <= 28, 0 for ieta > 28)")
     if options.v == 'HCAL':
         # Apply ZS to ieta <= 15 and iet == 1
         SFs = jnp.where((eta_binning[:, None] <= 15) & (et_binning[None, :] == 2), 0, SFs)
@@ -154,28 +165,17 @@ if __name__ == "__main__" :
         SFs = jnp.where((eta_binning[:, None] == 27) & (et_binning[None, :] <= 12), 0, SFs)
         SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] <= 18), 0, SFs)
         print(" ### INFO: Zero Suppression applied to TT 26 (iEt<=6),27 (iEt<=12), 28 (iEt<=18)")
-    if options.maskHF:
-        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 8), 0, SFs)
-        SFs = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 1, SFs)
-        print(" ### INFO: Zero Suppression applied HF for iEt <= 3.5 GeV")
-    elif options.maskLE:
-        SFs = jnp.where((eta_binning[:, None] <= 28) & (et_binning[None, :] <= options.maskLE), 1, SFs)
-        print(" ### INFO: Set HCAL Low Energy SFs to 1 up to {} iEt".format(options.maskLE))
-    elif options.Test1:
-        SFs = jnp.where((eta_binning[:, None] > 15) & (eta_binning[:, None] <= 28) & (et_binning[None, :] == 2), 1, SFs)
-        SFs = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] == 2), 0, SFs)
-        print(" ### INFO: Constrain SFs for iEt = 1 (0 for ieta < 16, 1 for 16 <= ieta <= 28, 0 for ieta > 28)")
     SFs_flat = SFs.ravel()
 
     mask = jnp.ones(shape=(len(eta_binning),len(et_binning)))
     if options.maskHF:
         mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] <= 8), 0, mask)
-        mask = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 0, mask)
+        # mask = jnp.where((eta_binning[:, None] == 28) & (et_binning[None, :] == 2), 0, mask)
         print(" ### INFO: Masking applied HF for iEt <= 3.5 GeV")
-    elif options.maskLE:
+    if options.maskLE:
         mask = jnp.where((eta_binning[:, None] <= 28) & (et_binning[None, :] <= options.maskLE), 0, mask)
         print(" ### INFO: Masking HCAL Low Energy SFs up to {} iEt".format(options.maskLE))
-    elif options.Test1:
+    if options.Test1:
         mask = jnp.where((eta_binning[:, None] > 15) & (eta_binning[:, None] <= 28) & (et_binning[None, :] == 2), 0, mask)
         mask = jnp.where((eta_binning[:, None] > 28) & (et_binning[None, :] == 2), 0, mask)
         print(" ### INFO: Masking SFs for iEt = 1 (0 for ieta < 16, 1 for 16 <= ieta <= 28, 0 for ieta > 28)")

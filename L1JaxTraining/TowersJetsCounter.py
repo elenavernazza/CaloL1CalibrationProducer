@@ -113,9 +113,9 @@ if __name__ == "__main__" :
         hist, xedges, yedges = np.histogram2d(ieta, iem, bins=[eta_binning, et_binning])
     hist[hist == 0] = -1
     min_ = 1
-    max_ = int(np.max(hist)/20) # for 9x9 CD
+    # max_ = int(np.max(hist)/20) # for 9x9 CD
     # max_ = int(np.max(hist)/5) # for 3x3 CD
-    # max_ = int(np.max(hist)) # for Cluster
+    max_ = int(np.max(hist)) # for Cluster
 
     fig, ax = plt.subplots(1, 1, figsize=(14,12))
     cmap = matplotlib.cm.get_cmap("viridis")

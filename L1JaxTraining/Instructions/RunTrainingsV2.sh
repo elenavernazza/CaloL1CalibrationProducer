@@ -172,7 +172,7 @@ source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_56
 source Instructions/TestsPerformanceECAL.sh JAX_ECAL_19_HCAL_56
 source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_19_HCAL_56
 
-# Test for Santeri
+# Test HF masking for Et ≤ 3.5 GeV ( ==>  first 4 bins ==> Et < 4 GeV ==>  Et < 8 iEt)
 python3 JaxOptimizer.py --indir 2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
     --odir Trainings_2023/JAX_HCAL_57 --jetsLim 1000000 --lr 1 --bs 4096 --ep 50 --v HCAL \
     --ECALCalib Trainings_2023/JAX_ECAL_19/ScaleFactors_ECAL_Phys.csv --maskHF
@@ -183,6 +183,32 @@ source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_57
 source Instructions/TestsPerformanceECAL.sh JAX_ECAL_19_HCAL_57
 source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_19_HCAL_57
 
+# Test HF masking for Et ≤ 4.5 GeV ( ==>  first 5 bins ==> Et < 5 GeV ==>  Et < 10 iEt) # [FIXME] I've changed the JaxOptimizer.py script manually!!
+python3 JaxOptimizer.py --indir 2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_58 --jetsLim 1000000 --lr 1 --bs 4096 --ep 50 --v HCAL \
+    --ECALCalib Trainings_2023/JAX_ECAL_19/ScaleFactors_ECAL_Phys.csv --maskHF
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_58
+source Instructions/TestTrainingCombination.sh ECAL_19 HCAL_58
+python3 PlotHistory.py --indir Trainings_2023/JAX_HCAL_58 --v HCAL --loss
+source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_58
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_19_HCAL_58
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_19_HCAL_58
+
+# Test HF masking for Et ≤ 5.5 GeV ( ==>  first 6 bins ==> Et < 6 GeV ==>  Et < 12 iEt) # [FIXME] I've changed the JaxOptimizer.py script manually!!
+python3 JaxOptimizer.py --indir 2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_59 --jetsLim 1000000 --lr 1 --bs 4096 --ep 50 --v HCAL \
+    --ECALCalib Trainings_2023/JAX_ECAL_19/ScaleFactors_ECAL_Phys.csv --maskHF
+source Instructions/TestsTrainingHCAL.sh JAX_HCAL_59
+source Instructions/TestTrainingCombination.sh ECAL_19 HCAL_59
+python3 PlotHistory.py --indir Trainings_2023/JAX_HCAL_59 --v HCAL --loss
+source Instructions/TestsPerformanceHCAL.sh JAX_HCAL_59
+source Instructions/TestsPerformanceECAL.sh JAX_ECAL_19_HCAL_59
+source Instructions/TestsPerformanceHCAL.sh JAX_ECAL_19_HCAL_59
+
+
+python3 JaxOptimizer.py --indir 2024_03_05_NtuplesV59/JetMET_Run2023D_PuppiJet_Pt30_HoTot70/GoodNtuples/tensors \
+    --odir Trainings_2023/JAX_HCAL_60 --jetsLim 10000 --lr 1 --bs 4096 --ep 50 --v HCAL \
+    --ECALCalib Trainings_2023/JAX_ECAL_19/ScaleFactors_ECAL_Phys.csv --maskHF
 # Test 6: Use MAPE*alpha + (1-alpha)*STD as loss (alpha = 0.5)
 # Plot MAPE for uncalib and STD for uncalib and understand if they have the same magnitude
 # If not, divide by the mean of the distribution
