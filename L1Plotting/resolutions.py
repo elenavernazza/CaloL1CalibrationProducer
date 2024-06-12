@@ -385,6 +385,13 @@ if not options.plot_only:
     pt_resol_fctAbsEta = ROOT.TH1F("pt_resol_fctAbsEta","pt_resol_fctAbsEta",len(etaBins)-1, array('f',etaBins))
     pt_resol_fctEta = ROOT.TH1F("pt_resol_fctEta","pt_resol_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
 
+    pt_fwhm_fctPt = ROOT.TH1F("pt_fwhm_fctPt","pt_fwhm_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_fwhm_barrel_fctPt = ROOT.TH1F("pt_fwhm_barrel_fctPt","pt_fwhm_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_fwhm_endcap_fctPt = ROOT.TH1F("pt_fwhm_endcap_fctPt","pt_fwhm_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_fwhm_forward_fctPt = ROOT.TH1F("pt_fwhm_forward_fctPt","pt_fwhm_forward_fctPt",len(ptBins)-1, array('f',ptBins))
+    pt_fwhm_fctAbsEta = ROOT.TH1F("pt_fwhm_fctAbsEta","pt_fwhm_fctAbsEta",len(etaBins)-1, array('f',etaBins))
+    pt_fwhm_fctEta = ROOT.TH1F("pt_fwhm_fctEta","pt_fwhm_fctEta",len(signedEtaBins)-1, array('f',signedEtaBins))
+
     pt_scale_fctPt = ROOT.TH1F("pt_scale_fctPt","pt_scale_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_scale_barrel_fctPt = ROOT.TH1F("pt_scale_barrel_fctPt","pt_scale_barrel_fctPt",len(ptBins)-1, array('f',ptBins))
     pt_scale_endcap_fctPt = ROOT.TH1F("pt_scale_endcap_fctPt","pt_scale_endcap_fctPt",len(ptBins)-1, array('f',ptBins))
@@ -417,8 +424,19 @@ if not options.plot_only:
             pt_resol_fctPt.SetBinContent(i+1, 0)
             pt_resol_fctPt.SetBinError(i+1, 0)
 
+        if response_ptBins[i].GetMean() > 0:
+            bin1 = response_ptBins[i].FindFirstBinAbove(response_ptBins[i].GetMaximum()/2);
+            bin2 = response_ptBins[i].FindLastBinAbove(response_ptBins[i].GetMaximum()/2);
+            fwhm = (response_ptBins[i].GetBinCenter(bin2) - response_ptBins[i].GetBinCenter(bin1))/response_ptBins[i].GetMean()            
+            pt_fwhm_fctPt.SetBinContent(i+1, fwhm)
+            pt_fwhm_fctPt.SetBinError(i+1, 0)
+        else:
+            pt_fwhm_fctPt.SetBinContent(i+1, 0)
+            pt_fwhm_fctPt.SetBinError(i+1, 0)
+
         pt_scale_barrel_fctPt.SetBinContent(i+1, barrel_response_ptBins[i].GetMean())
         pt_scale_barrel_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetMeanError())
+
         if barrel_response_ptBins[i].GetMean() > 0:
             pt_resol_barrel_fctPt.SetBinContent(i+1, barrel_response_ptBins[i].GetRMS()/barrel_response_ptBins[i].GetMean())
             pt_resol_barrel_fctPt.SetBinError(i+1, barrel_response_ptBins[i].GetRMSError()/barrel_response_ptBins[i].GetMean())
@@ -426,14 +444,35 @@ if not options.plot_only:
             pt_resol_barrel_fctPt.SetBinContent(i+1, 0)
             pt_resol_barrel_fctPt.SetBinError(i+1, 0)        
 
+        if barrel_response_ptBins[i].GetMean() > 0:
+            bin1 = barrel_response_ptBins[i].FindFirstBinAbove(barrel_response_ptBins[i].GetMaximum()/2);
+            bin2 = barrel_response_ptBins[i].FindLastBinAbove(barrel_response_ptBins[i].GetMaximum()/2);
+            fwhm = (barrel_response_ptBins[i].GetBinCenter(bin2) - barrel_response_ptBins[i].GetBinCenter(bin1))/barrel_response_ptBins[i].GetMean()    
+            pt_fwhm_barrel_fctPt.SetBinContent(i+1, fwhm)
+            pt_fwhm_barrel_fctPt.SetBinError(i+1, 0)
+        else:
+            pt_fwhm_barrel_fctPt.SetBinContent(i+1, 0)
+            pt_fwhm_barrel_fctPt.SetBinError(i+1, 0)  
+
         pt_scale_endcap_fctPt.SetBinContent(i+1, endcap_response_ptBins[i].GetMean())
         pt_scale_endcap_fctPt.SetBinError(i+1, endcap_response_ptBins[i].GetMeanError())
+
         if endcap_response_ptBins[i].GetMean() > 0:
             pt_resol_endcap_fctPt.SetBinContent(i+1, endcap_response_ptBins[i].GetRMS()/endcap_response_ptBins[i].GetMean())
             pt_resol_endcap_fctPt.SetBinError(i+1, endcap_response_ptBins[i].GetRMSError()/endcap_response_ptBins[i].GetMean())
         else:
             pt_resol_endcap_fctPt.SetBinContent(i+1, 0)
             pt_resol_endcap_fctPt.SetBinError(i+1, 0)
+
+        if endcap_response_ptBins[i].GetMean() > 0:
+            bin1 = endcap_response_ptBins[i].FindFirstBinAbove(endcap_response_ptBins[i].GetMaximum()/2);
+            bin2 = endcap_response_ptBins[i].FindLastBinAbove(endcap_response_ptBins[i].GetMaximum()/2);
+            fwhm = (endcap_response_ptBins[i].GetBinCenter(bin2) - endcap_response_ptBins[i].GetBinCenter(bin1))/endcap_response_ptBins[i].GetMean()    
+            pt_fwhm_endcap_fctPt.SetBinContent(i+1, fwhm)
+            pt_fwhm_endcap_fctPt.SetBinError(i+1, 0)
+        else:
+            pt_fwhm_endcap_fctPt.SetBinContent(i+1, 0)
+            pt_fwhm_endcap_fctPt.SetBinError(i+1, 0)  
 
         pt_scale_forward_fctPt.SetBinContent(i+1, forward_response_ptBins[i].GetMean())
         pt_scale_forward_fctPt.SetBinError(i+1, forward_response_ptBins[i].GetMeanError())
@@ -443,6 +482,16 @@ if not options.plot_only:
         else:
             pt_resol_forward_fctPt.SetBinContent(i+1, 0)
             pt_resol_forward_fctPt.SetBinError(i+1, 0)
+
+        if forward_response_ptBins[i].GetMean() > 0:
+            bin1 = forward_response_ptBins[i].FindFirstBinAbove(forward_response_ptBins[i].GetMaximum()/2);
+            bin2 = forward_response_ptBins[i].FindLastBinAbove(forward_response_ptBins[i].GetMaximum()/2);
+            fwhm = (forward_response_ptBins[i].GetBinCenter(bin2) - forward_response_ptBins[i].GetBinCenter(bin1))/forward_response_ptBins[i].GetMean()    
+            pt_fwhm_forward_fctPt.SetBinContent(i+1, fwhm)
+            pt_fwhm_forward_fctPt.SetBinError(i+1, 0)
+        else:
+            pt_fwhm_forward_fctPt.SetBinContent(i+1, 0)
+            pt_fwhm_forward_fctPt.SetBinError(i+1, 0)  
 
     for i in range(len(minusEta_response_ptBins)):
         pt_scale_fctEta.SetBinContent(len(etaBins)-1-i, minusEta_response_ptBins[i].GetMean())
@@ -468,6 +517,28 @@ if not options.plot_only:
         else:
             pt_resol_fctEta.SetBinContent(i+len(etaBins), 0)
             pt_resol_fctEta.SetBinError(i+len(etaBins), 0)
+
+        if minusEta_response_ptBins[i].GetMean() > 0:
+            bin1 = minusEta_response_ptBins[i].FindFirstBinAbove(minusEta_response_ptBins[i].GetMaximum()/2);
+            bin2 = minusEta_response_ptBins[i].FindLastBinAbove(minusEta_response_ptBins[i].GetMaximum()/2);
+            fwhm = (minusEta_response_ptBins[i].GetBinCenter(bin2) - minusEta_response_ptBins[i].GetBinCenter(bin1))/minusEta_response_ptBins[i].GetMean()
+            
+            pt_fwhm_fctEta.SetBinContent(len(etaBins)-1-i, fwhm)
+            pt_fwhm_fctEta.SetBinError(len(etaBins)-1-i, 0)
+        else:
+            pt_fwhm_fctEta.SetBinContent(len(etaBins)-1-i, 0)
+            pt_fwhm_fctEta.SetBinError(len(etaBins)-1-i, 0)
+
+        if plusEta_response_ptBins[i].GetMean() > 0:
+            bin1 = plusEta_response_ptBins[i].FindFirstBinAbove(plusEta_response_ptBins[i].GetMaximum()/2);
+            bin2 = plusEta_response_ptBins[i].FindLastBinAbove(plusEta_response_ptBins[i].GetMaximum()/2);
+            fwhm = (plusEta_response_ptBins[i].GetBinCenter(bin2) - plusEta_response_ptBins[i].GetBinCenter(bin1))/plusEta_response_ptBins[i].GetMean()
+
+            pt_fwhm_fctEta.SetBinContent(i+len(etaBins), fwhm)
+            pt_fwhm_fctEta.SetBinError(i+len(etaBins), 0)
+        else:
+            pt_fwhm_fctEta.SetBinContent(i+len(etaBins), 0)
+            pt_fwhm_fctEta.SetBinError(i+len(etaBins), 0)
 
     if options.do_HoTot:
         for i in range(len(HoTotBins)-1):
@@ -522,6 +593,14 @@ if not options.plot_only:
     pt_resol_forward_fctPt.Write()
     pt_resol_fctAbsEta.Write()
     pt_resol_fctEta.Write()
+
+    pt_fwhm_fctPt.Write()
+    pt_fwhm_barrel_fctPt.Write()
+    pt_fwhm_endcap_fctPt.Write()
+    pt_fwhm_forward_fctPt.Write()
+    pt_fwhm_fctAbsEta.Write()
+    pt_fwhm_fctEta.Write()
+
     pt_response_ptInclusive.Write()
     pt_barrel_resp_ptInclusive.Write()
     pt_endcap_resp_ptInclusive.Write()
@@ -574,6 +653,14 @@ else:
     pt_resol_forward_fctPt = filein.Get('pt_resol_forward_fctPt')
     pt_resol_fctAbsEta = filein.Get('pt_resol_fctAbsEta')
     pt_resol_fctEta = filein.Get('pt_resol_fctEta')
+
+    pt_fwhm_fctPt = filein.Get('pt_fwhm_fctPt')
+    pt_fwhm_barrel_fctPt = filein.Get('pt_fwhm_barrel_fctPt')
+    pt_fwhm_endcap_fctPt = filein.Get('pt_fwhm_endcap_fctPt')
+    pt_fwhm_forward_fctPt = filein.Get('pt_fwhm_forward_fctPt')
+    pt_fwhm_fctAbsEta = filein.Get('pt_fwhm_fctAbsEta')
+    pt_fwhm_fctEta = filein.Get('pt_fwhm_fctEta')
+
     pt_response_ptInclusive = filein.Get('pt_response_ptInclusive')
     pt_barrel_resp_ptInclusive = filein.Get('pt_barrel_resp_ptInclusive')
     pt_endcap_resp_ptInclusive = filein.Get('pt_endcap_resp_ptInclusive')
@@ -673,6 +760,7 @@ x_label_response = r'$E_{T}^{%s, L1} / p_{T}^{%s, %s}$' % (part_name,part_name, 
 y_label_response = 'Entries'
 
 y_label_resolution  = 'Energy resolution'
+y_label_fwhm  = 'FWHM / mean'
 y_label_scale       = 'Energy scale (Mean)'
 y_label_scale_max   = 'Energy scale (Maximum)'
 y_lim_scale = (0.5,1.5)
@@ -804,6 +892,28 @@ plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/resolution_p
 plt.close()
 
 ############################################################################################
+## fwhm in pt bins
+
+fig, ax = plt.subplots(figsize=(10,10))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_fwhm_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=inclusive_label, lw=2, marker='o', color=cmap(0))
+Ymax = max(Y)
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_fwhm_barrel_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=barrel_label, lw=2, marker='o', color=cmap(1))
+Ymax = max(Ymax, max(Y))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_fwhm_endcap_fctPt)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=endcap_label, lw=2, marker='o', color=cmap(2))
+Ymax = max(Ymax, max(Y))
+if options.target != "ele":
+    X,Y,X_err,Y_err = GetArraysFromHisto(pt_fwhm_forward_fctPt)
+    ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, label=forward_label, lw=2, marker='o', color=cmap(3))
+    Ymax = max(Ymax, max(Y)) 
+SetStyle(ax, x_label_pt, y_label_fwhm, x_lim_pt, (0,1.3*Ymax))
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/fwhm_ptBins_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/fwhm_ptBins_'+label+'_'+options.target+'.png')
+plt.close()
+
+############################################################################################
 ## scale in pt bins
 
 fig, ax = plt.subplots(figsize=(10,10))
@@ -864,6 +974,19 @@ AddRectangles(ax,Ymax)
 SetStyle(ax, x_label_eta, y_label_resolution, x_lim_eta, (0,1.3*Ymax))
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/resolution_etaBins_'+label+'_'+options.target+'.pdf')
 plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/resolution_etaBins_'+label+'_'+options.target+'.png')
+plt.close()
+
+############################################################################################
+## fwhm in eta bins
+
+fig, ax = plt.subplots(figsize=(10,10))
+X,Y,X_err,Y_err = GetArraysFromHisto(pt_fwhm_fctEta)
+ax.errorbar(X, Y, xerr=X_err, yerr=Y_err, ls='None', lw=2, marker='o', color=cmap(0), zorder=1)
+Ymax = max(Y)
+AddRectangles(ax,Ymax)
+SetStyle(ax, x_label_eta, y_label_fwhm, x_lim_eta, (0,1.3*Ymax))
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PDFs/fwhm_etaBins_'+label+'_'+options.target+'.pdf')
+plt.savefig(outdir+'/PerformancePlots'+options.tag+'/'+label+'/PNGs/fwhm_etaBins_'+label+'_'+options.target+'.png')
 plt.close()
 
 ############################################################################################
